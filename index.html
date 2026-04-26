@@ -295,8 +295,8 @@ tr:hover td{background:#ffffff03;}
     </div>
   </div>
   <nav class="nav">
-    <button class="nav-btn active" onclick="showPage('load',this)">📡 <span>Load Match</span></button>
-    <button class="nav-btn" onclick="showPage('season',this)">🏆 <span>Season History</span></button>
+    <button class="nav-btn" onclick="showPage('load',this)">📡 <span>Load Match</span></button>
+    <button class="nav-btn active" onclick="showPage('season',this)">🏆 <span>Season History</span></button>
     <button class="nav-btn" onclick="showPage('ranks',this);renderRankMovement()">📈 <span>Rank Movement</span></button>
     <button class="nav-btn" onclick="showPage('analysis',this);populateReportSeasons();">📊 <span>Weekly Report</span></button>
     <button class="nav-btn" onclick="showPage('config',this);if(CURRENT_USER?.role==='admin')loadUsers();renderTeamCourtGrid();">⚙️ <span>Settings</span></button>
@@ -336,7 +336,7 @@ tr:hover td{background:#ffffff03;}
 <div class="main">
 
   <!-- ══ LOAD MATCH ══ -->
-  <div id="page-load" class="page active">
+  <div id="page-load" class="page">
     <div class="page-title">Load Match</div>
     <div class="page-sub">Fetch score sheet · calculate tier-based court scores · save week</div>
 
@@ -419,7 +419,7 @@ tr:hover td{background:#ffffff03;}
   </div>
 
   <!-- ══ SEASON HISTORY ══ -->
-  <div id="page-season" class="page">
+  <div id="page-season" class="page active">
     <div class="page-title">Season History</div>
     <div class="page-sub">All saved weeks · auto-assign tiers · season leaderboard</div>
 
@@ -427,9 +427,14 @@ tr:hover td{background:#ffffff03;}
 
     <div id="seasonContent"><p style="color:var(--muted);font-size:12px">No seasons saved yet. Load a match and save it!</p></div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-      <button class="btn btn-sm btn-blue" id="lbBtn" onclick="showLeaderboard(document.getElementById('lbSeason')?.value||currentSeasonName)">🏆 Leaderboard</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px">
+      <select id="lbSeason" onchange="onSeasonSelect(this.value)"
+        style="background:#0a0a14;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;outline:none;cursor:pointer">
+        <option value="">— Select Season —</option>
+      </select>
+      <button class="btn btn-sm btn-blue" id="lbBtn" onclick="showLeaderboard(document.getElementById('lbSeason').value)">🏆 Leaderboard</button>
       <button class="btn btn-sm" id="thBtn" style="background:#1a1a2e;color:#7c3aed;border:1px solid #7c3aed40" onclick="showTierHistory()">📊 Tier History</button>
+      <span id="curSeasonLabel" style="font-size:10px;color:var(--muted)"></span>
     </div>
 
     <!-- Tier History -->
@@ -509,6 +514,32 @@ tr:hover td{background:#ffffff03;}
       </div>
       <button class="btn btn-green btn-sm" onclick="saveConfig()">Save Tier Sizes</button>
       <span id="configSaved" style="font-size:10px;color:var(--accent);margin-left:10px;display:none">✓ Saved!</span>
+    </div>
+
+    <!-- Storage Status -->
+    <div class="card" id="storageStatusCard">
+      <div class="card-title" style="color:#00ccff">💾 Storage Status</div>
+      <div id="storageStatus" style="font-size:12px;padding:10px;border-radius:8px;background:#0a0a14">
+        Checking...
+      </div>
+      <button class="btn btn-sm btn-outline" style="margin-top:10px" onclick="checkStorageStatus()">🔄 Refresh</button>
+    </div>
+
+    <!-- Data Migration -->
+    <div class="card">
+      <div class="card-title" style="color:#00ccff">🚀 Data Migration (Local ↔ Cloud)</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+        Export your local data and import it to the online server (or vice versa).
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-blue" onclick="exportAllData()">⬇ Export All Data</button>
+        <label class="btn btn-sm" style="background:#1a2a1a;color:#00ff9d;border:1px solid #00ff9d40;cursor:pointer">
+          ⬆ Import Data File
+          <input type="file" accept=".json" onchange="importDataFile(this)" style="display:none">
+        </label>
+        <button class="btn btn-sm" style="background:#2a1a1a;color:#ff6b6b;border:1px solid #ff6b6b40" onclick="importFromUrl()">🌐 Pull from URL</button>
+      </div>
+      <div id="migrationStatus" style="font-size:11px;color:var(--accent);margin-top:10px;min-height:16px"></div>
     </div>
 
     <!-- User Management -->
@@ -955,20 +986,28 @@ async function saveWeek(){
     document.getElementById('tStandings').innerHTML=standingsHTML();
   }
 
-  const res=await fetch('/seasons/save',{method:'POST',headers:{'Content-Type':'application/json'},
+  const saveRes=await fetch('/seasons/save',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({season,week,title:LAST_TITLE,date:LAST_DATE,isWeek1:IS_WEEK1,
       scoreUrl:document.getElementById('scoreUrl').value.trim(),
       meetUrl:document.getElementById('meetUrl').value.trim(),
       playerWeekPoints:PLAYER_WPT,courtResults:COURT_RESULTS})});
-  const d=await res.json();
+  const d=saveRes.status===403?{error:'Admin required'}:await saveRes.json();
   const msg=document.getElementById('saveMsg');
   if(d.success){
     msg.textContent='✓ Saved '+season+' Week '+week+' with tier-based scores!';
+    msg.style.color='var(--accent)';
     msg.classList.add('show');
     await loadSeasons();populateAssignSeasons();populateRmSeasons();
     populateReportSeasons();
+  } else {
+    msg.textContent='✗ '+(d.error||'Save failed — are you logged in as admin?');
+    msg.style.color='#ff6b6b';
+    msg.classList.add('show');
+    // Check if it's an auth issue
+    if(d.error==='Admin required'||saveRes.status===403){
+      msg.textContent='✗ Not logged in! Click the 🔑 key and login as admin first.';
+    }
   }
-  else{msg.textContent='✗ '+d.error;msg.classList.add('show');}
 }
 
 // ── Config ────────────────────────────────────────────────
@@ -1075,9 +1114,22 @@ function renderSeasons(){
   const cont=document.getElementById('seasonContent');
   const seasons=Object.values(SEASONS).sort((a,b)=>a.name.localeCompare(b.name));
   if(!seasons.length){cont.innerHTML='<p style="color:var(--muted);font-size:12px">No seasons yet. Load a match and save it!</p>';document.getElementById('lbSection').style.display='none';return;}
-  // Auto-show leaderboard for latest season
-  const latestSeason = seasons[seasons.length-1]?.name;
-  if(latestSeason){ currentSeasonName=latestSeason; showLeaderboard(latestSeason); }
+  // Populate season selector dropdown
+  const sel = document.getElementById('lbSeason');
+  if(sel){
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— Select Season —</option>'
+      + seasons.map(s=>`<option value="${s.name}" ${s.name===currentSeasonName?'selected':''}>${s.name}</option>`).join('');
+    // Auto-select latest season
+    const latestSeason = seasons[seasons.length-1]?.name;
+    if(latestSeason){
+      currentSeasonName = prev||latestSeason;
+      sel.value = currentSeasonName;
+      const lbl=document.getElementById('curSeasonLabel');
+      if(lbl) lbl.textContent=currentSeasonName;
+      showLeaderboard(currentSeasonName);
+    }
+  }
   cont.innerHTML=seasons.map(s=>{
     const weeks=Object.values(s.weeks||{}).sort((a,b)=>a.week-b.week);
     return`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px">
@@ -1101,9 +1153,17 @@ function renderSeasons(){
   }).join('');
 }
 
+function onSeasonSelect(val){
+  if(val) currentSeasonName=val;
+  document.getElementById('tierHistorySection').style.display='none';
+  const lbl=document.getElementById('curSeasonLabel');
+  if(lbl) lbl.textContent=val;
+}
+
 function showTierHistory(){
-  const season = document.getElementById('lbSeason')?.value;
-  if(!season||!SEASONS[season]){ alert('Select a season first'); return; }
+  const selVal=document.getElementById('lbSeason')?.value;
+  const season=(selVal&&SEASONS[selVal])?selVal:(currentSeasonName&&SEASONS[currentSeasonName])?currentSeasonName:Object.keys(SEASONS)[0]||'';
+  if(!season||!SEASONS[season]){ alert('No season data. Save a week first.'); return; }
   const snapshots = SEASONS[season].tierSnapshots||[];
   document.getElementById('lbSection').style.display='none';
   document.getElementById('tierHistorySection').style.display='block';
@@ -1515,12 +1575,17 @@ function editHandleFromCourt(div){
 function rebuildPhotoUrl(p){ return p.avatarId?`https://assets.reclub.co/user-avatars/${p.avatarId}.webp`:p.photoUrl||null; }
 function avEl(name,size=28,borderColor,photo){
   const p=PROFILES[name]||{};
-  // Always prefer avatarId-derived URL, then passed photo, then stored photoUrl
-  const ph = (p.avatarId?rebuildPhotoUrl(p):null) || photo || p.photoUrl || null;
+  // Try: passed photo → PROFILES avatarId → DB avatarId → photoUrl
+  const dbP = dbPlayer(name);
+  const avatarId = p.avatarId || dbP?.avatarId || null;
+  const ph = photo || (avatarId?('https://assets.reclub.co/user-avatars/'+avatarId+'.webp'):null) || p.photoUrl || null;
   const bc = borderColor||p.teamColor||'var(--border)';
-  if(ph) return `<img class="av" src="${ph}"
-    style="width:${size}px;height:${size}px;border-color:${bc};border-radius:50%;object-fit:cover;border-width:2px;border-style:solid;flex-shrink:0"
-    onerror="this.style.display='none';this.insertAdjacentHTML('afterend',phAv('${name.replace(/'/g,"\\'")}',${size}))">`;
+  if(ph){
+    const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<img class="av" src="${ph}"
+      style="width:${size}px;height:${size}px;border-color:${bc};border-radius:50%;object-fit:cover;border-width:2px;border-style:solid;flex-shrink:0"
+      onerror="this.style.display='none';this.insertAdjacentHTML('afterend',phAv('${safeName}',${size}))">`;
+  }
   return phAv(name,size);
 }
 function phAv(name,size=28){return`<div class="av-ph" style="width:${size}px;height:${size}px;background:#${abg(name)};font-size:${size*.35}px">${ini(name)}</div>`;}

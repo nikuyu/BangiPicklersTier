@@ -11,12 +11,23 @@ const MONGO_URI = process.env.MONGO_URI;
 let mongo = null;
 
 async function connectMongo() {
-  if (!MONGO_URI) { console.log('  No MONGO_URI — using local JSON files'); return; }
-  const { MongoClient } = require('mongodb');
-  const client = new MongoClient(MONGO_URI);
-  await client.connect();
-  mongo = client.db('reclub');
-  console.log('✓ Connected to MongoDB');
+  if (!MONGO_URI) {
+    console.log('⚠️  No MONGO_URI set — using local JSON files (data will reset on redeploy!)');
+    console.log('   Set MONGO_URI env var on Render to persist data.');
+    return;
+  }
+  try {
+    const { MongoClient } = require('mongodb');
+    const client = new MongoClient(MONGO_URI, {serverSelectionTimeoutMS:5000});
+    await client.connect();
+    await client.db('admin').command({ping:1}); // verify connection
+    mongo = client.db('reclub');
+    console.log('✓ Connected to MongoDB Atlas — data will persist');
+  } catch(e) {
+    console.error('✗ MongoDB connection FAILED:', e.message);
+    console.error('  Falling back to local JSON files (data will reset on redeploy!)');
+    mongo = null;
+  }
 }
 
 const DATA_DIR = path.join(__dirname, 'data');
@@ -616,14 +627,18 @@ const server = http.createServer(async(req,res)=>{
     const sessions=await loadSessions();
     sessions[token]={username:user.username,role:user.role,createdAt:Date.now()};
     await saveSessions(sessions);
-    res.setHeader('Set-Cookie',`token=${token}; Path=/; HttpOnly; Max-Age=${30*24*60*60}`);
+    const isHttps = req.headers['x-forwarded-proto']==='https';
+    const cookieFlags = isHttps ? '; Secure; SameSite=None' : '; SameSite=Lax';
+    res.setHeader('Set-Cookie',`token=${token}; Path=/; HttpOnly; Max-Age=${30*24*60*60}${cookieFlags}`);
     return json({success:true,username:user.username,role:user.role});
   }
   if(pathname==='/auth/logout'&&req.method==='POST'){
     const cookie=req.headers.cookie||'';
     const match=cookie.match(/token=([a-f0-9]+)/);
     if(match){const s=await loadSessions();delete s[match[1]];await saveSessions(s);}
-    res.setHeader('Set-Cookie','token=; Path=/; Max-Age=0');
+    const isHttps2 = req.headers['x-forwarded-proto']==='https';
+    const clearFlags = isHttps2 ? '; Secure; SameSite=None' : '; SameSite=Lax';
+    res.setHeader('Set-Cookie',`token=; Path=/; Max-Age=0${clearFlags}`);
     return json({success:true});
   }
   if(pathname==='/auth/me'&&req.method==='GET'){const s=await getSession(req);return json(s?{loggedIn:true,username:s.username,role:s.role}:{loggedIn:false});}
@@ -655,7 +670,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/assign-tiers','/db/player','/db/bulk','/config','/aliases'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/strip-location','/db/auto-populate','/import-all','/config','/aliases'];
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
     if(!s||s.role!=='admin'){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Admin required'}));return;}
@@ -1002,6 +1017,70 @@ const server = http.createServer(async(req,res)=>{
     });
     await saveDB(db);
     return json({success:true, added, total:Object.keys(db.players).length});
+  }
+
+  // Health check — shows DB connection status
+  if(pathname==='/health'){
+    return json({
+      status: 'ok',
+      storage: mongo ? 'mongodb' : 'local-json',
+      mongoConnected: !!mongo,
+      mongoUri: MONGO_URI ? MONGO_URI.replace(/:([^@]+)@/, ':***@') : null,
+      time: new Date().toISOString()
+    });
+  }
+
+  // Export ALL data as JSON dump for migration
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const db = await loadDB();
+    const seasons = await loadSeasons();
+    const aliases = await loadAliases();
+    const cfg = await loadConfig();
+    return json({players:db.players, seasons:seasons.seasons, aliases, config:cfg});
+  }
+
+  // Import ALL data from JSON dump (migration from local to cloud)
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const{players,seasons,aliases,config,overwrite}=JSON.parse(await body());
+    // Players
+    if(players){
+      const db = await loadDB();
+      if(overwrite){
+        db.players = players;
+      } else {
+        // Merge — existing entries take priority for tier
+        Object.entries(players).forEach(([k,p])=>{
+          if(!db.players[k]) db.players[k]=p;
+          else {
+            // Keep existing tier, update handle/avatarId if missing
+            db.players[k].handle = db.players[k].handle||p.handle;
+            db.players[k].avatarId = db.players[k].avatarId||p.avatarId;
+          }
+        });
+      }
+      await saveDB(db);
+    }
+    // Seasons
+    if(seasons){
+      const s = await loadSeasons();
+      if(overwrite) s.seasons=seasons;
+      else Object.assign(s.seasons, seasons);
+      await saveSeasons(s);
+    }
+    // Aliases
+    if(aliases){
+      const a = await loadAliases();
+      if(overwrite) Object.assign(a,aliases);
+      else Object.assign(a,aliases);
+      await saveAliases(a);
+    }
+    // Config
+    if(config){
+      const cfg = await loadConfig();
+      if(overwrite) Object.assign(cfg,config);
+      await saveConfig(cfg);
+    }
+    return json({success:true, message:'Import complete'});
   }
 
   // Strip team/court/teamColor from ALL existing DB entries

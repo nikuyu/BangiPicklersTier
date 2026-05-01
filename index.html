@@ -17,6 +17,8 @@ body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;m
 /* ── Mobile Layout ── */
 @media(max-width:768px){
   .mobile-only{display:flex!important;}
+  #leagueSwitcher{position:fixed;bottom:60px;left:0;right:0;z-index:101;border-bottom:none;border-top:1px solid var(--border);}
+  #leagueSwitcher button{padding:8px 4px;font-size:10px;}
   body{flex-direction:column;}
   .sidebar{width:100%;height:auto;position:fixed;bottom:0;top:auto;border-right:none;border-top:1px solid var(--border);z-index:100;flex-direction:row;align-items:center;padding:0;overflow:visible;flex-shrink:0;}
   .sidebar-logo{display:none;}
@@ -296,13 +298,26 @@ tr:hover td{background:#ffffff03;}
 
 <!-- Sidebar -->
 <div class="sidebar">
+  <!-- League Switcher -->
+  <div id="leagueSwitcher" style="display:flex;background:#070710;border-bottom:1px solid var(--border)">
+    <button id="btnMen" onclick="switchLeague('men')"
+      style="flex:1;padding:11px 4px;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555;transition:all 0.2s">
+      ♂ MEN
+    </button>
+    <div style="width:1px;background:var(--border);margin:6px 0"></div>
+    <button id="btnWomen" onclick="switchLeague('women')"
+      style="flex:1;padding:11px 4px;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555;transition:all 0.2s">
+      ♀ WOMEN
+    </button>
+  </div>
+
   <div class="sidebar-logo">
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:4px">
       <img src="data:image/jpeg;base64,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" alt="Bangi Picklers"
         style="width:90px;height:90px;border-radius:14px;object-fit:cover;border:2px solid #ffffff15;flex-shrink:0">
       <div style="text-align:center">
-        <h1 style="font-size:13px;line-height:1.3">Bangi Picklers</h1>
-        <p style="font-size:9px;margin-top:2px;letter-spacing:1.5px">Tier Ranking</p>
+        <h1 class="sidebar-title" style="font-size:13px;line-height:1.3">Bangi Picklers</h1>
+        <p class="sidebar-sub" style="font-size:9px;margin-top:2px;letter-spacing:1.5px">TIER RANKING</p>
       </div>
     </div>
   </div>
@@ -312,7 +327,7 @@ tr:hover td{background:#ffffff03;}
     <button class="nav-btn" onclick="showPage('ranks',this);renderRankMovement()">📈 <span>Rank Movement</span></button>
     <button class="nav-btn" onclick="showPage('analysis',this);populateReportSeasons();">📊 <span>Weekly Report</span></button>
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('config',this);if(CURRENT_USER?.role==='admin')loadUsers();renderTeamCourtGrid();">⚙️ <span>Settings</span></button>
-    <button class="nav-btn admin-only" style="display:none" onclick="showPage('db',this)">🗄️ <span>Player Database</span></button>
+    <button class="nav-btn admin-only" style="display:none" onclick="showPage('db',this);loadAllLeagueData()">🗄️ <span>Player Database</span></button>
   </nav>
   <!-- Mobile login button in nav (shown only on mobile) -->
   <div style="display:none" id="mobileUserInfo" class="mobile-only">
@@ -728,6 +743,7 @@ Shaiful Anuar](https://reclub.co/players/@captsa)..."
 // ── State ──────────────────────────────────────────────────
 let MATCHES=[],COURTS=[],overall={},PROFILES={},COURT_PROFILES={},COURT_RESULTS={},PLAYER_WPT={};
 let DB={},SEASONS={},CFG={tierSizes:{S:21,A:21,B:22,C:999}};
+let LEAGUE = localStorage.getItem('bp_league')||'men'; // 'men' or 'women'
 let currentSeasonName='';
 
 // Get player profile — court-aware for duplicate names
@@ -894,7 +910,7 @@ async function loadMatch(){
   setP(15,'Fetching data...');
 
   try{
-    let fu='/fetch?scoreUrl='+encodeURIComponent(scoreUrl)+'&isWeek1='+IS_WEEK1;
+    let fu='/fetch?scoreUrl='+encodeURIComponent(scoreUrl)+'&isWeek1='+IS_WEEK1+'&league='+LEAGUE;
     if(meetUrl)fu+='&meetUrl='+encodeURIComponent(meetUrl);
     setP(35,IS_WEEK1?'Fetching (Week 1 mode: Court Score = 200)...':'Fetching scores + profiles...');
     const res=await fetch(fu); const data=await res.json();
@@ -1004,7 +1020,7 @@ async function saveWeek(){
     if(p.handle&&p.tier) tierSnapshot[p.handle.replace('@','').toLowerCase().trim()]=p.tier;
   });
 
-  const saveRes=await fetch('/seasons/save',{method:'POST',headers:{'Content-Type':'application/json'},
+  const saveRes=await fetch('/seasons/save?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({season,week,title:LAST_TITLE,date:LAST_DATE,isWeek1:IS_WEEK1,
       scoreUrl:document.getElementById('scoreUrl').value.trim(),
       meetUrl:document.getElementById('meetUrl').value.trim(),
@@ -1164,7 +1180,7 @@ async function assignTiers(){
     A:parseInt(document.getElementById('tierA').value)||21,
     B:parseInt(document.getElementById('tierB').value)||22,C:999};
   try{
-  const res=await fetch('/seasons/assign-tiers',{method:'POST',headers:{'Content-Type':'application/json'},
+  const res=await fetch('/seasons/assign-tiers?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({season:seasonToUse,tierSizes})});
   if(res.status===403){ alert('Not logged in as admin. Click the 🔑 key in the sidebar.'); return; }
   const d=await res.json();
@@ -1201,7 +1217,7 @@ async function assignTiers(){
 // ── Seasons ───────────────────────────────────────────────
 async function loadSeasons(){
   try{
-    const res=await fetch('/seasons');
+    const res=await fetch('/seasons?league='+LEAGUE);
     if(!res.ok){ console.error('loadSeasons failed:', res.status); return; }
     const d=await res.json();
     // Server returns {seasons:{...}} object
@@ -1529,8 +1545,55 @@ async function deleteWeek(e,season,week){
 }
 
 // ── DB ────────────────────────────────────────────────────
+function switchLeague(lg){
+  LEAGUE = lg;
+  localStorage.setItem('bp_league', lg);
+  // Update button styles
+  const accent = lg==='women' ? '#ff6eb4' : '#00ff9d';
+  document.documentElement.style.setProperty('--accent', accent);
+  document.getElementById('btnMen').style.cssText    = lg==='men'    ? 'flex:1;padding:10px 6px;border:none;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:'+accent+'20;color:'+accent+';border-bottom:2px solid '+accent : 'flex:1;padding:10px 6px;border:none;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555;border-bottom:none';
+  document.getElementById('btnWomen').style.cssText  = lg==='women'  ? 'flex:1;padding:10px 6px;border:none;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:'+accent+'20;color:'+accent+';border-bottom:2px solid '+accent : 'flex:1;padding:10px 6px;border:none;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555;border-bottom:none';
+  // Update title
+  document.querySelector('.sidebar-title').textContent = lg==='women' ? 'Bangi Picklers Women' : 'Bangi Picklers';
+  document.querySelector('.sidebar-sub').textContent = lg==='women' ? 'WOMEN TIER RANKING' : 'TIER RANKING';
+  // Reset state and reload for new league
+  DB={}; SEASONS={}; CFG={tierSizes:{S:21,A:21,B:22,C:999}};
+  PROFILES={}; COURT_PROFILES={}; COURT_RESULTS={}; PLAYER_WPT={};
+  currentSeasonName='';
+  // Load data for new league
+  loadAllLeagueData();
+}
+
+async function loadAllLeagueData(){
+  // Fetch player DB for current league
+  try{
+    const res = await fetch('/db?league='+LEAGUE);
+    const d = await res.json();
+    DB = d;
+    // Auto-populate if empty
+    const dbEmpty = Object.keys(DB.players||{}).length===0;
+    const noHandles = !Object.values(DB.players||{}).some(p=>p.handle);
+    if(dbEmpty || noHandles){
+      try{
+        const ap = await fetch('/db/auto-populate?league='+LEAGUE,{method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({force:noHandles})});
+        const apd = await ap.json();
+        if(apd.added>0){
+          const r2 = await fetch('/db?league='+LEAGUE);
+          DB = await r2.json();
+          console.log('Auto-populated '+LEAGUE+' DB with '+apd.added+' players');
+        }
+      } catch(e){ console.error('Auto-populate error:',e); }
+    }
+    renderDB();
+  } catch(e){ console.error('loadAllLeagueData DB error:',e); }
+  await loadSeasons();
+  await loadConfigData();
+}
+
 async function loadDB(){
-  const res=await fetch('/db'); const d=await res.json();
+  const res=await fetch('/db?league='+LEAGUE); const d=await res.json();
   DB=d; renderDB();
 }
 let DB_SORT = {field:'name', dir:1};
@@ -1546,6 +1609,8 @@ function setDBSort(field){
 }
 
 function renderDB(){
+  const grid = document.getElementById('dbGrid');
+  if(!grid) return; // page not ready
   const TIER_SORT={S:1,A:2,B:3,C:4,undefined:5};
   const searchQ=(document.getElementById('dbSearch')?.value||'').toLowerCase();
   let pl=Object.values(DB.players||{}).filter(p=>p.name);
@@ -1595,7 +1660,7 @@ async function addPlayer(){
   const tier=document.getElementById('addTier').value;
   const handle=document.getElementById('addHandle').value.trim();
   if(!name){alert('Name required');return;}
-  await fetch('/db/player',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,tier,handle})});
+  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,tier,handle})});
   document.getElementById('addName').value=''; document.getElementById('addHandle').value='';
   await loadDB();
 }
@@ -1653,7 +1718,7 @@ async function commitHandle(inp, playerName, newHandle, newAvatarId){
   const existing = DB.players[oldHandle.replace('@','').toLowerCase().trim()]||DB.players[playerName.toLowerCase()]||{name:playerName};
   const updated = {...existing, handle:newHandle, oldHandle};
   if(avatarId) updated.avatarId = String(avatarId);
-  await fetch('/db/player',{method:'POST',headers:{'Content-Type':'application/json'},
+  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(updated)});
   await loadDB();
 }
@@ -2527,7 +2592,7 @@ function resetCourtRank(court) {
 let ALIASES = {};
 
 async function loadAliases(){
-  const res = await fetch('/aliases');
+  const res = await fetch('/aliases?league='+LEAGUE);
   ALIASES = await res.json();
   renderAliases();
 }
@@ -2652,11 +2717,16 @@ async function doLogin(){
   const errEl = document.getElementById('sideLoginErr')||document.getElementById('loginErr');
   errEl.textContent = '';
   if(!username||!password){errEl.textContent='Enter username and password';return;}
-  const res = await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
-  const d = await res.json();
-  if(d.error){errEl.textContent=d.error;return;}
-  CURRENT_USER = d;
-  onLogin(d);
+  try{
+    const res = await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d = await res.json();
+    if(d.error){errEl.textContent=d.error;return;}
+    CURRENT_USER = d;
+    onLogin(d);
+  } catch(e){
+    errEl.textContent='Login error: '+e.message;
+    console.error('doLogin error:',e);
+  }
 }
 
 async function doLogout(){
@@ -3068,8 +3138,17 @@ async function saveAllSections(){
 (async()=>{
   // Load known players from server for handle picker
   fetch('/db/known').then(r=>r.json()).then(d=>{ SERVER_KNOWN_PLAYERS=d; }).catch(()=>{});
-  await loadDB();
+  // Apply league UI (buttons only, no data fetch yet)
+  const accent = LEAGUE==='women' ? '#ff6eb4' : '#00ff9d';
+  document.documentElement.style.setProperty('--accent', accent);
+  const bm = document.getElementById('btnMen');
+  const bw = document.getElementById('btnWomen');
+  if(bm) bm.style.cssText = LEAGUE==='men' ? 'flex:1;padding:11px 4px;border:none;border-bottom:3px solid '+accent+';cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:'+accent+'15;color:'+accent : 'flex:1;padding:11px 4px;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555';
+  if(bw) bw.style.cssText = LEAGUE==='women' ? 'flex:1;padding:11px 4px;border:none;border-bottom:3px solid '+accent+';cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:'+accent+'15;color:'+accent : 'flex:1;padding:11px 4px;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555';
   await checkAuth();  // sets login state, shows/hides admin nav
+  // Load all data for current league
+  await loadAllLeagueData();
+
   // Silently strip any leftover team/court data from DB
   fetch('/db/strip-location',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
     .then(r=>r.json()).then(d=>{ if(d.cleaned>0){ console.log('Auto-stripped location data from',d.cleaned,'entries'); loadDB(); }}).catch(()=>{});
@@ -3080,21 +3159,19 @@ async function saveAllSections(){
   if(dbEmpty || noHandles){
     console.log('DB empty or no handles — auto-populating from KNOWN_PLAYERS...');
     try{
-      const ap = await fetch('/db/auto-populate',{method:'POST',
+      const ap = await fetch('/db/auto-populate?league='+LEAGUE,{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({force: noHandles})});  // force if has entries but no handles
       const apd = await ap.json();
       if(apd.added>0){
         console.log('Auto-populated DB with',apd.added,'known players');
-        await loadDB();
+        await loadAllLeagueData();
       } else {
         console.log('Auto-populate: already populated, skipped');
       }
     }catch(e){ console.error('Auto-populate error:',e); }
   }
-  await loadSeasons();
   populateReportSeasons();
-  await loadConfigData();
   populateRmSeasons();
   populateAssignSeasons();
   populateRmSeasons();

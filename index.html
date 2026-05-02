@@ -324,7 +324,7 @@ tr:hover td{background:#ffffff03;}
   <nav class="nav">
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('load',this)">📡 <span>Load Match</span></button>
     <button class="nav-btn active" onclick="showPage('season',this)">🏆 <span>Season History</span></button>
-    <button class="nav-btn" onclick="showPage('ranks',this);renderRankMovement()">📈 <span>Rank Movement</span></button>
+    <button class="nav-btn" onclick="showPage('ranks',this);loadSeasons().then(()=>{populateRmSeasons();renderRankMovement();})">📈 <span>Rank Movement</span></button>
     <button class="nav-btn" onclick="showPage('analysis',this);populateReportSeasons();">📊 <span>Weekly Report</span></button>
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('config',this);if(CURRENT_USER?.role==='admin')loadUsers();renderTeamCourtGrid();">⚙️ <span>Settings</span></button>
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('db',this);loadAllLeagueData()">🗄️ <span>Player Database</span></button>
@@ -609,6 +609,21 @@ tr:hover td{background:#ffffff03;}
       <div id="assignPreview" style="display:none;margin-top:14px">
         <div style="font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Preview — new tier assignments</div>
         <div class="tw"><table id="tAssignPreview"></table></div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-purple" onclick="openManualRankEditor()" style="font-size:11px">✏️ Edit Ranking Manually</button>
+          <button class="btn" onclick="applyAutoAssign()" id="btnApplyAssign" style="font-size:11px;display:none">✅ Apply This Ranking</button>
+        </div>
+      </div>
+
+      <!-- Manual rank editor -->
+      <div id="manualRankPanel" style="display:none;margin-top:14px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">✏️ Drag to reorder — then Apply</div>
+        <div style="font-size:10px;color:#ff6b35;margin-bottom:10px">Drag players up/down to set the ranking. Tier boundaries (S/A/B/C) auto-calculate from sizes.</div>
+        <div id="manualRankList" style="max-height:500px;overflow-y:auto"></div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-purple" onclick="applyManualRank()" style="font-size:11px">✅ Apply Manual Ranking</button>
+          <button class="btn" onclick="document.getElementById('manualRankPanel').style.display='none'" style="font-size:11px">✖ Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -661,9 +676,10 @@ Shaiful Anuar](https://reclub.co/players/@captsa)..."
       <div class="row">
         <div class="col" style="flex:2;min-width:120px"><label class="fl">Name</label><input type="text" id="addName" placeholder="Player name"></div>
         <div class="col" style="min-width:90px"><label class="fl">Tier</label>
-          <select id="addTier"><option value="S">S (400)</option><option value="A">A (350)</option><option value="B" selected>B (300)</option><option value="C">C (250)</option></select></div>
+          <select id="addTier"><option value="S">S (400)</option><option value="A">A (350)</option><option value="B">B (300)</option><option value="C" selected>C (250) — new player default</option></select></div>
         <div class="col" style="flex:2;min-width:120px"><label class="fl">Handle</label><input type="text" id="addHandle" placeholder="@reclub_handle"></div>
-        <button class="btn btn-green btn-sm" onclick="addPlayer()" style="align-self:flex-end">+ Add</button>
+        <div class="col" style="flex:1;min-width:90px"><label class="fl">Avatar ID <span style="color:#555;font-size:9px">(optional)</span></label><input type="text" id="addAvatarId" placeholder="e.g. 514797"></div>
+        <button class="btn btn-green btn-sm" onclick="addPlayer()" style="align-self:flex-end;white-space:nowrap">+ Add Player</button>
       </div>
     </div>
 
@@ -919,11 +935,12 @@ async function loadMatch(){
 
     setP(75,'Building standings...');
     MATCHES=data.matches; PROFILES=data.playerProfiles||{}; COURT_PROFILES=data.courtProfiles||{};
+    MANUAL_SCORE={}; // reset manual scores on new load
     COURT_RESULTS=data.courtResults||{}; PLAYER_WPT=data.playerWeekPoints||{};
     LAST_TITLE=data.title||'Match Results'; LAST_DATE=data.date||'';
 
     const cs=new Set(MATCHES.map(m=>m.court));
-    COURTS=[...cs].sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
+    COURTS=[...cs].sort((a,b)=>(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(a)-(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(b));
     overall={};
     MATCHES.forEach(m=>{
       const w1=m.s1>m.s2;
@@ -970,29 +987,48 @@ async function saveWeek(){
     const TIER_SCORE_MAP={S:400,A:350,B:300,C:250};
     let noTierCount=0;
 
-    Object.keys(COURT_RESULTS).forEach(court=>{
-      const results=COURT_RESULTS[court];
-      if(!results||!results.length) return;
+    if(!IS_WEEK1){
+      // Week 2+: recalculate court scores from current DB tiers
+      // Skip courts that were manually overridden
+      Object.keys(COURT_RESULTS).forEach(court=>{
+        const results=COURT_RESULTS[court];
+        if(!results||!results.length) return;
 
-      // Calculate court score from avg tier of all players in this court
-      const tierScores=results.map(r=>{
-        const p=dbPlayer(r.player);
-        const tier=p?.tier||getProfile(r.player,court)?.tier;
-        if(!tier||!TIER_SCORE_MAP[tier]) noTierCount++;
-        return TIER_SCORE_MAP[tier]||250;
-      });
-      const newCourtScore=Math.round(tierScores.reduce((a,b)=>a+b,0)/tierScores.length);
+        // Use manual score if set, otherwise calculate from tiers
+        let newCourtScore;
+        if(MANUAL_SCORE[court]){
+          newCourtScore = MANUAL_SCORE[court];
+        } else {
+          const tierScores=results.map(r=>{
+            const p=dbPlayer(r.player);
+            const tier=p?.tier||getProfile(r.player,court)?.tier;
+            if(!tier||!TIER_SCORE_MAP[tier]) noTierCount++;
+            return TIER_SCORE_MAP[tier]||250;
+          });
+          newCourtScore=Math.round(tierScores.reduce((a,b)=>a+b,0)/tierScores.length);
+        }
 
-      // Get correct rank order (respecting manual overrides)
-      const ordered=getCourtResults(court);
-      ordered.forEach((r,rankIdx)=>{
-        const newPts=Math.round(newCourtScore*Math.pow(0.85,rankIdx));
-        const cr=results.find(x=>x.player===r.player);
-        if(cr){cr.courtScore=newCourtScore;cr.weekPoints=newPts;}
-        PLAYER_WPT[r.player+'||'+court]=newPts;
-        PLAYER_WPT[r.player]=newPts;
+        const ordered=getCourtResults(court);
+        ordered.forEach((r,rankIdx)=>{
+          const newPts=Math.round(newCourtScore*Math.pow(0.85,rankIdx));
+          const cr=results.find(x=>x.player===r.player);
+          if(cr){cr.courtScore=newCourtScore;cr.weekPoints=newPts;}
+          PLAYER_WPT[r.player+'||'+court]=newPts;
+          PLAYER_WPT[r.player]=newPts;
+        });
       });
-    });
+    } else {
+      // Week 1: keep original fixed scores (200pts), just count no-tier for warning
+      Object.keys(COURT_RESULTS).forEach(court=>{
+        const results=COURT_RESULTS[court];
+        if(!results||!results.length) return;
+        results.forEach(r=>{
+          const p=dbPlayer(r.player);
+          const tier=p?.tier||getProfile(r.player,court)?.tier;
+          if(!tier||!TIER_SCORE_MAP[tier]) noTierCount++;
+        });
+      });
+    }
 
     // Warn if many players still have no tier (likely forgot to run auto-assign)
     if(noTierCount>5){
@@ -1035,7 +1071,7 @@ async function saveWeek(){
     await loadSeasons();
     populateAssignSeasons();populateRmSeasons();populateReportSeasons();
     // Auto-run tier assignment immediately after save
-    const autoAssignRes = await fetch('/seasons/assign-tiers',{
+    const autoAssignRes = await fetch('/seasons/assign-tiers?league='+LEAGUE,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({season, tierSizes:{
         S:parseInt(document.getElementById('tierS')?.value)||21,
@@ -1085,6 +1121,10 @@ async function saveWeek(){
 
 
         msg.textContent='✓ Week '+week+' saved! Tiers assigned for '+ad.totalPlayers+' players.';
+        // Refresh leaderboard if currently visible so tier badges update
+        if(document.getElementById('lbSection')?.style.display!=='none' && currentSeasonName){
+          showLeaderboard(currentSeasonName);
+        }
       }
     }
   } else {
@@ -1193,13 +1233,20 @@ async function assignTiers(){
     assignMsg += ' ('+d.notFound.length+' not in DB yet — run Roster Import first: '+d.notFound.slice(0,5).join(', ')+(d.notFound.length>5?'...':'')+')';
   msg.textContent=assignMsg; msg.classList.add('show');
   await loadDB();
+  // Refresh leaderboard if visible so tier badges update immediately
+  if(document.getElementById('lbSection')?.style.display!=='none' && currentSeasonName){
+    showLeaderboard(currentSeasonName);
+  }
   } catch(e){ alert('Network error: '+e.message); return; }
   finally{ if(btn){ btn.disabled=false; btn.textContent='🔄 Auto-Assign Tiers Now'; } }
 
-  // Show preview table
+  // Store for manual editor
   const sorted=Object.entries(d.assignments).sort((a,b)=>a[1].rank-b[1].rank);
+  LAST_ASSIGNMENTS=sorted.map(([name,info])=>({name,...info}));
+
+  // Show preview table
   let h=`<tr><th>Rank</th><th>Player</th><th>New Tier</th><th>Total W</th><th>Total +/-</th><th>Season Pts</th></tr>`;
-  sorted.slice(0,30).forEach(([p,info])=>{
+  sorted.slice(0,50).forEach(([p,info])=>{
     h+=`<tr>
       <td style="color:var(--muted)">${info.rank}</td>
       <td>${p}</td>
@@ -1209,9 +1256,97 @@ async function assignTiers(){
       <td class="pts">${Math.round(info.totalPoints||0)}</td>
     </tr>`;
   });
-  if(sorted.length>30)h+=`<tr><td colspan="4" style="text-align:center;color:var(--muted);font-size:10px">...and ${sorted.length-30} more</td></tr>`;
+  if(sorted.length>50)h+=`<tr><td colspan="6" style="text-align:center;color:var(--muted);font-size:10px">...and ${sorted.length-50} more</td></tr>`;
   document.getElementById('tAssignPreview').innerHTML=h;
   document.getElementById('assignPreview').style.display='block';
+  document.getElementById('btnApplyAssign').style.display='inline-block';
+}
+
+// ── Manual Tier Rank Editor ──────────────────────────────
+let LAST_ASSIGNMENTS = []; // [{name, tier, rank, totalPoints, totalWins, totalDiff}]
+let DRAG_SRC_IDX = null;
+
+function openManualRankEditor(){
+  if(!LAST_ASSIGNMENTS.length){ alert('Run Auto-Assign Tiers first'); return; }
+  document.getElementById('manualRankPanel').style.display='block';
+  renderManualRankList();
+}
+
+function renderManualRankList(){
+  const tierSizes={
+    S:parseInt(document.getElementById('tierS').value)||21,
+    A:parseInt(document.getElementById('tierA').value)||21,
+    B:parseInt(document.getElementById('tierB').value)||22
+  };
+  const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
+  const TIER_COLORS={S:'#ffd700',A:'#00ccff',B:'#00ff9d',C:'#aaaaaa'};
+
+  const list=document.getElementById('manualRankList');
+  list.innerHTML=LAST_ASSIGNMENTS.map((p,i)=>{
+    const tier=i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
+    const borderTop=(i===sEnd||i===aEnd||i===bEnd)?`border-top:2px solid ${TIER_COLORS[tier]};`:'';
+    return`<div draggable="true" data-idx="${i}"
+      ondragstart="DRAG_SRC_IDX=parseInt(this.dataset.idx)"
+      ondragover="event.preventDefault()"
+      ondrop="dropManualRank(event,parseInt(this.dataset.idx))"
+      style="${borderTop}display:flex;align-items:center;gap:8px;padding:5px 8px;background:#13131a;border-radius:5px;margin-bottom:3px;cursor:grab;border:1px solid #222">
+      <span style="color:#444;font-size:11px;width:20px;text-align:right">${i+1}</span>
+      <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:${TIER_COLORS[tier]}22;color:${TIER_COLORS[tier]};border:1px solid ${TIER_COLORS[tier]}44;width:20px;text-align:center">${tier}</span>
+      <span style="font-size:11px;font-weight:700;flex:1">${p.name}</span>
+      <span style="font-size:10px;color:#00ff9d">${Math.round(p.totalPoints||0)}pts</span>
+      <span style="font-size:10px;color:#888">${p.totalWins||0}W ${p.totalDiff>=0?'+':''}${p.totalDiff||0}</span>
+      <span style="cursor:pointer;color:#444;padding:0 4px" onclick="moveManualRank(${i},-1)" title="Move up">▲</span>
+      <span style="cursor:pointer;color:#444;padding:0 4px" onclick="moveManualRank(${i},1)" title="Move down">▼</span>
+    </div>`;
+  }).join('');
+}
+
+function dropManualRank(e, targetIdx){
+  e.preventDefault();
+  if(DRAG_SRC_IDX===null||DRAG_SRC_IDX===targetIdx) return;
+  const item=LAST_ASSIGNMENTS.splice(DRAG_SRC_IDX,1)[0];
+  LAST_ASSIGNMENTS.splice(targetIdx,0,item);
+  DRAG_SRC_IDX=null;
+  renderManualRankList();
+}
+
+function moveManualRank(idx, dir){
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=LAST_ASSIGNMENTS.length) return;
+  const tmp=LAST_ASSIGNMENTS[idx];
+  LAST_ASSIGNMENTS[idx]=LAST_ASSIGNMENTS[newIdx];
+  LAST_ASSIGNMENTS[newIdx]=tmp;
+  renderManualRankList();
+}
+
+async function applyManualRank(){
+  const season=document.getElementById('assignSeason').value||currentSeasonName;
+  if(!season){ alert('No season selected'); return; }
+  const tierSizes={
+    S:parseInt(document.getElementById('tierS').value)||21,
+    A:parseInt(document.getElementById('tierA').value)||21,
+    B:parseInt(document.getElementById('tierB').value)||22,C:999
+  };
+  const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
+
+  // Build manual assignments object
+  const assignments={};
+  LAST_ASSIGNMENTS.forEach((p,i)=>{
+    const tier=i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
+    assignments[p.name]={tier, rank:i+1, totalPoints:p.totalPoints, totalWins:p.totalWins, totalDiff:p.totalDiff};
+  });
+
+  // POST to server with manual assignments
+  const res=await fetch('/seasons/assign-tiers?league='+LEAGUE,{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({season, tierSizes, manualAssignments:assignments})});
+  const d=await res.json();
+  if(d.error){ alert('Error: '+d.error); return; }
+
+  document.getElementById('manualRankPanel').style.display='none';
+  document.getElementById('assignMsg').textContent='✅ Manual tier ranking applied for '+d.totalPlayers+' players!';
+  await loadDB();
+  alert('✅ Tiers applied! '+d.totalPlayers+' players updated.');
 }
 
 // ── Seasons ───────────────────────────────────────────────
@@ -1272,9 +1407,14 @@ function renderSeasons(){
           <div class="ws">Players: <strong>${Object.keys(w.playerWeekPoints||{}).length}</strong><br>Courts: <strong>${Object.keys(w.courtResults||{}).length}</strong></div>
         </div>`).join('')}
       </div>
-      <button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
-        🔄 Auto-Assign Tiers for ${s.name}
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
+          🔄 Auto-Assign Tiers for ${s.name}
+        </button>
+        <button class="assign-btn" style="background:linear-gradient(135deg,#7c3aed22,#a855f722);border-color:#7c3aed44;color:#a855f7" onclick="openRankOverride('${s.name}')">
+          📌 Override Ranking for ${s.name}
+        </button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1376,7 +1516,7 @@ async function restoreTierSnapshot(season, snapIdx){
   });
 
   // Use fast server-side restore endpoint
-  const res = await fetch('/seasons/restore-tiers',{
+  const res = await fetch('/seasons/restore-tiers?league='+LEAGUE,{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({season, snapIndex})
   });
@@ -1405,6 +1545,10 @@ async function saveTierImage(card, dateStr){
   }catch(e){alert('Error: '+e.message);}
 }
 
+let LB_SORTED=[], LB_SEASON=null, LB_TOTALS={};
+
+function lbMove() { /* use Override Ranking button in Season History */ }
+
 function showLeaderboard(seasonName){
   document.getElementById('tierHistorySection').style.display='none';
   document.getElementById('lbSection').style.display='block';
@@ -1420,33 +1564,35 @@ function showLeaderboard(seasonName){
         if(!totals[r.player])totals[r.player]={total:0,wins:0,diff:0,weeks:{},weekData:{}};
         totals[r.player].wins=(totals[r.player].wins||0)+(r.wins||0);
         totals[r.player].diff=(totals[r.player].diff||0)+(r.diff||0);
-        // Store per-week wins+diff
         if(!totals[r.player].weekData[w.week])totals[r.player].weekData[w.week]={wins:0,diff:0};
         totals[r.player].weekData[w.week].wins=(totals[r.player].weekData[w.week].wins||0)+(r.wins||0);
         totals[r.player].weekData[w.week].diff=(totals[r.player].weekData[w.week].diff||0)+(r.diff||0);
       });
     });
-    // Week points — use courtResults to avoid same-name collision
-    // (playerWeekPoints["Afiq"] gets overwritten if Afiq on two courts)
+    // Week points — best court per player
+    const _weekBest={};
     Object.values(w.courtResults||{}).forEach(courtPlayers=>{
       courtPlayers.forEach(r=>{
-        const p=r.player;
-        if(!totals[p])totals[p]={total:0,wins:0,diff:0,weeks:{},weekData:{}};
-        // Only set if not already set (first court wins for same-name)
-        // Better: use the weekPoints from courtResults which is per-player-per-court
-        if(!totals[p].weeks[w.week]){
-          totals[p].weeks[w.week]=Math.round(r.weekPoints||0);
-          totals[p].total+=Math.round(r.weekPoints||0);
-        }
+        const pts=Math.round(r.weekPoints||0);
+        if(!_weekBest[r.player]||pts>_weekBest[r.player]) _weekBest[r.player]=pts;
       });
     });
+    Object.entries(_weekBest).forEach(([p,pts])=>{
+      if(!totals[p])totals[p]={total:0,wins:0,diff:0,weeks:{},weekData:{}};
+      totals[p].weeks[w.week]=pts;
+      totals[p].total+=pts;
+    });
   });
-  // Sort leaderboard: season total points DESC → score diff DESC → wins DESC
-  const sorted=Object.entries(totals).sort((a,b)=>
-    b[1].total - a[1].total ||
-    (b[1].diff||0)-(a[1].diff||0) ||
-    (b[1].wins||0)-(a[1].wins||0)
-  );
+  // Sort leaderboard by total points (override only affects Auto-Assign Tiers, not display)
+  const sorted=Object.entries(totals).sort((a,b)=>b[1].total-a[1].total||(b[1].diff||0)-(a[1].diff||0)||(b[1].wins||0)-(a[1].wins||0));
+  LB_SORTED=sorted; LB_SEASON=seasonName; LB_TOTALS=totals;
+  renderLeaderboardTable(seasonName, sorted);
+}
+
+function renderLeaderboardTable(seasonName, sorted){
+  const s=SEASONS[seasonName]; if(!s)return;
+  const weeks=Object.values(s.weeks||{}).sort((a,b)=>a.week-b.week);
+  const weekNums=weeks.map(w=>w.week);
   document.getElementById('lbTitle').textContent=`${seasonName} — Season Leaderboard`;
 
   // Detect ties on wins+diff to highlight them
@@ -1469,6 +1615,7 @@ function showLeaderboard(seasonName){
     <th style="text-align:center;font-size:8px;color:#555;padding:3px 6px">+/-</th>
     <th style="text-align:center;font-size:8px;color:#00ff9d55;padding:3px 6px">Pts</th>`).join('');
 
+  const _isAdm=CURRENT_USER?.role==='admin';
   let h=`<tr>
     <th rowspan="2">#</th>
     <th rowspan="2">Player</th>
@@ -1526,7 +1673,7 @@ async function loadWeekView(season,week){
   Object.values(COURT_RESULTS).forEach(results=>results.forEach(r=>{
     if(!overall[r.player])overall[r.player]={w:r.wins,l:0,pf:0,pa:0,diff:r.diff};
   }));
-  COURTS=Object.keys(COURT_RESULTS).sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
+  COURTS=Object.keys(COURT_RESULTS).sort((a,b)=>(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(a)-(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(b));
   document.getElementById('matchTitle').textContent=LAST_TITLE;
   document.getElementById('matchMeta').textContent=`${LAST_DATE} · Loaded from history`;
   document.getElementById('tStandings').innerHTML=standingsHTML();
@@ -1540,7 +1687,7 @@ async function loadWeekView(season,week){
 async function deleteWeek(e,season,week){
   e.stopPropagation();
   if(!confirm(`Delete ${season} Week ${week}?`))return;
-  await fetch('/seasons/week',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
+  await fetch('/seasons/week?league='+LEAGUE,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
   await loadSeasons();
 }
 
@@ -1562,6 +1709,9 @@ function switchLeague(lg){
   currentSeasonName='';
   // Load data for new league
   loadAllLeagueData();
+  // Reset report/rank UI so they reload with new league on next visit
+  document.getElementById('rankContent').innerHTML='<p style="color:var(--muted);font-size:12px">Select a season and weeks to compare.</p>';
+  document.getElementById('reportCard').style.display='none';
 }
 
 async function loadAllLeagueData(){
@@ -1592,6 +1742,22 @@ async function loadAllLeagueData(){
   await loadConfigData();
 }
 
+async function repopulateKnown(){
+  const btn = document.querySelector('[onclick="repopulateKnown()"]');
+  if(btn){btn.disabled=true;btn.textContent='Adding...';}
+  try{
+    const res = await fetch('/db/auto-populate?league='+LEAGUE,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({force:true}) // force=true adds missing players even if DB not empty
+    });
+    const d = await res.json();
+    if(d.error){alert('Error: '+d.error);return;}
+    alert('✅ Added '+d.added+' new players from known players list. Updated '+d.updated+' existing.');
+    await loadDB();
+  }catch(e){alert('Error: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='⚡ Add Missing Players';}}
+}
+
 async function loadDB(){
   const res=await fetch('/db?league='+LEAGUE); const d=await res.json();
   DB=d; renderDB();
@@ -1609,7 +1775,7 @@ function setDBSort(field){
 }
 
 function renderDB(){
-  const grid = document.getElementById('dbGrid');
+  const grid = document.getElementById('dbTable');
   if(!grid) return; // page not ready
   const TIER_SORT={S:1,A:2,B:3,C:4,undefined:5};
   const searchQ=(document.getElementById('dbSearch')?.value||'').toLowerCase();
@@ -1649,21 +1815,106 @@ function renderDB(){
         title="Click to edit handle">
         ${p.handle||'⚠ no handle'} <span style="font-size:9px;color:#444">✎</span>
       </td>
-      <td style="color:var(--muted);font-size:10px">${p.avatarId?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`:'—'}</td>
+      <td style="color:var(--muted);font-size:10px;cursor:pointer" onclick="editAvatarId(this)" data-name="${p.name}" title="Click to edit Avatar ID">
+        ${p.avatarId?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`:'<span style="color:#555">— click to add ✎</span>'}
+      </td>
       <td><button class="btn btn-sm" style="background:#2a1a1a;color:#ff6b6b;font-size:10px" onclick="removePlayer('${p.name.replace(/'/g,"\\'")}')">✕</button></td>
     </tr>`;
   });
   document.getElementById('dbTable').innerHTML=h;
 }
+async function updateTier(name, tier) {
+  const p = dbPlayer(name);
+  const handle = p?.handle || '';
+  const sel = event?.target;
+  if (sel) sel.style.color = TIER_COLOR[tier] || 'var(--muted)';
+  try {
+    const res = await fetch('/db/player?league='+LEAGUE, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name, tier, handle})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Save failed');
+    // Update local cache
+    if (DB?.players) {
+      const p2 = dbPlayer(name);
+      if (p2) p2.tier = tier;
+    }
+    // Brief visual feedback on the select
+    if (sel) { sel.style.outline = '2px solid #22c55e'; setTimeout(() => sel.style.outline = '', 1200); }
+  } catch(e) {
+    alert('Failed to save tier for ' + name + ': ' + e.message);
+    if (sel) sel.style.outline = '2px solid #ef4444';
+  }
+}
 async function addPlayer(){
   const name=document.getElementById('addName').value.trim();
   const tier=document.getElementById('addTier').value;
   const handle=document.getElementById('addHandle').value.trim();
+  const avatarId=document.getElementById('addAvatarId').value.trim();
   if(!name){alert('Name required');return;}
-  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,tier,handle})});
-  document.getElementById('addName').value=''; document.getElementById('addHandle').value='';
+
+  // Check for existing player with same name — warn before creating duplicate
+  if(DB?.players){
+    const existing=Object.values(DB.players).filter(p=>
+      p.name&&p.name.toLowerCase().trim()===name.toLowerCase().trim()
+    );
+    if(existing.length>0){
+      const handles=existing.map(p=>p.handle||'(no handle)').join(', ');
+      if(!confirm(`"${name}" already exists in DB (${handles}).\n\nUpdate that entry instead? Click OK to update, Cancel to abort.`)) return;
+      // Update the existing entry — pass oldHandle so server finds correct key
+      const ex=existing[0];
+      const btn=document.querySelector('[onclick="addPlayer()"]');
+      if(btn){btn.disabled=true;btn.textContent='Updating...';}
+      await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,tier,handle:handle||ex.handle,avatarId:avatarId||ex.avatarId||'',oldHandle:ex.handle})});
+      document.getElementById('addName').value='';
+      document.getElementById('addHandle').value='';
+      document.getElementById('addAvatarId').value='';
+      if(btn){btn.disabled=false;btn.textContent='+ Add Player';}
+      await loadDB();
+      return;
+    }
+  }
+
+  const btn=document.querySelector('[onclick="addPlayer()"]');
+  if(btn){btn.disabled=true;btn.textContent='Adding...';}
+  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,tier,handle,avatarId})});
+  document.getElementById('addName').value='';
+  document.getElementById('addHandle').value='';
+  document.getElementById('addAvatarId').value='';
+  if(btn){btn.disabled=false;btn.textContent='+ Add Player';}
   await loadDB();
 }
+async function editAvatarId(td) {
+  if (td.querySelector('input')) return;
+  const name = td.getAttribute('data-name');
+  const p = dbPlayer(name);
+  const current = p?.avatarId || '';
+  const inp = document.createElement('input');
+  inp.value = current;
+  inp.placeholder = 'Avatar ID (numbers only)';
+  inp.style.cssText = 'width:100%;font-size:10px;background:#1a1a2e;border:1px solid #7c3aed;border-radius:4px;color:#fff;padding:2px 4px';
+  td.innerHTML = '';
+  td.appendChild(inp);
+  inp.focus(); inp.select();
+  async function save() {
+    const newId = inp.value.trim().replace(/\D/g,'');
+    if (newId === current) { await loadDB(); return; }
+    const handle = p?.handle || '';
+    const tier = p?.tier || 'C';
+    await fetch('/db/player?league='+LEAGUE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, tier, handle, avatarId: newId})
+    });
+    await loadDB();
+  }
+  inp.onblur = save;
+  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') loadDB(); };
+}
+
 function editHandle(td){
   if(td.querySelector('input')||td.querySelector('select')) return;
   const name = td.getAttribute('data-name');
@@ -1752,18 +2003,62 @@ function editHandleFromCourt(div){
     const handleKey = handle.replace('@','').toLowerCase().trim();
     const dbEntry = DB.players[handleKey] || Object.values(DB.players).find(p=>p.handle===handle) || {name,tier:'C',handle,avatarId};
 
+    // Get real name from DB entry (e.g. "Aqila Azmi" instead of "Shikin Salim")
+    const realName = dbEntry.name || name;
+
     // 1. Save alias so server remembers this mapping
-    await fetch('/aliases',{method:'POST',headers:{'Content-Type':'application/json'},
+    await fetch('/aliases?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({scoreName:name, court, dbKey:handleKey})});
 
-    // 2. Update COURT_PROFILES so display updates immediately
+    // 2. Update COURT_PROFILES — map OLD name to correct player
     const photoUrl = avatarId ? 'https://assets.reclub.co/user-avatars/'+avatarId+'.webp' : null;
-    COURT_PROFILES[name+'||'+court] = {...dbEntry, handle, avatarId, photoUrl};
+    const profile = {...dbEntry, handle, avatarId, photoUrl, name:realName};
+    COURT_PROFILES[name+'||'+court] = profile;
+    if(realName !== name) COURT_PROFILES[realName+'||'+court] = profile;
 
     // 3. Update ALIASES in memory
     ALIASES[name+'||'+court] = handleKey;
 
-    // 4. Re-render courts + standings
+    // 4. Rename player everywhere in memory
+    const oldName = name;
+    // Always rename — even if realName===name we still update handle/profile
+    // Rename in COURT_RESULTS (all courts)
+    Object.keys(COURT_RESULTS).forEach(ct=>{
+      COURT_RESULTS[ct] = (COURT_RESULTS[ct]||[]).map(r=>{
+        if(r.player === oldName) return {...r, player:realName};
+        return r;
+      });
+    });
+    // Rename in PLAYER_WPT
+    const wptKeys = Object.keys(PLAYER_WPT).filter(k=>k===oldName||k.startsWith(oldName+'||'));
+    wptKeys.forEach(k=>{
+      const newKey = k.replace(oldName, realName);
+      PLAYER_WPT[newKey] = PLAYER_WPT[k];
+      if(newKey!==k) delete PLAYER_WPT[k];
+    });
+    // Rename in MATCHES (for overall standings)
+    MATCHES.forEach(m=>{
+      if(m.t1a===oldName) m.t1a=realName;
+      if(m.t1b===oldName) m.t1b=realName;
+      if(m.t2a===oldName) m.t2a=realName;
+      if(m.t2b===oldName) m.t2b=realName;
+    });
+    // Rename in PROFILES
+    if(PROFILES[oldName]){
+      PROFILES[realName]={...PROFILES[oldName], name:realName, handle, avatarId, photoUrl};
+      if(realName!==oldName) delete PROFILES[oldName];
+    } else {
+      PROFILES[realName]={name:realName, handle, avatarId, photoUrl};
+    }
+    // Rename in overall stats
+    if(overall[oldName]){
+      overall[realName]=overall[oldName];
+      if(realName!==oldName) delete overall[oldName];
+    }
+    // Rebuild COURT_PROFILES key for new name
+    COURT_PROFILES[realName+'||'+court] = profile;
+
+    // 5. Re-render courts + standings
     document.getElementById('courtGrid').innerHTML = COURTS.map(c=>courtCardHTML(c)).join('');
     COURTS.forEach((c,idx)=>{const el=document.getElementById('tab-court_'+idx);if(el)el.innerHTML=courtTabHTML(c);});
     document.getElementById('tStandings').innerHTML = standingsHTML();
@@ -1785,26 +2080,79 @@ function editHandleFromCourt(div){
     };
     div.innerHTML=''; div.appendChild(sel); sel.focus();
   } else {
-    // Single match or unknown — text input
+    // Unknown player — show searchable dropdown of ALL DB players
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:relative;display:inline-block';
+    wrapper.onclick = e=>e.stopPropagation();
+
     const inp = document.createElement('input');
-    inp.type='text'; inp.value=currentHandle; inp.placeholder='@handle';
-    inp.style.cssText = 'width:120px;background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:2px 6px;color:#7c3aed;font-family:Space Mono,monospace;font-size:9px;outline:none';
-    inp.onclick = e=>e.stopPropagation();
-    inp.onblur = async() => {
-      const h = inp.value.trim();
-      if(!h||h===currentHandle){
-        document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join(''); return;
+    inp.type='text'; inp.value=''; inp.placeholder='Search name or @handle...';
+    inp.style.cssText = 'width:160px;background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:2px 6px;color:#e0e0e0;font-family:Space Mono,monospace;font-size:9px;outline:none';
+
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = 'position:absolute;top:100%;left:0;z-index:9999;background:#13131a;border:1px solid #7c3aed;border-radius:5px;max-height:160px;overflow-y:auto;width:200px;box-shadow:0 4px 16px #0008';
+
+    // Build all players list from DB
+    const allDbPlayers = Object.values(DB.players||{}).filter(p=>p.handle).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+    function renderDropdown(query){
+      const q = query.toLowerCase().trim();
+      const filtered = q ? allDbPlayers.filter(p=>
+        (p.name||'').toLowerCase().includes(q) ||
+        (p.handle||'').toLowerCase().includes(q)
+      ) : allDbPlayers;
+      dropdown.innerHTML = filtered.slice(0,20).map(p=>
+        `<div data-handle="${p.handle}" data-avid="${p.avatarId||''}" data-name="${p.name||''}"
+          style="padding:4px 8px;cursor:pointer;font-size:9px;color:#e0e0e0;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px"
+          onmouseover="this.style.background='#1e1e2e'" onmouseout="this.style.background=''"
+        >
+          <img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+          <span style="color:#fff;font-weight:700">${p.name||''}</span>
+          <span style="color:#7c3aed;font-size:8px">${p.handle}</span>
+        </div>`
+      ).join('') || '<div style="padding:6px 8px;color:#666;font-size:9px">No match</div>';
+
+      dropdown.querySelectorAll('[data-handle]').forEach(el=>{
+        el.onmousedown = async(e)=>{
+          e.preventDefault();
+          const h=el.dataset.handle, av=el.dataset.avid;
+          dropdown.remove(); wrapper.remove();
+          await applyChoice(h, av);
+        };
+      });
+    }
+
+    let selectedIdx = 0;
+    function highlightItem(idx){
+      const items=[...dropdown.querySelectorAll('[data-handle]')];
+      items.forEach((el,i)=>el.style.background=i===idx?'#1e1e2e':'');
+      selectedIdx=idx;
+    }
+
+    renderDropdown('');
+    inp.oninput = ()=>{ renderDropdown(inp.value); selectedIdx=0; highlightItem(0); };
+    inp.onkeydown = async e=>{
+      const items=[...dropdown.querySelectorAll('[data-handle]')];
+      if(e.key==='ArrowDown'){e.preventDefault();highlightItem(Math.min(selectedIdx+1,items.length-1));}
+      else if(e.key==='ArrowUp'){e.preventDefault();highlightItem(Math.max(selectedIdx-1,0));}
+      else if(e.key==='Enter'){
+        e.preventDefault();
+        const picked = items[selectedIdx] || items[0];
+        if(picked){
+          const h=picked.dataset.handle, av=picked.dataset.avid;
+          dropdown.remove(); wrapper.remove();
+          await applyChoice(h, av);
+        }
       }
-      const found = Object.values(SERVER_KNOWN_PLAYERS||{}).find(p=>p.handle===h||p.handle==='@'+h.replace('@',''));
-      const dbFound = Object.values(DB.players||{}).find(p=>p.handle===h);
-      const avatarId = (dbFound||found)?.avatarId || '';
-      await applyChoice(h, avatarId);
+      else if(e.key==='Escape'){dropdown.remove();wrapper.remove();document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join('');}
     };
-    inp.onkeydown = e=>{
-      if(e.key==='Enter') inp.blur();
-      if(e.key==='Escape') document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join('');
-    };
-    div.innerHTML=''; div.appendChild(inp); inp.focus(); inp.select();
+    inp.onblur = ()=>{ setTimeout(()=>{ if(document.contains(dropdown)){dropdown.remove(); wrapper.remove(); document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join('');} }, 250); };
+    // Highlight first item on open
+    setTimeout(()=>highlightItem(0), 50);
+
+    wrapper.appendChild(inp);
+    wrapper.appendChild(dropdown);
+    div.innerHTML=''; div.appendChild(wrapper); inp.focus();
   }
 }
 
@@ -1910,7 +2258,11 @@ function courtCardHTML(court){
         </div>
       </td>
       <td style="width:30px;padding:5px 4px;text-align:center">${tb2}</td>
-      <td style="width:24px;padding:5px 6px;color:#00ff9d;font-weight:700;text-align:center">${r.wins}</td>
+      <td style="width:24px;padding:5px 6px;color:#00ff9d;font-weight:700;text-align:center">${
+        court.includes('+') && r.games
+          ? `<span style="font-size:9px">${r.wins}/${r.games}<br><span style="color:#7c3aed">${r.winPct||0}%</span></span>`
+          : r.wins
+      }</td>
       <td style="width:38px;padding:5px 4px;text-align:center;font-size:11px;color:${r.diff>=0?'var(--accent)':'#ff6b6b'}">${r.diff>=0?'+':''}${r.diff}</td>
       <td style="width:52px;padding:5px 6px;text-align:right;cursor:pointer" class="pts" onclick="editLiveScore(this)" data-player="${r.player}" data-pts="${pts}" title="Click to edit">
         <span style="font-size:13px;font-weight:700;color:#00ff9d">${Math.round(pts)}</span>
@@ -2431,7 +2783,7 @@ async function editSavedScore(el) {
   const pts = parseInt(newVal);
   if (isNaN(pts) || pts < 0) { alert('Enter a valid whole number'); return; }
 
-  const res = await fetch('/seasons/week/points', {
+  const res = await fetch('/seasons/week/points?league='+LEAGUE, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({season, week, player: playerName, points: pts})
@@ -2550,6 +2902,8 @@ function editCourtScore(el){
 }
 
 function applyCourtScore(court, newScore){
+  // Track manual override
+  MANUAL_SCORE[court] = newScore;
   // Recalculate all player points based on new court score
   const results = COURT_RESULTS[court];
   if(!results) return;
@@ -2639,7 +2993,7 @@ async function addAlias(){
     k === target.toLowerCase()
   ) || target.toLowerCase();
 
-  const res = await fetch('/aliases', {
+  const res = await fetch('/aliases?league='+LEAGUE, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({scoreName, court, dbKey})
@@ -2653,7 +3007,7 @@ async function addAlias(){
 }
 
 async function removeAlias(scoreName, court){
-  await fetch('/aliases', {
+  await fetch('/aliases?league='+LEAGUE, {
     method: 'DELETE',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({scoreName, court})
@@ -2841,7 +3195,7 @@ async function populateReportSeasons(){
   const sel = document.getElementById('reportSeason');
   if(!sel) return;
   // Reload seasons from server to get latest data
-  const res = await fetch('/seasons'); const d = await res.json(); SEASONS = d.seasons||{};
+  const res = await fetch('/seasons?league='+LEAGUE); const d = await res.json(); SEASONS = d.seasons||{};
   sel.innerHTML = Object.keys(SEASONS).map(s=>`<option value="${s}">${s}</option>`).join('');
   populateReportWeeks();
 }
@@ -3178,6 +3532,208 @@ async function saveAllSections(){
   populateReportSeasons();
   ['scoreUrl','meetUrl'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')loadMatch();}));
 })();
+</script>
+
+<!-- ══ RANK OVERRIDE MODAL ══ -->
+<div id="rankOverrideModal" style="display:none;position:fixed;inset:0;background:#000a;z-index:9999;overflow-y:auto">
+  <div style="max-width:600px;margin:40px auto;background:var(--card);border:1px solid #7c3aed44;border-radius:16px;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#a855f7">📌 Override Ranking</div>
+      <button onclick="closeRankOverride()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div id="rankOverrideSeasonLabel" style="font-size:11px;color:var(--muted);margin-bottom:14px"></div>
+    <div style="font-size:11px;color:#ff6b35;background:#ff6b3511;border:1px solid #ff6b3530;border-radius:6px;padding:8px 12px;margin-bottom:14px">
+      Drag or use ▲▼ to set the final ranking order. When you run Auto-Assign Tiers, this order will be respected — new players not listed here are ranked by their points and added at the end.
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button onclick="loadOverrideFromSeason()" style="font-size:11px;padding:5px 14px;background:#1a2a1a;border:1px solid #22c55e44;border-radius:6px;color:#22c55e;cursor:pointer;font-weight:700">↺ Start fresh from points ranking</button>
+      <button onclick="clearRankOverride()" style="font-size:11px;padding:5px 12px;background:#13131a;border:1px solid #ff6b3530;border-radius:6px;color:#ff6b35;cursor:pointer">🗑 Clear override</button>
+    </div>
+    <div id="rankOverrideList" style="max-height:460px;overflow-y:auto;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeRankOverride()" style="padding:8px 18px;background:#13131a;border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-size:12px">Cancel</button>
+      <button onclick="saveRankOverride()" style="padding:8px 18px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">💾 Save Override</button>
+    </div>
+    <div id="rankOverrideMsg" style="margin-top:10px;font-size:11px;color:#22c55e;text-align:center"></div>
+  </div>
+</div>
+
+<script>
+// ── Rank Override Modal ──────────────────────────────────
+let OVERRIDE_SEASON = null;
+let OVERRIDE_LIST = [];
+
+async function openRankOverride(seasonName) {
+  OVERRIDE_SEASON = seasonName;
+  document.getElementById('rankOverrideModal').style.display = 'block';
+  document.getElementById('rankOverrideSeasonLabel').textContent = 'Season: ' + seasonName;
+  showOvMsg('Loading players...', '#aaa');
+  document.getElementById('rankOverrideList').innerHTML = '';
+  await loadOverrideFromSeason();
+}
+
+async function loadOverrideFromSeason() {
+  showOvMsg('Loading...', '#aaa');
+  try {
+    // Always fetch fresh from server
+    const r = await fetch('/seasons?league=' + LEAGUE);
+    const d = await r.json();
+    const allSeasons = d.seasons || d || {};
+    const s = allSeasons[OVERRIDE_SEASON];
+    if (!s) { showOvMsg('Season not found: ' + OVERRIDE_SEASON, '#ef4444'); return; }
+    const weeks = Object.values(s.weeks || {});
+    if (!weeks.length) { showOvMsg('No weeks saved yet for this season.', '#ff6b35'); return; }
+
+    // Always build from season weeks (points order) — override only applied on Save
+    const totals = {};
+    weeks.forEach(w => {
+      const best = {};
+      Object.values(w.courtResults || {}).forEach(arr => {
+        (arr || []).forEach(r => {
+          if (!r || !r.player) return;
+          const n = r.player, pts = r.weekPoints || 0;
+          if (!best[n] || pts > best[n]) best[n] = pts;
+          if (!totals[n]) totals[n] = { wins: 0, diff: 0, pts: 0 };
+          totals[n].wins += (r.wins || 0);
+          totals[n].diff += (r.diff || 0);
+        });
+      });
+      Object.entries(best).forEach(([n, pts]) => {
+        if (!totals[n]) totals[n] = { wins: 0, diff: 0, pts: 0 };
+        totals[n].pts += pts;
+      });
+    });
+
+    if (!Object.keys(totals).length) { showOvMsg('No player data in saved weeks.', '#ff6b35'); return; }
+
+    OVERRIDE_LIST = Object.entries(totals)
+      .sort((a, b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff || b[1].wins - a[1].wins)
+      .map(([name, d]) => ({ name, totalPoints: d.pts, totalWins: d.wins, totalDiff: d.diff }));
+
+    showOvMsg('', '');
+    renderOverrideList();
+  } catch(e) {
+    showOvMsg('Error: ' + e.message, '#ef4444');
+  }
+}
+
+function showOvMsg(text, color) {
+  const el = document.getElementById('rankOverrideMsg');
+  el.textContent = text; el.style.color = color;
+}
+
+function ovMove(idx, dir) {
+  const ni = idx + dir;
+  if (ni < 0 || ni >= OVERRIDE_LIST.length) return;
+  const tmp = OVERRIDE_LIST[idx];
+  OVERRIDE_LIST[idx] = OVERRIDE_LIST[ni];
+  OVERRIDE_LIST[ni] = tmp;
+  renderOverrideList();
+  setTimeout(() => {
+    const el = document.getElementById('ovrow-' + ni);
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 30);
+}
+
+function renderOverrideList() {
+  // Use CFG which is loaded at startup, fallback to 21/21/22
+  const S = CFG?.tierSizes?.S || parseInt(document.getElementById('tierS')?.value) || 21;
+  const A = CFG?.tierSizes?.A || parseInt(document.getElementById('tierA')?.value) || 21;
+  const B = CFG?.tierSizes?.B || parseInt(document.getElementById('tierB')?.value) || 22;
+  const sEnd = S, aEnd = S + A, bEnd = S + A + B;
+  const TC = { S: '#ffd700', A: '#00ccff', B: '#00ff9d', C: '#aaaaaa' };
+  const rows = [];
+  for (let i = 0; i < OVERRIDE_LIST.length; i++) {
+    const p = OVERRIDE_LIST[i];
+    const tier = i < sEnd ? 'S' : i < aEnd ? 'A' : i < bEnd ? 'B' : 'C';
+    const c = TC[tier];
+    if (i === sEnd || i === aEnd || i === bEnd) {
+      rows.push('<div style="height:2px;background:' + c + ';border-radius:1px;margin:5px 0"></div>');
+    }
+    rows.push(
+      '<div id="ovrow-' + i + '" style="display:flex;align-items:center;gap:6px;padding:8px;background:#0d0d14;border-radius:6px;margin-bottom:3px;border:1px solid #1a1a2e">' +
+        '<span style="color:#555;font-size:10px;width:22px;text-align:right;flex-shrink:0">' + (i+1) + '</span>' +
+        '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44;min-width:22px;text-align:center;flex-shrink:0">' + tier + '</span>' +
+        '<span style="font-size:12px;font-weight:600;flex:1;color:#eee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.name + '</span>' +
+        '<span style="font-size:10px;color:#00ff9d;flex-shrink:0;margin-right:4px">' + Math.round(p.totalPoints || 0) + 'pts</span>' +
+        '<button onclick="ovMove(' + i + ',-1)" style="width:40px;height:40px;font-size:18px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;cursor:pointer;flex-shrink:0">▲</button>' +
+        '<button onclick="ovMove(' + i + ',1)" style="width:40px;height:40px;font-size:18px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;cursor:pointer;flex-shrink:0">▼</button>' +
+      '</div>'
+    );
+  }
+  document.getElementById('rankOverrideList').innerHTML = rows.join('');
+}
+
+async function saveRankOverride() {
+  if (!OVERRIDE_SEASON) return;
+  showOvMsg('Saving & applying tiers...', '#aaa');
+  try {
+    // Get tier sizes from CFG (loaded at startup) or config API
+    let tierSizes = {
+      S: CFG?.tierSizes?.S || 21,
+      A: CFG?.tierSizes?.A || 21,
+      B: CFG?.tierSizes?.B || 22,
+      C: 999
+    };
+    try {
+      const cr = await fetch('/config?league='+LEAGUE);
+      const cd = await cr.json();
+      if(cd.tierSizes) tierSizes = {...cd.tierSizes, C:999};
+    } catch(e) {}
+    const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
+
+    // Build assignments from OVERRIDE_LIST order
+    const manualAssignments = {};
+    OVERRIDE_LIST.forEach((p,i) => {
+      const tier = i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
+      manualAssignments[p.name] = {tier, rank:i+1, totalPoints:p.totalPoints||0, totalWins:p.totalWins||0, totalDiff:p.totalDiff||0};
+    });
+
+    // Show preview of first 5 assignments for confirmation
+    const preview = OVERRIDE_LIST.slice(0,5).map((p,i)=>{
+      const tier = i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
+      return `${i+1}.${p.name}→${tier}`;
+    }).join(', ');
+    showOvMsg(`Applying: ${preview}...`, '#aaa');
+
+    // Save override
+    const override = OVERRIDE_LIST.map((p,i)=>({name:p.name, rank:i+1, totalPoints:p.totalPoints, totalWins:p.totalWins, totalDiff:p.totalDiff}));
+    await fetch('/seasons/rank-override?league='+LEAGUE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({season:OVERRIDE_SEASON, override})
+    });
+
+    // Apply tiers
+    const r2 = await fetch('/seasons/assign-tiers?league='+LEAGUE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({season:OVERRIDE_SEASON, tierSizes, manualAssignments})
+    });
+    const d2 = await r2.json();
+    if (d2.error) { showOvMsg('Tier apply failed: '+d2.error, '#ff6b35'); return; }
+
+    showOvMsg('✅ Applied! S=ranks 1-'+sEnd+', A='+( sEnd+1)+'-'+aEnd+', B='+(aEnd+1)+'-'+bEnd+'. '+d2.totalPlayers+' players updated.', '#22c55e');
+    await loadDB();
+    // Refresh leaderboard tier badges
+    if(document.getElementById('lbSection')?.style.display!=='none' && LB_SEASON){
+      showLeaderboard(LB_SEASON);
+    }
+  } catch(e) { showOvMsg('Error: '+e.message, '#ef4444'); }
+}
+
+async function clearRankOverride() {
+  if (!confirm('Clear manual ranking override for ' + OVERRIDE_SEASON + '?')) return;
+  const res = await fetch('/seasons/rank-override?league=' + LEAGUE, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ season: OVERRIDE_SEASON, override: [] })
+  });
+  const d = await res.json();
+  if (d.success) { await loadOverrideFromSeason(); showOvMsg('Override cleared.', '#aaa'); }
+}
+
+function closeRankOverride() {
+  document.getElementById('rankOverrideModal').style.display = 'none';
+  OVERRIDE_SEASON = null;
+}
 </script>
 </body>
 </html>

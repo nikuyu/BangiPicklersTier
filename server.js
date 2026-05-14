@@ -65,24 +65,7 @@ async function dbSet(col, data, league='men') {
 // ── Data helpers (league-aware) ────────────────────────────
 async function loadDB(lg='men')      { return (await dbGet('players',lg))  || { players:{} }; }
 async function saveDB(d,lg='men')     { d.lastUpdated=new Date().toISOString(); await dbSet('players',d,lg); }
-async function loadSeasons(lg='men') {
-  const data = (await dbGet('seasons',lg)) || {seasons:{}};
-  // Ensure all stored points are integers — no decimals
-  Object.values(data.seasons||{}).forEach(season=>{
-    Object.values(season.weeks||{}).forEach(week=>{
-      Object.keys(week.playerWeekPoints||{}).forEach(k=>{
-        week.playerWeekPoints[k]=Math.round(week.playerWeekPoints[k]||0);
-      });
-      Object.values(week.courtResults||{}).forEach(arr=>{
-        (arr||[]).forEach(r=>{
-          if(r.weekPoints!=null) r.weekPoints=Math.round(r.weekPoints);
-          if(r.courtScore!=null) r.courtScore=Math.round(r.courtScore);
-        });
-      });
-    });
-  });
-  return data;
-}
+async function loadSeasons(lg='men') { return (await dbGet('seasons',lg))  || { seasons:{} }; }
 async function saveSeasons(s,lg='men'){ await dbSet('seasons',s,lg); }
 async function loadConfig(lg='men')  { return (await dbGet('config',lg))   || { tierSizes:{S:21,A:21,B:22,C:999} }; }
 async function saveConfig(c,lg='men') { await dbSet('config',c,lg); }
@@ -198,9 +181,6 @@ const KNOWN_PLAYERS = {
   'Ayie':                {handle:'@mohd-suhairie-557',  avatarId:'614081'},
   'Amar':                {handle:'@amargunnex',         avatarId:'604718'},
   'Khairol Azmi Yussof': {handle:'@khairol_azmi',       avatarId:'179300'},
-  // Two Afiq players
-  'Afiq':                {handle:'@afiq-524',           avatarId:'368697'},
-  'Afiq (afiqim00)':     {handle:'@afiqim00',           avatarId:'210956'},
   // W2 only players
   'Firdhaus':            {handle:'@firdhauschase',      avatarId:'461577'},
   'Raidi Roslee':        {handle:'@raidi roslee',       avatarId:'709193'},
@@ -216,6 +196,7 @@ const KNOWN_PLAYERS = {
   "arieff ’A":          {handle:'@arieffariffin',      avatarId:'554140'},
   // Women W2-W4 new players (added to women known players)
 };
+
 // ── Women Known Players ────────────────────────────────────
 const KNOWN_PLAYERS_WOMEN = {
   // Yellow team (W1)
@@ -304,7 +285,6 @@ Object.assign(KNOWN_PLAYERS_WOMEN, {
   "Salwa":           {handle:"@salwa-442",                     avatarId:"743154"},
   "Rara":            {handle:"@rara8881",                      avatarId:"767291"},
   "Izza O":          {handle:"@izzatul22",                      avatarId:"1115983"},
-  "Fae":             {handle:"@fae",                            avatarId:""},
 });
 
 
@@ -393,7 +373,6 @@ const _MEN_W4 = {
   'Afiq||Court 6':       {handle:'@afiq-524',           avatarId:'368697'},
   'Afiq||Court 8':       {handle:'@afiqim00',           avatarId:'210956'},
 };
-Object.assign(KNOWN_PLAYERS, _MEN_W4); // Merge W3/W4 men players
 
 function normalizeName(n) {
   // Normalize apostrophes/quotes for consistent matching
@@ -461,23 +440,6 @@ function calcCourtScore(playerNames, db, isWeek1, tierSnapshot) {
 function rankPoints(rank, courtScore) { return Math.round(courtScore * Math.pow(0.85, rank-1)); }
 
 function calcStandings(matches, db, isWeek1, tierSnapshot) {
-  // If Court 7 and Court 8 are both present and together have ~10 players,
-  // they're one group split across two physical courts — combine them.
-  const COMBINED_LABEL = 'Court 7+8';
-  const c7players = new Set(), c8players = new Set();
-  matches.forEach(m => {
-    if (m.court === 'Court 7') [m.t1a,m.t1b,m.t2a,m.t2b].forEach(p=>c7players.add(p));
-    if (m.court === 'Court 8') [m.t1a,m.t1b,m.t2a,m.t2b].forEach(p=>c8players.add(p));
-  });
-  const allC78 = new Set([...c7players, ...c8players]);
-  const shouldCombine = c7players.size > 0 && c8players.size > 0 && allC78.size >= 8 && allC78.size <= 14;
-  if (shouldCombine) {
-    matches = matches.map(m =>
-      (m.court === 'Court 7' || m.court === 'Court 8') ? {...m, court: COMBINED_LABEL} : m
-    );
-    console.log(`  ℹ️  Court 7+8 combined (${allC78.size} players across both courts)`);
-  }
-
   const courts = {};
   matches.forEach(m => {
     if (!courts[m.court]) courts[m.court] = {};
@@ -506,23 +468,42 @@ function calcStandings(matches, db, isWeek1, tierSnapshot) {
       }
       return b.wins-a.wins || b.diff-a.diff;
     });
-    courtResults[court]=sorted.map((p,idx)=>{
-      const rank=idx+1, weekPoints=rankPoints(rank,courtScore);
+    // Detect ties — same wins+losses AND same diff → share averaged points
+    const results = sorted.map((p,idx)=>({...p, rank:idx+1}));
+    // Group tied players
+    let i=0;
+    while(i < results.length){
+      let j=i;
+      // Find all players tied with results[i]
+      while(j+1 < results.length &&
+            results[j+1].wins === results[i].wins &&
+            (results[j+1].losses||0) === (results[i].losses||0) &&
+            results[j+1].diff === results[i].diff){
+        j++;
+      }
+      if(j > i){
+        // Average points across tied ranks
+        let totalPts = 0;
+        for(let k=i;k<=j;k++) totalPts += rankPoints(k+1, courtScore);
+        const avgPts = Math.round(totalPts / (j-i+1));
+        for(let k=i;k<=j;k++) results[k].weekPoints = avgPts;
+      }
+      i = j+1;
+    }
+    courtResults[court]=results.map((p,idx)=>{
+      const weekPoints = p.weekPoints !== undefined ? p.weekPoints : rankPoints(idx+1, courtScore);
       const games=p.wins+(p.losses||0);
       const winPct=games>0?Math.round(p.wins/games*100):0;
       const key = p.name+'||'+court;
       playerWeekPoints[key]=weekPoints;
       playerWeekPoints[p.name]=weekPoints;
-      return {player:p.name,rank,wins:p.wins,losses:p.losses||0,games,winPct,diff:p.diff,courtScore,weekPoints};
+      return {player:p.name,rank:p.rank,wins:p.wins,losses:p.losses||0,games,winPct,diff:p.diff,courtScore,weekPoints};
     });
   });
   return {courtResults,playerWeekPoints};
 }
 
 function autoAssignTiers(seasonData, tierSizes) {
-  // If a manual rank override is saved for this season, use it as the ordered list
-  // New players not in the override are appended at the end sorted by points
-  const override = seasonData.manualRankOverride; // [{name}] ordered list
   const totals = {};
   Object.values(seasonData.weeks||{}).forEach(w => {
     // Use best points per player per week (highest court wins)
@@ -542,20 +523,9 @@ function autoAssignTiers(seasonData, tierSizes) {
       totals[pn].points += pts;
     });
   });
-  let ranked = Object.entries(totals).sort((a,b) =>
+  const ranked = Object.entries(totals).sort((a,b) =>
     b[1].points-a[1].points || b[1].diff-a[1].diff || b[1].wins-a[1].wins
   );
-  // Apply manual rank override: reorder ranked to match override, append unknowns at end
-  if(override && override.length > 0){
-    const overrideNames = override.map(o => normalizeName(o.name).toLowerCase().trim());
-    const rankedMap = new Map(ranked.map(([n,d])=>[normalizeName(n).toLowerCase().trim(),[n,d]]));
-    const ordered = [];
-    overrideNames.forEach(on => { if(rankedMap.has(on)){ ordered.push(rankedMap.get(on)); rankedMap.delete(on); } });
-    // Append any players NOT in override, sorted by points
-    rankedMap.forEach(v => ordered.push(v));
-    ranked = ordered;
-    console.log('  📌 Manual rank override applied: '+overrideNames.length+' pinned positions');
-  }
   const assignments = {};
   let idx = 0;
   for (const tier of ['S','A','B','C']) {
@@ -859,6 +829,49 @@ const server = http.createServer(async(req,res)=>{
   const json=(d,c=200)=>{res.writeHead(c,{'Content-Type':'application/json;charset=utf-8'});res.end(JSON.stringify(d));};
   const body=()=>new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>r(b));});
 
+  // ── Export all data ────────────────────────────────────────
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const out = {};
+    for(const lg of ['men','women']){
+      out[lg] = {
+        players:  await loadDB(lg),
+        seasons:  await loadSeasons(lg),
+        config:   await loadConfig(lg),
+        aliases:  await loadAliases(lg),
+      };
+    }
+    out.users = await loadUsers();
+    res.writeHead(200,{'Content-Type':'application/json','Content-Disposition':'attachment;filename="bangipicklers-backup.json"'});
+    return res.end(JSON.stringify(out,null,2));
+  }
+
+  // ── Import all data ────────────────────────────────────────
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const s = await getSession(req);
+    if(!s||s.role!=='admin') return json({error:'Admin only'},403);
+    try{
+      const raw = JSON.parse(await body());
+      for(const lg of ['men','women']){
+        if(raw[lg]){
+          if(raw[lg].players)  await saveDB(raw[lg].players, lg);
+          if(raw[lg].seasons)  await saveSeasons(raw[lg].seasons, lg);
+          if(raw[lg].config)   await saveConfig(raw[lg].config, lg);
+          if(raw[lg].aliases)  await saveAliases(raw[lg].aliases, lg);
+        }
+      }
+      return json({success:true,message:'All data restored successfully'});
+    } catch(e){ return json({error:'Import failed: '+e.message},400); }
+  }
+
+  if(pathname==='/health'){
+    return json({
+      status:'ok',
+      mongo: mongo ? 'connected' : (MONGO_URI ? 'failed' : 'not configured'),
+      mode: mongo ? 'MongoDB Atlas' : 'Local JSON (data resets on redeploy)',
+      time: new Date().toISOString()
+    });
+  }
+
   if(pathname==='/'||pathname==='/index.html'){
     try{const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html);}
     catch(e){res.writeHead(500);return res.end('index.html not found');}
@@ -917,7 +930,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/assign-tiers','/seasons/rank-override','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/import-all','/config','/aliases'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/import-all','/config','/aliases'];
   // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
@@ -940,24 +953,24 @@ const server = http.createServer(async(req,res)=>{
     const db=await loadDB(lg);
 
     // Determine the old entry key — use oldHandle if provided (most precise)
-    const oldHandleKey = d.oldHandle ? d.oldHandle.replace('@','').toLowerCase().trim() : null;
-    const newHandleKey = d.handle   ? d.handle.replace('@','').toLowerCase().trim()   : null;
-    const nameKey      = d.name.toLowerCase().trim();
+    const newHandleKey = d.handle ? d.handle.replace('@','').toLowerCase().trim() : null;
+    const nameKey      = normalizeName(d.name).toLowerCase().trim();
 
-    // Find existing entry: oldHandle key → newHandle key → name key
-    const existing = (oldHandleKey&&db.players[oldHandleKey])
-      || (newHandleKey&&db.players[newHandleKey])
-      || db.players[nameKey]
+    // Always key by normalized name — find existing by name OR handle
+    const existing = db.players[nameKey]
+      || (newHandleKey && Object.values(db.players).find(p=>
+            (p.handle||'').replace('@','').toLowerCase().trim() === newHandleKey))
       || {};
 
-    const oldKey = oldHandleKey || newHandleKey || nameKey;
-    const newKey = newHandleKey || nameKey;
+    // Always store by normalized name key (consistent lookup)
+    const oldKey = newHandleKey && !db.players[nameKey]
+      ? Object.keys(db.players).find(k=>
+          (db.players[k].handle||'').replace('@','').toLowerCase().trim()===newHandleKey
+        ) || nameKey
+      : nameKey;
+    const newKey = nameKey;
 
     const {photoUrl,oldHandle,court,team,teamColor,...dClean} = d; // strip non-DB fields
-    const isNewPlayer = !existing || Object.keys(existing).length === 0;
-    // New players always start at Tier C (250pts) — tier can only be changed after they've played
-    if(isNewPlayer && !dClean.tier) dClean.tier = 'C';
-    if(isNewPlayer && dClean.tier && !['S','A','B','C'].includes(dClean.tier)) dClean.tier = 'C';
     db.players[newKey]={
       ...existing,
       ...dClean,
@@ -1190,8 +1203,8 @@ const server = http.createServer(async(req,res)=>{
     const{season,week,player,points}=JSON.parse(await body());
     const seasons=await loadSeasons(lg);const w=seasons.seasons[season]?.weeks[week];
     if(!w)return json({error:'Week not found'},404);
-    w.playerWeekPoints[player]=Math.round(parseFloat(points));
-    Object.values(w.courtResults||{}).forEach(cr=>{const r=cr.find(r=>r.player===player);if(r)r.weekPoints=Math.round(parseFloat(points));});
+    w.playerWeekPoints[player]=parseFloat(points);
+    Object.values(w.courtResults||{}).forEach(cr=>{const r=cr.find(r=>r.player===player);if(r)r.weekPoints=parseFloat(points);});
     w.savedAt=new Date().toISOString();await saveSeasons(seasons, lg);return json({success:true});
   }
   if(pathname==='/seasons/assign-tiers'&&req.method==='POST'){
@@ -1265,22 +1278,6 @@ const server = http.createServer(async(req,res)=>{
     if(seasons.seasons[season]?.weeks[week])delete seasons.seasons[season].weeks[week];
     await saveSeasons(seasons, lg);return json({success:true});
   }
-  if(pathname==='/seasons/rank-override'&&req.method==='GET'){
-    const{season}=query;
-    const seasons=await loadSeasons(lg);
-    if(!season||!seasons.seasons[season])return json({error:'Season not found'},404);
-    return json({override:seasons.seasons[season].manualRankOverride||[]});
-  }
-  if(pathname==='/seasons/rank-override'&&req.method==='POST'){
-    if(!await requireAdmin(req,res))return;
-    const{season,override}=JSON.parse(await body());
-    const seasons=await loadSeasons(lg);
-    if(!season||!seasons.seasons[season])return json({error:'Season not found'},404);
-    seasons.seasons[season].manualRankOverride=override;
-    await saveSeasons(seasons,lg);
-    console.log('📌 Manual rank override saved for '+season+': '+override.length+' players');
-    return json({success:true,count:override.length});
-  }
   if(pathname==='/aliases'&&req.method==='GET')return json(await loadAliases(lg));
   if(pathname==='/aliases'&&req.method==='POST'){
     const{scoreName,court,dbKey}=JSON.parse(await body());
@@ -1327,10 +1324,44 @@ const server = http.createServer(async(req,res)=>{
       }
     });
     await saveDB(db, lg);
-    return json({success:true, added, updated:0, total:Object.keys(db.players).length});
+    return json({success:true, added, total:Object.keys(db.players).length});
   }
 
   // Health check — shows DB connection status
+  // ── Export all data ────────────────────────────────────────
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const out = {};
+    for(const lg of ['men','women']){
+      out[lg] = {
+        players:  await loadDB(lg),
+        seasons:  await loadSeasons(lg),
+        config:   await loadConfig(lg),
+        aliases:  await loadAliases(lg),
+      };
+    }
+    out.users = await loadUsers();
+    res.writeHead(200,{'Content-Type':'application/json','Content-Disposition':'attachment;filename="bangipicklers-backup.json"'});
+    return res.end(JSON.stringify(out,null,2));
+  }
+
+  // ── Import all data ────────────────────────────────────────
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const s = await getSession(req);
+    if(!s||s.role!=='admin') return json({error:'Admin only'},403);
+    try{
+      const raw = JSON.parse(await body());
+      for(const lg of ['men','women']){
+        if(raw[lg]){
+          if(raw[lg].players)  await saveDB(raw[lg].players, lg);
+          if(raw[lg].seasons)  await saveSeasons(raw[lg].seasons, lg);
+          if(raw[lg].config)   await saveConfig(raw[lg].config, lg);
+          if(raw[lg].aliases)  await saveAliases(raw[lg].aliases, lg);
+        }
+      }
+      return json({success:true,message:'All data restored successfully'});
+    } catch(e){ return json({error:'Import failed: '+e.message},400); }
+  }
+
   if(pathname==='/health'){
     return json({
       status: 'ok',
@@ -1692,7 +1723,7 @@ const server = http.createServer(async(req,res)=>{
     if(!scoreUrl||!scoreUrl.includes('reclub.co'))return json({error:'Score sheet URL required'},400);
     try{
       const scoreHtml=await fetchURL(scoreUrl);
-      const _parsed=parseScoresheet(scoreHtml);const title=_parsed.title,date=_parsed.date;let matches=_parsed.matches;
+      const{title,date,matches}=parseScoresheet(scoreHtml);
       let meetData={players:{},playersByHandle:{},playersByCourtName:{}};
       const tcm=await getTeamCourtMap(lg);
       if(meetUrl&&meetUrl.includes('reclub.co')){const mh=await fetchURL(meetUrl);meetData=parseMeetPage(mh, tcm, lg);}
@@ -1798,16 +1829,6 @@ const server = http.createServer(async(req,res)=>{
         const tiered = Object.values(currentTierSnapshot).filter(t=>t!=='C').length;
         console.log('Using current DB tiers: '+Object.keys(currentTierSnapshot).length+
           ' players, '+tiered+' with S/A/B tier');
-      }
-      // Remap Court 7+8 in matches before returning (mirrors calcStandings logic)
-      const _c7p=new Set(),_c8p=new Set();
-      matches.forEach(m=>{
-        if(m.court==='Court 7')[m.t1a,m.t1b,m.t2a,m.t2b].forEach(p=>_c7p.add(p));
-        if(m.court==='Court 8')[m.t1a,m.t1b,m.t2a,m.t2b].forEach(p=>_c8p.add(p));
-      });
-      const _allC78=new Set([..._c7p,..._c8p]);
-      if(_c7p.size>0&&_c8p.size>0&&_allC78.size>=8&&_allC78.size<=14){
-        matches=matches.map(m=>(m.court==='Court 7'||m.court==='Court 8')?{...m,court:'Court 7+8'}:m);
       }
       const{courtResults,playerWeekPoints}=calcStandings(matches,db,isWeek1,currentTierSnapshot);
       playerNames.forEach(name=>{playerProfiles[name].weekPoints=playerWeekPoints[name]||null;});

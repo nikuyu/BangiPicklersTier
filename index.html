@@ -324,7 +324,7 @@ tr:hover td{background:#ffffff03;}
   <nav class="nav">
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('load',this)">📡 <span>Load Match</span></button>
     <button class="nav-btn active" onclick="showPage('season',this)">🏆 <span>Season History</span></button>
-    <button class="nav-btn" onclick="showPage('ranks',this);loadSeasons().then(()=>{populateRmSeasons();renderRankMovement();})">📈 <span>Rank Movement</span></button>
+    <button class="nav-btn" onclick="showPage('ranks',this);renderRankMovement()">📈 <span>Rank Movement</span></button>
     <button class="nav-btn" onclick="showPage('analysis',this);populateReportSeasons();">📊 <span>Weekly Report</span></button>
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('config',this);if(CURRENT_USER?.role==='admin')loadUsers();renderTeamCourtGrid();">⚙️ <span>Settings</span></button>
     <button class="nav-btn admin-only" style="display:none" onclick="showPage('db',this);loadAllLeagueData()">🗄️ <span>Player Database</span></button>
@@ -522,6 +522,22 @@ tr:hover td{background:#ffffff03;}
     <div class="page-title">Settings</div>
     <div class="page-sub">Configure tier sizes · auto-assign tiers · tier score values</div>
 
+    <!-- Backup / Restore -->
+    <div class="card" style="border-color:#7c3aed30">
+      <div class="card-title">💾 Backup & Restore Data</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Export all data before redeploying. Import to restore after redeploy.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn" onclick="exportData()" style="background:#1a0a2e;border:1px solid #7c3aed;color:#7c3aed;font-size:11px;padding:8px 18px">
+          ⬇ Export All Data
+        </button>
+        <label class="btn" style="background:#0a1a0a;border:1px solid #00ff9d;color:#00ff9d;font-size:11px;padding:8px 18px;cursor:pointer">
+          ⬆ Import Data
+          <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+        </label>
+        <span id="backupStatus" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+    </div>
+
     <!-- Tier sizes -->
     <div class="card">
       <div class="card-title">👥 Players Per Tier</div>
@@ -676,10 +692,9 @@ Shaiful Anuar](https://reclub.co/players/@captsa)..."
       <div class="row">
         <div class="col" style="flex:2;min-width:120px"><label class="fl">Name</label><input type="text" id="addName" placeholder="Player name"></div>
         <div class="col" style="min-width:90px"><label class="fl">Tier</label>
-          <select id="addTier"><option value="S">S (400)</option><option value="A">A (350)</option><option value="B">B (300)</option><option value="C" selected>C (250) — new player default</option></select></div>
+          <select id="addTier"><option value="S">S (400)</option><option value="A">A (350)</option><option value="B" selected>B (300)</option><option value="C">C (250)</option></select></div>
         <div class="col" style="flex:2;min-width:120px"><label class="fl">Handle</label><input type="text" id="addHandle" placeholder="@reclub_handle"></div>
-        <div class="col" style="flex:1;min-width:90px"><label class="fl">Avatar ID <span style="color:#555;font-size:9px">(optional)</span></label><input type="text" id="addAvatarId" placeholder="e.g. 514797"></div>
-        <button class="btn btn-green btn-sm" onclick="addPlayer()" style="align-self:flex-end;white-space:nowrap">+ Add Player</button>
+        <button class="btn btn-green btn-sm" onclick="addPlayer()" style="align-self:flex-end">+ Add</button>
       </div>
     </div>
 
@@ -940,7 +955,7 @@ async function loadMatch(){
     LAST_TITLE=data.title||'Match Results'; LAST_DATE=data.date||'';
 
     const cs=new Set(MATCHES.map(m=>m.court));
-    COURTS=[...cs].sort((a,b)=>(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(a)-(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(b));
+    COURTS=[...cs].sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
     overall={};
     MATCHES.forEach(m=>{
       const w1=m.s1>m.s2;
@@ -1071,7 +1086,7 @@ async function saveWeek(){
     await loadSeasons();
     populateAssignSeasons();populateRmSeasons();populateReportSeasons();
     // Auto-run tier assignment immediately after save
-    const autoAssignRes = await fetch('/seasons/assign-tiers?league='+LEAGUE,{
+    const autoAssignRes = await fetch('/seasons/assign-tiers',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({season, tierSizes:{
         S:parseInt(document.getElementById('tierS')?.value)||21,
@@ -1121,10 +1136,6 @@ async function saveWeek(){
 
 
         msg.textContent='✓ Week '+week+' saved! Tiers assigned for '+ad.totalPlayers+' players.';
-        // Refresh leaderboard if currently visible so tier badges update
-        if(document.getElementById('lbSection')?.style.display!=='none' && currentSeasonName){
-          showLeaderboard(currentSeasonName);
-        }
       }
     }
   } else {
@@ -1139,6 +1150,53 @@ async function saveWeek(){
 }
 
 // ── Config ────────────────────────────────────────────────
+async function exportData(){
+  const status = document.getElementById('backupStatus');
+  status.textContent = 'Exporting...';
+  try{
+    const res = await fetch('/export-all');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bangipicklers-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    status.textContent = '✓ Exported successfully!';
+    status.style.color = '#00ff9d';
+  } catch(e){
+    status.textContent = '✗ Export failed: '+e.message;
+    status.style.color = '#ff6b6b';
+  }
+}
+
+async function importData(input){
+  const status = document.getElementById('backupStatus');
+  const file = input.files[0];
+  if(!file) return;
+  status.textContent = 'Importing...';
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const res = await fetch('/import-all',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error);
+    status.textContent = '✓ '+d.message;
+    status.style.color = '#00ff9d';
+    // Reload all data
+    await loadAllLeagueData();
+    setTimeout(()=>{ status.textContent=''; },5000);
+  } catch(e){
+    status.textContent = '✗ Import failed: '+e.message;
+    status.style.color = '#ff6b6b';
+  }
+  input.value = '';
+}
+
 async function loadConfigData(){
   const res=await fetch('/config'); CFG=await res.json();
   document.getElementById('tierS').value=CFG.tierSizes?.S||21;
@@ -1233,10 +1291,6 @@ async function assignTiers(){
     assignMsg += ' ('+d.notFound.length+' not in DB yet — run Roster Import first: '+d.notFound.slice(0,5).join(', ')+(d.notFound.length>5?'...':'')+')';
   msg.textContent=assignMsg; msg.classList.add('show');
   await loadDB();
-  // Refresh leaderboard if visible so tier badges update immediately
-  if(document.getElementById('lbSection')?.style.display!=='none' && currentSeasonName){
-    showLeaderboard(currentSeasonName);
-  }
   } catch(e){ alert('Network error: '+e.message); return; }
   finally{ if(btn){ btn.disabled=false; btn.textContent='🔄 Auto-Assign Tiers Now'; } }
 
@@ -1407,14 +1461,9 @@ function renderSeasons(){
           <div class="ws">Players: <strong>${Object.keys(w.playerWeekPoints||{}).length}</strong><br>Courts: <strong>${Object.keys(w.courtResults||{}).length}</strong></div>
         </div>`).join('')}
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
-          🔄 Auto-Assign Tiers for ${s.name}
-        </button>
-        <button class="assign-btn" style="background:linear-gradient(135deg,#7c3aed22,#a855f722);border-color:#7c3aed44;color:#a855f7" onclick="openRankOverride('${s.name}')">
-          📌 Override Ranking for ${s.name}
-        </button>
-      </div>
+      <button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
+        🔄 Auto-Assign Tiers for ${s.name}
+      </button>
     </div>`;
   }).join('');
 }
@@ -1516,7 +1565,7 @@ async function restoreTierSnapshot(season, snapIdx){
   });
 
   // Use fast server-side restore endpoint
-  const res = await fetch('/seasons/restore-tiers?league='+LEAGUE,{
+  const res = await fetch('/seasons/restore-tiers',{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({season, snapIndex})
   });
@@ -1544,10 +1593,6 @@ async function saveTierImage(card, dateStr){
     link.click();
   }catch(e){alert('Error: '+e.message);}
 }
-
-let LB_SORTED=[], LB_SEASON=null, LB_TOTALS={};
-
-function lbMove() { /* use Override Ranking button in Season History */ }
 
 function showLeaderboard(seasonName){
   document.getElementById('tierHistorySection').style.display='none';
@@ -1583,16 +1628,12 @@ function showLeaderboard(seasonName){
       totals[p].total+=pts;
     });
   });
-  // Sort leaderboard by total points (override only affects Auto-Assign Tiers, not display)
-  const sorted=Object.entries(totals).sort((a,b)=>b[1].total-a[1].total||(b[1].diff||0)-(a[1].diff||0)||(b[1].wins||0)-(a[1].wins||0));
-  LB_SORTED=sorted; LB_SEASON=seasonName; LB_TOTALS=totals;
-  renderLeaderboardTable(seasonName, sorted);
-}
-
-function renderLeaderboardTable(seasonName, sorted){
-  const s=SEASONS[seasonName]; if(!s)return;
-  const weeks=Object.values(s.weeks||{}).sort((a,b)=>a.week-b.week);
-  const weekNums=weeks.map(w=>w.week);
+  // Sort leaderboard: season total points DESC → score diff DESC → wins DESC
+  const sorted=Object.entries(totals).sort((a,b)=>
+    b[1].total - a[1].total ||
+    (b[1].diff||0)-(a[1].diff||0) ||
+    (b[1].wins||0)-(a[1].wins||0)
+  );
   document.getElementById('lbTitle').textContent=`${seasonName} — Season Leaderboard`;
 
   // Detect ties on wins+diff to highlight them
@@ -1615,7 +1656,6 @@ function renderLeaderboardTable(seasonName, sorted){
     <th style="text-align:center;font-size:8px;color:#555;padding:3px 6px">+/-</th>
     <th style="text-align:center;font-size:8px;color:#00ff9d55;padding:3px 6px">Pts</th>`).join('');
 
-  const _isAdm=CURRENT_USER?.role==='admin';
   let h=`<tr>
     <th rowspan="2">#</th>
     <th rowspan="2">Player</th>
@@ -1673,7 +1713,7 @@ async function loadWeekView(season,week){
   Object.values(COURT_RESULTS).forEach(results=>results.forEach(r=>{
     if(!overall[r.player])overall[r.player]={w:r.wins,l:0,pf:0,pa:0,diff:r.diff};
   }));
-  COURTS=Object.keys(COURT_RESULTS).sort((a,b)=>(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(a)-(a=>a.includes('+')?parseFloat(a.replace(/[^\d]/g,'').replace(/(\d+).*/,'$1')+'.5'):parseInt(a.replace(/\D/g,'')))(b));
+  COURTS=Object.keys(COURT_RESULTS).sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
   document.getElementById('matchTitle').textContent=LAST_TITLE;
   document.getElementById('matchMeta').textContent=`${LAST_DATE} · Loaded from history`;
   document.getElementById('tStandings').innerHTML=standingsHTML();
@@ -1687,7 +1727,7 @@ async function loadWeekView(season,week){
 async function deleteWeek(e,season,week){
   e.stopPropagation();
   if(!confirm(`Delete ${season} Week ${week}?`))return;
-  await fetch('/seasons/week?league='+LEAGUE,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
+  await fetch('/seasons/week',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
   await loadSeasons();
 }
 
@@ -1709,9 +1749,6 @@ function switchLeague(lg){
   currentSeasonName='';
   // Load data for new league
   loadAllLeagueData();
-  // Reset report/rank UI so they reload with new league on next visit
-  document.getElementById('rankContent').innerHTML='<p style="color:var(--muted);font-size:12px">Select a season and weeks to compare.</p>';
-  document.getElementById('reportCard').style.display='none';
 }
 
 async function loadAllLeagueData(){
@@ -1740,22 +1777,6 @@ async function loadAllLeagueData(){
   } catch(e){ console.error('loadAllLeagueData DB error:',e); }
   await loadSeasons();
   await loadConfigData();
-}
-
-async function repopulateKnown(){
-  const btn = document.querySelector('[onclick="repopulateKnown()"]');
-  if(btn){btn.disabled=true;btn.textContent='Adding...';}
-  try{
-    const res = await fetch('/db/auto-populate?league='+LEAGUE,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({force:true}) // force=true adds missing players even if DB not empty
-    });
-    const d = await res.json();
-    if(d.error){alert('Error: '+d.error);return;}
-    alert('✅ Added '+d.added+' new players from known players list. Updated '+d.updated+' existing.');
-    await loadDB();
-  }catch(e){alert('Error: '+e.message);}
-  finally{if(btn){btn.disabled=false;btn.textContent='⚡ Add Missing Players';}}
 }
 
 async function loadDB(){
@@ -1815,106 +1836,21 @@ function renderDB(){
         title="Click to edit handle">
         ${p.handle||'⚠ no handle'} <span style="font-size:9px;color:#444">✎</span>
       </td>
-      <td style="color:var(--muted);font-size:10px;cursor:pointer" onclick="editAvatarId(this)" data-name="${p.name}" title="Click to edit Avatar ID">
-        ${p.avatarId?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`:'<span style="color:#555">— click to add ✎</span>'}
-      </td>
+      <td style="color:var(--muted);font-size:10px">${p.avatarId?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`:'—'}</td>
       <td><button class="btn btn-sm" style="background:#2a1a1a;color:#ff6b6b;font-size:10px" onclick="removePlayer('${p.name.replace(/'/g,"\\'")}')">✕</button></td>
     </tr>`;
   });
   document.getElementById('dbTable').innerHTML=h;
 }
-async function updateTier(name, tier) {
-  const p = dbPlayer(name);
-  const handle = p?.handle || '';
-  const sel = event?.target;
-  if (sel) sel.style.color = TIER_COLOR[tier] || 'var(--muted)';
-  try {
-    const res = await fetch('/db/player?league='+LEAGUE, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({name, tier, handle})
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Save failed');
-    // Update local cache
-    if (DB?.players) {
-      const p2 = dbPlayer(name);
-      if (p2) p2.tier = tier;
-    }
-    // Brief visual feedback on the select
-    if (sel) { sel.style.outline = '2px solid #22c55e'; setTimeout(() => sel.style.outline = '', 1200); }
-  } catch(e) {
-    alert('Failed to save tier for ' + name + ': ' + e.message);
-    if (sel) sel.style.outline = '2px solid #ef4444';
-  }
-}
 async function addPlayer(){
   const name=document.getElementById('addName').value.trim();
   const tier=document.getElementById('addTier').value;
   const handle=document.getElementById('addHandle').value.trim();
-  const avatarId=document.getElementById('addAvatarId').value.trim();
   if(!name){alert('Name required');return;}
-
-  // Check for existing player with same name — warn before creating duplicate
-  if(DB?.players){
-    const existing=Object.values(DB.players).filter(p=>
-      p.name&&p.name.toLowerCase().trim()===name.toLowerCase().trim()
-    );
-    if(existing.length>0){
-      const handles=existing.map(p=>p.handle||'(no handle)').join(', ');
-      if(!confirm(`"${name}" already exists in DB (${handles}).\n\nUpdate that entry instead? Click OK to update, Cancel to abort.`)) return;
-      // Update the existing entry — pass oldHandle so server finds correct key
-      const ex=existing[0];
-      const btn=document.querySelector('[onclick="addPlayer()"]');
-      if(btn){btn.disabled=true;btn.textContent='Updating...';}
-      await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,tier,handle:handle||ex.handle,avatarId:avatarId||ex.avatarId||'',oldHandle:ex.handle})});
-      document.getElementById('addName').value='';
-      document.getElementById('addHandle').value='';
-      document.getElementById('addAvatarId').value='';
-      if(btn){btn.disabled=false;btn.textContent='+ Add Player';}
-      await loadDB();
-      return;
-    }
-  }
-
-  const btn=document.querySelector('[onclick="addPlayer()"]');
-  if(btn){btn.disabled=true;btn.textContent='Adding...';}
-  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name,tier,handle,avatarId})});
-  document.getElementById('addName').value='';
-  document.getElementById('addHandle').value='';
-  document.getElementById('addAvatarId').value='';
-  if(btn){btn.disabled=false;btn.textContent='+ Add Player';}
+  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,tier,handle})});
+  document.getElementById('addName').value=''; document.getElementById('addHandle').value='';
   await loadDB();
 }
-async function editAvatarId(td) {
-  if (td.querySelector('input')) return;
-  const name = td.getAttribute('data-name');
-  const p = dbPlayer(name);
-  const current = p?.avatarId || '';
-  const inp = document.createElement('input');
-  inp.value = current;
-  inp.placeholder = 'Avatar ID (numbers only)';
-  inp.style.cssText = 'width:100%;font-size:10px;background:#1a1a2e;border:1px solid #7c3aed;border-radius:4px;color:#fff;padding:2px 4px';
-  td.innerHTML = '';
-  td.appendChild(inp);
-  inp.focus(); inp.select();
-  async function save() {
-    const newId = inp.value.trim().replace(/\D/g,'');
-    if (newId === current) { await loadDB(); return; }
-    const handle = p?.handle || '';
-    const tier = p?.tier || 'C';
-    await fetch('/db/player?league='+LEAGUE, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name, tier, handle, avatarId: newId})
-    });
-    await loadDB();
-  }
-  inp.onblur = save;
-  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape') loadDB(); };
-}
-
 function editHandle(td){
   if(td.querySelector('input')||td.querySelector('select')) return;
   const name = td.getAttribute('data-name');
@@ -2001,10 +1937,15 @@ function editHandleFromCourt(div){
 
   async function applyChoice(handle, avatarId){
     const handleKey = handle.replace('@','').toLowerCase().trim();
-    const dbEntry = DB.players[handleKey] || Object.values(DB.players).find(p=>p.handle===handle) || {name,tier:'C',handle,avatarId};
+    // DB.players is keyed by normalized name — search by handle
+    const dbEntry = Object.values(DB.players).find(p=>
+        (p.handle||'').replace('@','').toLowerCase().trim() === handleKey
+      ) || Object.values(DB.players).find(p=>p.handle===handle)
+        || {name, tier:'C', handle, avatarId};
 
     // Get real name from DB entry (e.g. "Aqila Azmi" instead of "Shikin Salim")
     const realName = dbEntry.name || name;
+    console.log('applyChoice:', name, '→', realName, 'via', handle);
 
     // 1. Save alias so server remembers this mapping
     await fetch('/aliases?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -2057,6 +1998,25 @@ function editHandleFromCourt(div){
     }
     // Rebuild COURT_PROFILES key for new name
     COURT_PROFILES[realName+'||'+court] = profile;
+
+    // 4b. Save to DB — update player record with correct name + handle
+    try{
+      const dbKey = realName.toLowerCase().trim();
+      const existingDB = Object.values(DB.players||{}).find(p=>
+        (p.handle||'').replace('@','').toLowerCase().trim() === handleKey
+      ) || DB.players[dbKey] || {};
+      const updatedPlayer = {...existingDB, name:realName, handle, avatarId:avatarId||existingDB.avatarId||''};
+      await fetch('/db/player?league='+LEAGUE,{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(updatedPlayer)});
+      // Also save alias so server remembers scoreName→handle mapping
+      await fetch('/aliases?league='+LEAGUE,{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({scoreName:oldName, court, dbKey:handleKey})});
+      // Refresh DB in memory
+      const r2 = await fetch('/db?league='+LEAGUE);
+      DB = await r2.json();
+    } catch(e){ console.error('applyChoice DB save error:',e); }
 
     // 5. Re-render courts + standings
     document.getElementById('courtGrid').innerHTML = COURTS.map(c=>courtCardHTML(c)).join('');
@@ -2783,7 +2743,7 @@ async function editSavedScore(el) {
   const pts = parseInt(newVal);
   if (isNaN(pts) || pts < 0) { alert('Enter a valid whole number'); return; }
 
-  const res = await fetch('/seasons/week/points?league='+LEAGUE, {
+  const res = await fetch('/seasons/week/points', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({season, week, player: playerName, points: pts})
@@ -2993,7 +2953,7 @@ async function addAlias(){
     k === target.toLowerCase()
   ) || target.toLowerCase();
 
-  const res = await fetch('/aliases?league='+LEAGUE, {
+  const res = await fetch('/aliases', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({scoreName, court, dbKey})
@@ -3007,7 +2967,7 @@ async function addAlias(){
 }
 
 async function removeAlias(scoreName, court){
-  await fetch('/aliases?league='+LEAGUE, {
+  await fetch('/aliases', {
     method: 'DELETE',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({scoreName, court})
@@ -3195,7 +3155,7 @@ async function populateReportSeasons(){
   const sel = document.getElementById('reportSeason');
   if(!sel) return;
   // Reload seasons from server to get latest data
-  const res = await fetch('/seasons?league='+LEAGUE); const d = await res.json(); SEASONS = d.seasons||{};
+  const res = await fetch('/seasons'); const d = await res.json(); SEASONS = d.seasons||{};
   sel.innerHTML = Object.keys(SEASONS).map(s=>`<option value="${s}">${s}</option>`).join('');
   populateReportWeeks();
 }
@@ -3532,208 +3492,6 @@ async function saveAllSections(){
   populateReportSeasons();
   ['scoreUrl','meetUrl'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')loadMatch();}));
 })();
-</script>
-
-<!-- ══ RANK OVERRIDE MODAL ══ -->
-<div id="rankOverrideModal" style="display:none;position:fixed;inset:0;background:#000a;z-index:9999;overflow-y:auto">
-  <div style="max-width:600px;margin:40px auto;background:var(--card);border:1px solid #7c3aed44;border-radius:16px;padding:24px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#a855f7">📌 Override Ranking</div>
-      <button onclick="closeRankOverride()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
-    </div>
-    <div id="rankOverrideSeasonLabel" style="font-size:11px;color:var(--muted);margin-bottom:14px"></div>
-    <div style="font-size:11px;color:#ff6b35;background:#ff6b3511;border:1px solid #ff6b3530;border-radius:6px;padding:8px 12px;margin-bottom:14px">
-      Drag or use ▲▼ to set the final ranking order. When you run Auto-Assign Tiers, this order will be respected — new players not listed here are ranked by their points and added at the end.
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button onclick="loadOverrideFromSeason()" style="font-size:11px;padding:5px 14px;background:#1a2a1a;border:1px solid #22c55e44;border-radius:6px;color:#22c55e;cursor:pointer;font-weight:700">↺ Start fresh from points ranking</button>
-      <button onclick="clearRankOverride()" style="font-size:11px;padding:5px 12px;background:#13131a;border:1px solid #ff6b3530;border-radius:6px;color:#ff6b35;cursor:pointer">🗑 Clear override</button>
-    </div>
-    <div id="rankOverrideList" style="max-height:460px;overflow-y:auto;margin-bottom:14px"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button onclick="closeRankOverride()" style="padding:8px 18px;background:#13131a;border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-size:12px">Cancel</button>
-      <button onclick="saveRankOverride()" style="padding:8px 18px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">💾 Save Override</button>
-    </div>
-    <div id="rankOverrideMsg" style="margin-top:10px;font-size:11px;color:#22c55e;text-align:center"></div>
-  </div>
-</div>
-
-<script>
-// ── Rank Override Modal ──────────────────────────────────
-let OVERRIDE_SEASON = null;
-let OVERRIDE_LIST = [];
-
-async function openRankOverride(seasonName) {
-  OVERRIDE_SEASON = seasonName;
-  document.getElementById('rankOverrideModal').style.display = 'block';
-  document.getElementById('rankOverrideSeasonLabel').textContent = 'Season: ' + seasonName;
-  showOvMsg('Loading players...', '#aaa');
-  document.getElementById('rankOverrideList').innerHTML = '';
-  await loadOverrideFromSeason();
-}
-
-async function loadOverrideFromSeason() {
-  showOvMsg('Loading...', '#aaa');
-  try {
-    // Always fetch fresh from server
-    const r = await fetch('/seasons?league=' + LEAGUE);
-    const d = await r.json();
-    const allSeasons = d.seasons || d || {};
-    const s = allSeasons[OVERRIDE_SEASON];
-    if (!s) { showOvMsg('Season not found: ' + OVERRIDE_SEASON, '#ef4444'); return; }
-    const weeks = Object.values(s.weeks || {});
-    if (!weeks.length) { showOvMsg('No weeks saved yet for this season.', '#ff6b35'); return; }
-
-    // Always build from season weeks (points order) — override only applied on Save
-    const totals = {};
-    weeks.forEach(w => {
-      const best = {};
-      Object.values(w.courtResults || {}).forEach(arr => {
-        (arr || []).forEach(r => {
-          if (!r || !r.player) return;
-          const n = r.player, pts = r.weekPoints || 0;
-          if (!best[n] || pts > best[n]) best[n] = pts;
-          if (!totals[n]) totals[n] = { wins: 0, diff: 0, pts: 0 };
-          totals[n].wins += (r.wins || 0);
-          totals[n].diff += (r.diff || 0);
-        });
-      });
-      Object.entries(best).forEach(([n, pts]) => {
-        if (!totals[n]) totals[n] = { wins: 0, diff: 0, pts: 0 };
-        totals[n].pts += pts;
-      });
-    });
-
-    if (!Object.keys(totals).length) { showOvMsg('No player data in saved weeks.', '#ff6b35'); return; }
-
-    OVERRIDE_LIST = Object.entries(totals)
-      .sort((a, b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff || b[1].wins - a[1].wins)
-      .map(([name, d]) => ({ name, totalPoints: d.pts, totalWins: d.wins, totalDiff: d.diff }));
-
-    showOvMsg('', '');
-    renderOverrideList();
-  } catch(e) {
-    showOvMsg('Error: ' + e.message, '#ef4444');
-  }
-}
-
-function showOvMsg(text, color) {
-  const el = document.getElementById('rankOverrideMsg');
-  el.textContent = text; el.style.color = color;
-}
-
-function ovMove(idx, dir) {
-  const ni = idx + dir;
-  if (ni < 0 || ni >= OVERRIDE_LIST.length) return;
-  const tmp = OVERRIDE_LIST[idx];
-  OVERRIDE_LIST[idx] = OVERRIDE_LIST[ni];
-  OVERRIDE_LIST[ni] = tmp;
-  renderOverrideList();
-  setTimeout(() => {
-    const el = document.getElementById('ovrow-' + ni);
-    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, 30);
-}
-
-function renderOverrideList() {
-  // Use CFG which is loaded at startup, fallback to 21/21/22
-  const S = CFG?.tierSizes?.S || parseInt(document.getElementById('tierS')?.value) || 21;
-  const A = CFG?.tierSizes?.A || parseInt(document.getElementById('tierA')?.value) || 21;
-  const B = CFG?.tierSizes?.B || parseInt(document.getElementById('tierB')?.value) || 22;
-  const sEnd = S, aEnd = S + A, bEnd = S + A + B;
-  const TC = { S: '#ffd700', A: '#00ccff', B: '#00ff9d', C: '#aaaaaa' };
-  const rows = [];
-  for (let i = 0; i < OVERRIDE_LIST.length; i++) {
-    const p = OVERRIDE_LIST[i];
-    const tier = i < sEnd ? 'S' : i < aEnd ? 'A' : i < bEnd ? 'B' : 'C';
-    const c = TC[tier];
-    if (i === sEnd || i === aEnd || i === bEnd) {
-      rows.push('<div style="height:2px;background:' + c + ';border-radius:1px;margin:5px 0"></div>');
-    }
-    rows.push(
-      '<div id="ovrow-' + i + '" style="display:flex;align-items:center;gap:6px;padding:8px;background:#0d0d14;border-radius:6px;margin-bottom:3px;border:1px solid #1a1a2e">' +
-        '<span style="color:#555;font-size:10px;width:22px;text-align:right;flex-shrink:0">' + (i+1) + '</span>' +
-        '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44;min-width:22px;text-align:center;flex-shrink:0">' + tier + '</span>' +
-        '<span style="font-size:12px;font-weight:600;flex:1;color:#eee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.name + '</span>' +
-        '<span style="font-size:10px;color:#00ff9d;flex-shrink:0;margin-right:4px">' + Math.round(p.totalPoints || 0) + 'pts</span>' +
-        '<button onclick="ovMove(' + i + ',-1)" style="width:40px;height:40px;font-size:18px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;cursor:pointer;flex-shrink:0">▲</button>' +
-        '<button onclick="ovMove(' + i + ',1)" style="width:40px;height:40px;font-size:18px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;cursor:pointer;flex-shrink:0">▼</button>' +
-      '</div>'
-    );
-  }
-  document.getElementById('rankOverrideList').innerHTML = rows.join('');
-}
-
-async function saveRankOverride() {
-  if (!OVERRIDE_SEASON) return;
-  showOvMsg('Saving & applying tiers...', '#aaa');
-  try {
-    // Get tier sizes from CFG (loaded at startup) or config API
-    let tierSizes = {
-      S: CFG?.tierSizes?.S || 21,
-      A: CFG?.tierSizes?.A || 21,
-      B: CFG?.tierSizes?.B || 22,
-      C: 999
-    };
-    try {
-      const cr = await fetch('/config?league='+LEAGUE);
-      const cd = await cr.json();
-      if(cd.tierSizes) tierSizes = {...cd.tierSizes, C:999};
-    } catch(e) {}
-    const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
-
-    // Build assignments from OVERRIDE_LIST order
-    const manualAssignments = {};
-    OVERRIDE_LIST.forEach((p,i) => {
-      const tier = i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
-      manualAssignments[p.name] = {tier, rank:i+1, totalPoints:p.totalPoints||0, totalWins:p.totalWins||0, totalDiff:p.totalDiff||0};
-    });
-
-    // Show preview of first 5 assignments for confirmation
-    const preview = OVERRIDE_LIST.slice(0,5).map((p,i)=>{
-      const tier = i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
-      return `${i+1}.${p.name}→${tier}`;
-    }).join(', ');
-    showOvMsg(`Applying: ${preview}...`, '#aaa');
-
-    // Save override
-    const override = OVERRIDE_LIST.map((p,i)=>({name:p.name, rank:i+1, totalPoints:p.totalPoints, totalWins:p.totalWins, totalDiff:p.totalDiff}));
-    await fetch('/seasons/rank-override?league='+LEAGUE, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({season:OVERRIDE_SEASON, override})
-    });
-
-    // Apply tiers
-    const r2 = await fetch('/seasons/assign-tiers?league='+LEAGUE, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({season:OVERRIDE_SEASON, tierSizes, manualAssignments})
-    });
-    const d2 = await r2.json();
-    if (d2.error) { showOvMsg('Tier apply failed: '+d2.error, '#ff6b35'); return; }
-
-    showOvMsg('✅ Applied! S=ranks 1-'+sEnd+', A='+( sEnd+1)+'-'+aEnd+', B='+(aEnd+1)+'-'+bEnd+'. '+d2.totalPlayers+' players updated.', '#22c55e');
-    await loadDB();
-    // Refresh leaderboard tier badges
-    if(document.getElementById('lbSection')?.style.display!=='none' && LB_SEASON){
-      showLeaderboard(LB_SEASON);
-    }
-  } catch(e) { showOvMsg('Error: '+e.message, '#ef4444'); }
-}
-
-async function clearRankOverride() {
-  if (!confirm('Clear manual ranking override for ' + OVERRIDE_SEASON + '?')) return;
-  const res = await fetch('/seasons/rank-override?league=' + LEAGUE, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ season: OVERRIDE_SEASON, override: [] })
-  });
-  const d = await res.json();
-  if (d.success) { await loadOverrideFromSeason(); showOvMsg('Override cleared.', '#aaa'); }
-}
-
-function closeRankOverride() {
-  document.getElementById('rankOverrideModal').style.display = 'none';
-  OVERRIDE_SEASON = null;
-}
 </script>
 </body>
 </html>

@@ -702,6 +702,7 @@ Shaiful Anuar](https://reclub.co/players/@captsa)..."
         <div class="col" style="min-width:90px"><label class="fl">Tier</label>
           <select id="addTier"><option value="S">S (400)</option><option value="A">A (350)</option><option value="B" selected>B (300)</option><option value="C">C (250)</option></select></div>
         <div class="col" style="flex:2;min-width:120px"><label class="fl">Handle</label><input type="text" id="addHandle" placeholder="@reclub_handle"></div>
+        <div class="col" style="flex:1;min-width:90px"><label class="fl">Avatar ID</label><input type="text" id="addAvatarId" placeholder="e.g. 484692" style="font-family:Space Mono,monospace"></div>
         <button class="btn btn-green btn-sm" onclick="addPlayer()" style="align-self:flex-end">+ Add</button>
       </div>
     </div>
@@ -845,15 +846,6 @@ let SEASON_MANUAL_RANK={};  // seasonName -> [playerName, ...] custom order
 let LB_CURRENT_ORDER=[];  // current rendered leaderboard order
 let LAST_TITLE='',LAST_DATE='',IS_WEEK1=false;
 
-/** Season leaderboard: soft tint cycles every 9 ranks */
-const LB_BAND_BGS=[
-  'rgba(0,255,157,0.055)','rgba(0,204,255,0.055)','rgba(124,58,237,0.055)','rgba(255,107,53,0.055)',
-  'rgba(255,215,0,0.065)','rgba(21,101,192,0.065)','rgba(236,72,153,0.055)','rgba(163,230,53,0.055)',
-];
-function lbRowBandBackground(rankIndex,tied){
-  const bg=LB_BAND_BGS[Math.floor(rankIndex/9)%LB_BAND_BGS.length];
-  return tied?`linear-gradient(0deg,rgba(124,58,237,0.10),rgba(124,58,237,0.10)),${bg}`:bg;
-}
 
 // ── Team Court Map ────────────────────────────────────────
 const DEFAULT_TEAM_COURT = {
@@ -1208,7 +1200,6 @@ function lbMove(idx, dir){
   const updated = [...table.querySelectorAll('tr[data-idx]')];
   updated.forEach((r, i) => {
     r.dataset.idx = i;
-    r.style.background = lbRowBandBackground(i, r.dataset.tied === '1');
     const rb = r.querySelector('.rb');
     if(rb) rb.textContent = i + 1;
     const btns = r.querySelectorAll('button[onclick^="lbMove"]');
@@ -1834,7 +1825,8 @@ function showLeaderboard(seasonName){
           }
         })()}`;
     }).join('');
-    h+=`<tr data-idx="${i}" data-tied="${tied?'1':''}" data-player="${p.replace(/"/g,'&quot;')}" style="background:${lbRowBandBackground(i,tied)}">
+    const tiedStyle=tied?'background:#7c3aed08;':'';
+    h+=`<tr data-idx="${i}" data-player="${p.replace(/"/g,'&quot;')}" style="${tiedStyle}">
       <td style="white-space:nowrap">
         <span class="rb">${i+1}</span>${tied?'<span style="font-size:9px;color:#7c3aed;margin-left:3px">TIE</span>':''}
         ${CURRENT_USER?.role==='admin'?`<button onclick="lbMove(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;padding:0 3px" title="Move up">▲</button>
@@ -1988,7 +1980,12 @@ function renderDB(){
         title="Click to edit handle">
         ${p.handle||'⚠ no handle'} <span style="font-size:9px;color:#444">✎</span>
       </td>
-      <td style="color:var(--muted);font-size:10px">${p.avatarId?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`:'—'}</td>
+      <td style="color:var(--muted);font-size:10px;cursor:pointer" onclick="editAvatarId(this)" data-name="${p.name}" title="Click to edit Avatar ID">
+        ${p.avatarId
+          ?`<img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'">${p.avatarId}`
+          :'<span style="color:#ff6b35">— add</span>'}
+        <span style="font-size:9px;color:#444"> ✎</span>
+      </td>
       <td><button class="btn btn-sm" style="background:#2a1a1a;color:#ff6b6b;font-size:10px" onclick="removePlayer('${p.name.replace(/'/g,"\\'")}')">✕</button></td>
     </tr>`;
   });
@@ -1998,9 +1995,13 @@ async function addPlayer(){
   const name=document.getElementById('addName').value.trim();
   const tier=document.getElementById('addTier').value;
   const handle=document.getElementById('addHandle').value.trim();
+  const avatarId=document.getElementById('addAvatarId').value.trim();
   if(!name){alert('Name required');return;}
-  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,tier,handle})});
-  document.getElementById('addName').value=''; document.getElementById('addHandle').value='';
+  await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,tier,handle,avatarId:avatarId||undefined})});
+  document.getElementById('addName').value='';
+  document.getElementById('addHandle').value='';
+  document.getElementById('addAvatarId').value='';
   await loadDB();
 }
 function editHandle(td){
@@ -2090,6 +2091,27 @@ function editPlayerName(span, currentName){
     if(currentSeasonName) showLeaderboard(currentSeasonName);
   };
   span.innerHTML=''; span.appendChild(inp); inp.focus(); inp.select();
+}
+
+// Edit avatar ID inline
+function editAvatarId(td){
+  if(td.querySelector('input')) return;
+  const name = td.getAttribute('data-name');
+  const current = dbPlayer(name)?.avatarId||'';
+  const inp = document.createElement('input');
+  inp.type='text'; inp.value=current; inp.placeholder='Avatar ID (numbers only)';
+  inp.style.cssText='width:110px;background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:3px 7px;color:#7c3aed;font-family:Space Mono,monospace;font-size:11px;outline:none';
+  inp.onclick = e => e.stopPropagation();
+  inp.onkeydown = e => { if(e.key==='Enter') inp.blur(); if(e.key==='Escape'){ inp.value=current; inp.blur(); } };
+  inp.onblur = async () => {
+    const newId = inp.value.trim().replace(/\D/g,''); // digits only
+    if(newId === current){ await loadDB(); return; }
+    const existing = dbPlayer(name)||{name};
+    await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...existing, name, avatarId:newId||undefined})});
+    await loadDB();
+  };
+  td.innerHTML=''; td.appendChild(inp); inp.focus(); inp.select();
 }
 
 // Edit handle directly from court card

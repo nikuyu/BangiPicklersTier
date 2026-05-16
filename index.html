@@ -817,8 +817,22 @@ function dbPlayer(name){
   if(!name||!DB.players) return null;
   const k = normName(name);
   if(DB.players[k]) return DB.players[k];
-  // Search by name field across all handle-keyed entries (with apostrophe normalization)
-  return Object.values(DB.players).find(p=>p.name && normName(p.name)===k)||null;
+  // Search by name field across all handle-keyed entries
+  const found = Object.values(DB.players).find(p=>p.name && normName(p.name)===k);
+  if(found) return found;
+  // Try stripping bracket suffix e.g. "Ezuardi (Wady)" → "Ezuardi"
+  const base = k.replace(/\s*\(.*\)$/, '').trim();
+  if(base !== k){
+    if(DB.players[base]) return DB.players[base];
+    const foundBase = Object.values(DB.players).find(p=>p.name && normName(p.name)===base);
+    if(foundBase) return foundBase;
+  }
+  // Try reverse — DB has "Ezuardi (Wady)", score says "Ezuardi"
+  return Object.values(DB.players).find(p=>{
+    if(!p.name) return false;
+    const pBase = normName(p.name).replace(/\s*\(.*\)$/,'').trim();
+    return pBase === k || pBase === base;
+  }) || null;
 }
 // Handle → avatarId lookup (from known players)
 const KNOWN_HANDLES = {

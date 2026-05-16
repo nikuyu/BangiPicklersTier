@@ -203,6 +203,7 @@ const KNOWN_PLAYERS = {
   'Azhar y':           {handle:'@azhar-y-479',          avatarId:'364361'},
   'Mujahid Shukri':    {handle:'@mujahid-shukri-585',  avatarId:'756383'},
   'Ezuardi (Wady)':    {handle:'@ezuardi2005',          avatarId:'1009149'},
+  'Ezuardi':           {handle:'@ezuardi2005',          avatarId:'1009149'},
   'Afiq Ross':         {handle:'@ar_',                  avatarId:'653772'},
   'AriffNordin':       {handle:'@an10',                 avatarId:'653795'},
   'Nafees Najib':      {handle:'@nafeesnajib',          avatarId:'547514'},
@@ -403,13 +404,29 @@ async function getTeamCourtMap(lg='men') {
 // ── Scoring ────────────────────────────────────────────────
 function findPlayerInDB(name, db) {
   const nameKey = normalizeName(name).toLowerCase().trim();
-  // Try name key first
+  // Try exact name key first
   if(db.players[nameKey]) return db.players[nameKey];
   // Search by name field (with apostrophe normalization)
   const found = Object.values(db.players).find(p=>
     p.name && normalizeName(p.name).toLowerCase().trim()===nameKey
   );
-  return found || null;
+  if(found) return found;
+  // Try stripping bracket suffix e.g. "Ezuardi (Wady)" → "Ezuardi"
+  const baseName = nameKey.replace(/\s*\(.*\)$/, '').trim();
+  if(baseName !== nameKey){
+    if(db.players[baseName]) return db.players[baseName];
+    const foundBase = Object.values(db.players).find(p=>
+      p.name && normalizeName(p.name).toLowerCase().trim()===baseName
+    );
+    if(foundBase) return foundBase;
+  }
+  // Try the reverse — search name that starts with the score name (e.g. DB has "Ezuardi (Wady)", score says "Ezuardi")
+  const foundPartial = Object.values(db.players).find(p=>{
+    if(!p.name) return false;
+    const pBase = normalizeName(p.name).toLowerCase().replace(/\s*\(.*\)$/,'').trim();
+    return pBase === nameKey || pBase === baseName;
+  });
+  return foundPartial || null;
 }
 
 function calcCourtScore(playerNames, db, isWeek1, tierSnapshot) {
@@ -1314,8 +1331,17 @@ const server = http.createServer(async(req,res)=>{
     const{season,week,player,points}=JSON.parse(await body());
     const seasons=await loadSeasons(lg);const w=seasons.seasons[season]?.weeks[week];
     if(!w)return json({error:'Week not found'},404);
+    // Save to playerWeekPoints under the exact name AND the base name (strip brackets)
+    const baseName = player.replace(/\s*\(.*\)$/,'').trim();
     w.playerWeekPoints[player]=parseFloat(points);
-    Object.values(w.courtResults||{}).forEach(cr=>{const r=cr.find(r=>r.player===player);if(r)r.weekPoints=parseFloat(points);});
+    if(baseName!==player) w.playerWeekPoints[baseName]=parseFloat(points);
+    // Update courtResults — try exact match first, then bracket-stripped fallback
+    Object.values(w.courtResults||{}).forEach(cr=>{
+      let r=cr.find(r=>r.player===player);
+      if(!r && baseName!==player) r=cr.find(r=>r.player===baseName);
+      if(!r) r=cr.find(r=>r.player.replace(/\s*\(.*\)$/,'').trim()===baseName);
+      if(r) r.weekPoints=parseFloat(points);
+    });
     w.savedAt=new Date().toISOString();await saveSeasons(seasons, lg);return json({success:true});
   }
   if(pathname==='/seasons/assign-tiers'&&req.method==='POST'){

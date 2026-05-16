@@ -956,7 +956,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases','/reset'];
   // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
@@ -1993,6 +1993,34 @@ const server = http.createServer(async(req,res)=>{
         noTierPlayers:isWeek1?[]:noTierPlayers,
         matchedCount:Object.values(playerProfiles).filter(p=>p.photoUrl).length});
     }catch(e){console.error(e.message);return json({error:e.message},500);}
+  }
+
+  // ── /reset  ── Wipe all data for a league (admin only) ──────────────────
+  if(pathname==='/reset' && req.method==='POST'){
+    try{
+      const body=await readBody(req);
+      const {league='men', confirm}=JSON.parse(body||'{}');
+      const lg=league==='women'?'women':'men';
+      if(confirm!=='YES_RESET_ALL') return json({error:'Must send confirm:"YES_RESET_ALL"'},400);
+
+      // Wipe all collections for this league
+      await saveDB({players:{}}, lg);
+      await saveSeasons({seasons:{}}, lg);
+      await saveConfig({tierSizes:{S:21,A:21,B:22,C:999}}, lg);
+      await saveAliases({}, lg);
+
+      // If local files, also delete the JSON files cleanly
+      if(!mongo){
+        const dir = lg==='women' ? path.join(DATA_DIR,'women') : DATA_DIR;
+        ['players.json','seasons.json','config.json','aliases.json'].forEach(f=>{
+          const fp=path.join(dir,f);
+          try{fs.unlinkSync(fp);}catch(e){}
+        });
+      }
+
+      console.log(`🗑️  Database RESET for league: ${lg}`);
+      return json({success:true, message:`All ${lg} data wiped. Fresh start!`});
+    }catch(e){return json({error:e.message},500);}
   }
 
   res.writeHead(404);res.end('Not found');

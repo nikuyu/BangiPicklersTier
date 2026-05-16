@@ -546,6 +546,18 @@ tr:hover td{background:#ffffff03;}
       </div>
     </div>
 
+    <!-- Reset Database -->
+    <div class="card" style="border-color:#ff3b3b40">
+      <div class="card-title" style="color:#ff6b6b">🗑️ Reset Database</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Wipe <strong style="color:#ff6b6b">ALL</strong> data for the current league — players, seasons, scores, tiers. This cannot be undone. Export a backup first!</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="resetDatabase()" style="background:#2a0a0a;border:1px solid #ff3b3b;color:#ff6b6b;font-size:11px;padding:8px 18px">
+          🗑️ Reset All Data
+        </button>
+        <span id="resetStatus" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+    </div>
+
     <!-- Tier sizes -->
     <div class="card">
       <div class="card-title">👥 Players Per Tier</div>
@@ -1230,6 +1242,44 @@ async function exportData(){
     status.style.color = '#00ff9d';
   } catch(e){
     status.textContent = '✗ Export failed: '+e.message;
+    status.style.color = '#ff6b6b';
+  }
+}
+
+async function resetDatabase(){
+  const status = document.getElementById('resetStatus');
+  const lg = CURRENT_LEAGUE || 'men';
+
+  // First confirmation
+  if(!confirm(`⚠️ RESET ALL ${lg.toUpperCase()} DATA?\n\nThis will permanently delete:\n• All player records & tiers\n• All season data & scores\n• All match history\n\nThis CANNOT be undone!\n\nClick OK only if you have a backup.`)) return;
+
+  // Second confirmation
+  const typed = prompt(`Type  RESET  to confirm wiping all ${lg} data:`);
+  if((typed||'').trim().toUpperCase() !== 'RESET'){
+    status.textContent = '✗ Reset cancelled.';
+    status.style.color = 'var(--muted)';
+    return;
+  }
+
+  status.textContent = '⏳ Resetting...';
+  status.style.color = '#ff6b6b';
+  try{
+    const r = await fetch(`/reset?league=${lg}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({league: lg, confirm:'YES_RESET_ALL'})
+    });
+    const d = await r.json();
+    if(d.success){
+      status.textContent = '✓ Database wiped! Refreshing...';
+      status.style.color = '#00ff9d';
+      setTimeout(()=>location.reload(), 1500);
+    } else {
+      status.textContent = '✗ ' + (d.error||'Reset failed');
+      status.style.color = '#ff6b6b';
+    }
+  }catch(e){
+    status.textContent = '✗ ' + e.message;
     status.style.color = '#ff6b6b';
   }
 }

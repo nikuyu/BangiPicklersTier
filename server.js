@@ -1998,8 +1998,7 @@ const server = http.createServer(async(req,res)=>{
   // ── /reset  ── Wipe all data for a league (admin only) ──────────────────
   if(pathname==='/reset' && req.method==='POST'){
     try{
-      const body=await readBody(req);
-      const {league='men', confirm}=JSON.parse(body||'{}');
+      const {league='men', confirm}=JSON.parse(await body());
       const lg=league==='women'?'women':'men';
       if(confirm!=='YES_RESET_ALL') return json({error:'Must send confirm:"YES_RESET_ALL"'},400);
 

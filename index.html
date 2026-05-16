@@ -1248,7 +1248,7 @@ async function exportData(){
 
 async function resetDatabase(){
   const status = document.getElementById('resetStatus');
-  const lg = CURRENT_LEAGUE || 'men';
+  const lg = LEAGUE || 'men';
 
   // First confirmation
   if(!confirm(`⚠️ RESET ALL ${lg.toUpperCase()} DATA?\n\nThis will permanently delete:\n• All player records & tiers\n• All season data & scores\n• All match history\n\nThis CANNOT be undone!\n\nClick OK only if you have a backup.`)) return;

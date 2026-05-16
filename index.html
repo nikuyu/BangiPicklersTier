@@ -2200,9 +2200,13 @@ function editHandleFromCourt(div){
     ) && p.handle
   );
 
-  // Also check KNOWN_PLAYERS for this name
+  // Also check KNOWN_PLAYERS for this name — exact match OR name starts with score name
   const knownMatches = Object.entries(SERVER_KNOWN_PLAYERS||{})
-    .filter(([k])=> k===name || k.startsWith(name+'||'))
+    .filter(([k])=> {
+      if(k.includes('||')) return false; // skip court-specific entries
+      const base = k.replace(/\s*\(.*\)$/,'').trim().toLowerCase();
+      return base === name.toLowerCase().trim();
+    })
     .map(([,v])=>v)
     .filter((v,i,a)=>a.findIndex(x=>x.handle===v.handle)===i);
 
@@ -2310,7 +2314,19 @@ function editHandleFromCourt(div){
 
     // Build all players list — pre-matched allOptions at top, rest sorted alphabetically
     const matchedHandles = new Set(allOptions.map(o=>o.handle));
-    const restDbPlayers = Object.values(DB.players||{}).filter(p=>p.handle && !matchedHandles.has(p.handle))
+
+    // Use DB players if available, otherwise fall back to SERVER_KNOWN_PLAYERS
+    let sourceList = Object.values(DB.players||{}).filter(p=>p.handle);
+    if(sourceList.length === 0 && SERVER_KNOWN_PLAYERS){
+      // Build from KNOWN_PLAYERS — dedupe by handle, skip court-specific keys
+      const seen = new Set();
+      sourceList = Object.entries(SERVER_KNOWN_PLAYERS)
+        .filter(([k])=>!k.includes('||'))
+        .map(([k,v])=>({ name: k.replace(/\s*\(.*\)$/,'').trim(), handle:v.handle, avatarId:v.avatarId||'' }))
+        .filter(p=>{ if(!p.handle||seen.has(p.handle)) return false; seen.add(p.handle); return true; });
+    }
+
+    const restDbPlayers = sourceList.filter(p=>!matchedHandles.has(p.handle))
       .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
     const allDbPlayers = [...allOptions, ...restDbPlayers];
 

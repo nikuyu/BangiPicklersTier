@@ -127,6 +127,8 @@ const KNOWN_PLAYERS = {
   'basyir bazli':        {handle:'@basyir-bazli-13',    avatarId:'1059923'},
   'Thavaganesh':         {handle:'@coolbuddy',          avatarId:'316527'},
   'Faizam Hilmy':        {handle:'@faizam-hilmy-955',   avatarId:'1027123'},
+  'Faiz (faiz60111)':    {handle:'@faiz60111',           avatarId:'1035005'},
+  'Faiz (faiz-979)':     {handle:'@faiz-979',            avatarId:'689636'},
   'Syakir':              {handle:'@akedchan-650',       avatarId:'477900'},
   'Fahmi':               {handle:'@fahmi-175',          avatarId:'1020135'},
   'Danial':              {handle:'@danial-591',         avatarId:'762382'},

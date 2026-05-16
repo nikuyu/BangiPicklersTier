@@ -845,6 +845,15 @@ let SEASON_MANUAL_RANK={};  // seasonName -> [playerName, ...] custom order
 let LB_CURRENT_ORDER=[];  // current rendered leaderboard order
 let LAST_TITLE='',LAST_DATE='',IS_WEEK1=false;
 
+/** Season leaderboard: soft tint cycles every 9 ranks */
+const LB_BAND_BGS=[
+  'rgba(0,255,157,0.055)','rgba(0,204,255,0.055)','rgba(124,58,237,0.055)','rgba(255,107,53,0.055)',
+  'rgba(255,215,0,0.065)','rgba(21,101,192,0.065)','rgba(236,72,153,0.055)','rgba(163,230,53,0.055)',
+];
+function lbRowBandBackground(rankIndex,tied){
+  const bg=LB_BAND_BGS[Math.floor(rankIndex/9)%LB_BAND_BGS.length];
+  return tied?`linear-gradient(0deg,rgba(124,58,237,0.10),rgba(124,58,237,0.10)),${bg}`:bg;
+}
 
 // ── Team Court Map ────────────────────────────────────────
 const DEFAULT_TEAM_COURT = {
@@ -1199,6 +1208,7 @@ function lbMove(idx, dir){
   const updated = [...table.querySelectorAll('tr[data-idx]')];
   updated.forEach((r, i) => {
     r.dataset.idx = i;
+    r.style.background = lbRowBandBackground(i, r.dataset.tied === '1');
     const rb = r.querySelector('.rb');
     if(rb) rb.textContent = i + 1;
     const btns = r.querySelectorAll('button[onclick^="lbMove"]');
@@ -1824,8 +1834,7 @@ function showLeaderboard(seasonName){
           }
         })()}`;
     }).join('');
-    const tiedStyle=tied?'background:#7c3aed08;':'';
-    h+=`<tr data-idx="${i}" data-player="${p.replace(/"/g,'&quot;')}" style="${tiedStyle}">
+    h+=`<tr data-idx="${i}" data-tied="${tied?'1':''}" data-player="${p.replace(/"/g,'&quot;')}" style="background:${lbRowBandBackground(i,tied)}">
       <td style="white-space:nowrap">
         <span class="rb">${i+1}</span>${tied?'<span style="font-size:9px;color:#7c3aed;margin-left:3px">TIE</span>':''}
         ${CURRENT_USER?.role==='admin'?`<button onclick="lbMove(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;padding:0 3px" title="Move up">▲</button>

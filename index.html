@@ -2311,86 +2311,84 @@ async function editHandleFromCourt(div){
     document.getElementById('tStandings').innerHTML = standingsHTML();
   }
 
-  {
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:relative;display:inline-block;z-index:9999';
-    wrapper.onclick = e=>e.stopPropagation();
+  // Build and show overlay dropdown
+  // Remove any existing picker
+  document.getElementById('_handlePicker')?.remove();
 
-    const allDbPlayers = [...suggested, ...rest];
+  const overlay = document.createElement('div');
+  overlay.id = '_handlePicker';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#0008';
+  document.body.appendChild(overlay);
 
-    // Search input at top of dropdown
-    const inp = document.createElement('input');
-    inp.type='text'; inp.value=''; inp.placeholder='🔍 type to filter...';
-    inp.style.cssText = 'width:100%;box-sizing:border-box;background:#0a0a0f;border:none;border-bottom:1px solid #7c3aed;padding:5px 8px;color:#e0e0e0;font-family:Space Mono,monospace;font-size:9px;outline:none';
+  const box = document.createElement('div');
+  box.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#13131a;border:2px solid #7c3aed;border-radius:10px;width:320px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 40px #000d;overflow:hidden';
+  overlay.appendChild(box);
 
-    const list = document.createElement('div');
-    list.style.cssText = 'max-height:220px;overflow-y:auto;';
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'padding:10px 14px;border-bottom:1px solid #2a1a3e;display:flex;justify-content:space-between;align-items:center';
+  hdr.innerHTML = `<span style="color:#7c3aed;font-size:11px;font-weight:700">Assign handle for <span style="color:#fff">${name}</span></span><button onclick="document.getElementById('_handlePicker')?.remove()" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px">✕</button>`;
+  box.appendChild(hdr);
 
-    const dropdown = document.createElement('div');
-    dropdown.style.cssText = 'position:absolute;top:100%;left:0;z-index:9999;background:#13131a;border:1px solid #7c3aed;border-radius:6px;overflow:hidden;width:260px;box-shadow:0 6px 24px #000c';
-    dropdown.appendChild(inp);
-    dropdown.appendChild(list);
+  // Search
+  const inp = document.createElement('input');
+  inp.type='text'; inp.placeholder='🔍 Search name or @handle...';
+  inp.style.cssText='width:100%;box-sizing:border-box;background:#0d0d16;border:none;border-bottom:1px solid #2a1a3e;padding:10px 14px;color:#e0e0e0;font-size:11px;outline:none';
+  box.appendChild(inp);
 
-    function renderList(query){
-      const q = query.toLowerCase().trim();
-      const filtered = q ? allDbPlayers.filter(p=>
-        (p.name||'').toLowerCase().includes(q) ||
-        (p.handle||'').toLowerCase().includes(q)
-      ) : allDbPlayers;
+  // List
+  const list = document.createElement('div');
+  list.style.cssText='overflow-y:auto;flex:1';
+  box.appendChild(list);
 
-      list.innerHTML = '';
+  const allDbPlayers = [...suggested, ...rest];
 
-      // Suggested label
-      if(!q && suggested.length > 0){
-        const lbl = document.createElement('div');
-        lbl.style.cssText='padding:3px 8px;font-size:8px;color:#7c3aed;background:#0d0a1a;border-bottom:1px solid #2a1a3e;letter-spacing:1px;text-transform:uppercase';
-        lbl.textContent='★ Suggested';
-        list.appendChild(lbl);
-      }
+  function renderList(q){
+    q = q.toLowerCase().trim();
+    const filtered = q ? allDbPlayers.filter(p=>
+      (p.name||'').toLowerCase().includes(q)||(p.handle||'').toLowerCase().includes(q)
+    ) : allDbPlayers;
 
-      filtered.slice(0,40).forEach(p=>{
-        const row = document.createElement('div');
-        row.dataset.handle = p.handle;
-        row.dataset.avid   = p.avatarId||'';
-        row.dataset.pname  = p.name||'';
-        row.style.cssText  = 'padding:5px 8px;cursor:pointer;font-size:10px;color:#e0e0e0;border-bottom:1px solid #1a1a28;display:flex;align-items:center;gap:7px';
-        row.innerHTML = `
-          <img src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp"
-            style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0"
-            onerror="this.style.display='none'">
-          <div style="min-width:0">
-            <div style="font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||''}</div>
-            <div style="color:#7c3aed;font-size:8px">${p.handle}</div>
-          </div>`;
-        row.onmouseover = ()=>row.style.background='#1e1e2e';
-        row.onmouseout  = ()=>row.style.background='';
-        row.onmousedown = async(e)=>{
-          e.preventDefault();
-          const h=row.dataset.handle, av=row.dataset.avid;
-          dropdown.remove(); wrapper.remove();
-          await applyChoice(h, av);
-        };
-        list.appendChild(row);
-      });
+    list.innerHTML='';
 
-      if(filtered.length===0){
-        list.innerHTML='<div style="padding:8px;color:#555;font-size:9px;text-align:center">No match</div>';
-      }
+    if(!q && suggested.length>0){
+      const lbl=document.createElement('div');
+      lbl.style.cssText='padding:4px 14px;font-size:9px;color:#7c3aed;background:#0d0a1a;letter-spacing:1px;text-transform:uppercase';
+      lbl.textContent='★ Suggested matches';
+      list.appendChild(lbl);
     }
 
-    inp.oninput = ()=>renderList(inp.value);
-    inp.onkeydown = e=>{
-      if(e.key==='Escape'){ dropdown.remove(); wrapper.remove(); document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join(''); }
-    };
-    // Close on outside click
-    const closeOnOutside = e=>{ if(!wrapper.contains(e.target)){ dropdown.remove(); wrapper.remove(); document.removeEventListener('mousedown',closeOnOutside); document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join(''); }};
-    setTimeout(()=>document.addEventListener('mousedown',closeOnOutside),100);
+    if(filtered.length===0){
+      list.innerHTML='<div style="padding:16px;color:#555;font-size:11px;text-align:center">No players found</div>';
+      return;
+    }
 
-    renderList('');
-    wrapper.appendChild(dropdown);
-    div.innerHTML=''; div.appendChild(wrapper);
-    inp.focus();
+    filtered.slice(0,60).forEach(p=>{
+      const row=document.createElement('div');
+      row.style.cssText='padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1a1a28';
+      row.innerHTML=`
+        <img src="https://assets.reclub.co/user-avatars/${p.avatarId||''}.webp"
+          style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#1a1a2e"
+          onerror="this.style.display='none'">
+        <div>
+          <div style="font-weight:700;color:#fff;font-size:11px">${p.name||''}</div>
+          <div style="color:#7c3aed;font-size:9px">${p.handle}</div>
+        </div>`;
+      row.onmouseover=()=>row.style.background='#1e1e2e';
+      row.onmouseout=()=>row.style.background='';
+      row.onclick=async()=>{
+        overlay.remove();
+        await applyChoice(p.handle, p.avatarId||'');
+      };
+      list.appendChild(row);
+    });
   }
+
+  inp.oninput=()=>renderList(inp.value);
+  overlay.onclick=e=>{ if(e.target===overlay) overlay.remove(); };
+
+  renderList('');
+  setTimeout(()=>inp.focus(),50);
 }
 
 function rebuildPhotoUrl(p){ return p.avatarId?`https://assets.reclub.co/user-avatars/${p.avatarId}.webp`:p.photoUrl||null; }

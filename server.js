@@ -451,10 +451,37 @@ function calcStandings(matches, db, isWeek1, tierSnapshot) {
     });
   });
 
-  // Each court is ranked independently — players appearing on multiple courts
-  // get their best (highest) points counted via autoAssignTiers dedup
-  const courtResults={}, playerWeekPoints={};
+  // Merge courts that share 60%+ of same players (e.g. Court 7+8 rotating players)
+  const courtKeys = Object.keys(courts);
+  const mergeMap = {}; // court -> merged label
+  for(let i=0;i<courtKeys.length;i++){
+    for(let j=i+1;j<courtKeys.length;j++){
+      const a=courtKeys[i], b=courtKeys[j];
+      const pA=new Set(Object.keys(courts[a]));
+      const pB=new Set(Object.keys(courts[b]));
+      const overlap=[...pA].filter(p=>pB.has(p)).length;
+      if(overlap/Math.max(pA.size,pB.size)>=0.6){
+        const label=a+'+'+b;
+        mergeMap[a]=label; mergeMap[b]=label;
+        console.log('Merging courts '+a+'+'+b+' ('+overlap+' shared players)');
+      }
+    }
+  }
+  // Build final courts (merged where applicable)
+  const finalCourts={};
   Object.entries(courts).forEach(([court,players])=>{
+    const label=mergeMap[court]||court;
+    if(!finalCourts[label]) finalCourts[label]={};
+    Object.entries(players).forEach(([name,stats])=>{
+      if(!finalCourts[label][name]) finalCourts[label][name]={wins:0,losses:0,diff:0};
+      finalCourts[label][name].wins+=stats.wins;
+      finalCourts[label][name].losses+=stats.losses||0;
+      finalCourts[label][name].diff+=stats.diff;
+    });
+  });
+
+  const courtResults={}, playerWeekPoints={};
+  Object.entries(finalCourts).forEach(([court,players])=>{
     const list=Object.keys(players);
     const courtScore=calcCourtScore(list,db,isWeek1,tierSnapshot);
     // Sort by win% if players have played different numbers of games, else by wins then diff
@@ -872,6 +899,16 @@ const server = http.createServer(async(req,res)=>{
     });
   }
 
+  // Debug: show tier distribution and sample entries in DB
+  if(pathname==='/debug/tiers'&&req.method==='GET'){
+    const db=await loadDB(lg);
+    const players=Object.entries(db.players);
+    const bySample=players.slice(0,20).map(([k,p])=>({key:k,name:p.name,tier:p.tier,handle:p.handle}));
+    const counts={S:0,A:0,B:0,C:0,none:0};
+    players.forEach(([,p])=>counts[p.tier]?counts[p.tier]++:counts.none++);
+    return json({total:players.length,counts,sample:bySample});
+  }
+
   if(pathname==='/'||pathname==='/index.html'){
     try{const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html);}
     catch(e){res.writeHead(500);return res.end('index.html not found');}
@@ -930,7 +967,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/import-all','/config','/aliases'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/import-all','/config','/aliases'];
   // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
@@ -996,6 +1033,61 @@ const server = http.createServer(async(req,res)=>{
     delete db.players[newKey].court;
     delete db.players[newKey].teamColor;
     await saveDB(db, lg);return json({success:true,player:db.players[newKey]});
+  }
+  // Rename a player: update DB name field AND all saved week courtResults
+  if(pathname==='/db/rename'&&req.method==='POST'){
+    const{oldName, newName}=JSON.parse(await body());
+    if(!oldName||!newName||oldName===newName) return json({error:'oldName and newName required'},400);
+    const db=await loadDB(lg);
+    const seasons=await loadSeasons(lg);
+    const oldKey=normalizeName(oldName).toLowerCase().trim();
+    const newKey=normalizeName(newName).toLowerCase().trim();
+
+    // Find the DB entry (may be handle-keyed)
+    const entryKey = db.players[oldKey]
+      ? oldKey
+      : Object.keys(db.players).find(k=>{
+          const p=db.players[k];
+          return p.name && normalizeName(p.name).toLowerCase().trim()===oldKey;
+        });
+
+    if(!entryKey) return json({error:'Player not found: '+oldName},404);
+
+    // Update name in DB entry
+    const entry = db.players[entryKey];
+    entry.name = newName;
+    // If keyed by old name, re-key to new name; if keyed by handle, just update name field
+    if(entryKey===oldKey && oldKey!==newKey){
+      db.players[newKey] = entry;
+      delete db.players[oldKey];
+    }
+
+    // Rename in all seasons/weeks courtResults and playerWeekPoints
+    let renamedWeeks=0;
+    Object.values(seasons.seasons||{}).forEach(season=>{
+      Object.values(season.weeks||{}).forEach(week=>{
+        let changed=false;
+        // courtResults
+        Object.values(week.courtResults||{}).forEach(players=>{
+          players.forEach(r=>{ if(r.player===oldName){ r.player=newName; changed=true; } });
+        });
+        // playerWeekPoints — re-key entries
+        const wpt=week.playerWeekPoints||{};
+        Object.keys(wpt).forEach(k=>{
+          if(k===oldName){ wpt[newName]=wpt[k]; delete wpt[k]; changed=true; }
+          if(k.startsWith(oldName+'||')){ const court=k.slice(oldName.length+2); wpt[newName+'||'+court]=wpt[k]; delete wpt[k]; changed=true; }
+        });
+        // tierSnapshot
+        const ts=week.tierSnapshot||{};
+        if(ts[oldKey]){ ts[newKey]=ts[oldKey]; delete ts[oldKey]; changed=true; }
+        if(changed) renamedWeeks++;
+      });
+    });
+
+    await saveDB(db, lg);
+    await saveSeasons(seasons, lg);
+    console.log('Renamed "'+oldName+'" -> "'+newName+'", updated '+renamedWeeks+' week entries');
+    return json({success:true, renamedWeeks});
   }
   // Update handles/avatarId for existing players without changing tiers
   if(pathname==='/db/update-handles'&&req.method==='POST'){
@@ -1226,25 +1318,45 @@ const server = http.createServer(async(req,res)=>{
     // Use manual assignments if provided, otherwise auto-assign
     const assignments=manualAssignments||autoAssignTiers(seasons.seasons[season],sizes);
     let updated=0, notFound=[];
+    console.log('assign-tiers: '+Object.keys(assignments).length+' players to assign, DB has '+Object.keys(db.players).length+' entries');
+    console.log('assign-tiers: DB sample keys:', Object.keys(db.players).slice(0,5));
     Object.entries(assignments).forEach(([player,info])=>{
-      const nameKey = normalizeName(player).toLowerCase().trim();
-      // Find existing entry by name key OR by name field (with apostrophe normalization)
-      const existingKey = db.players[nameKey]
-        ? nameKey
-        : Object.keys(db.players).find(k=>{
-            const p=db.players[k];
-            return p.name && normalizeName(p.name).toLowerCase().trim()===nameKey;
-          });
-      if(existingKey){
-        db.players[existingKey]={...db.players[existingKey], tier:info.tier};
-        updated++;
+      // Use findPlayerInDB which handles both name-keyed and handle-keyed entries
+      const found = findPlayerInDB(player, db);
+      if(found){
+        // Get the actual key this player is stored under
+        const nameKey = normalizeName(player).toLowerCase().trim();
+        const existingKey = db.players[nameKey]
+          ? nameKey
+          : Object.keys(db.players).find(k=>{
+              const p=db.players[k];
+              return p.name && normalizeName(p.name).toLowerCase().trim()===nameKey;
+            })
+            // Also try handle-based key via found entry's handle
+            || (found.handle && Object.keys(db.players).find(k=>{
+              return db.players[k]===found || (found.handle && db.players[k]?.handle===found.handle);
+            }));
+        if(existingKey){
+          db.players[existingKey]={...db.players[existingKey], tier:info.tier};
+          updated++;
+        } else {
+          // findPlayerInDB found it by reference — find its key by scanning
+          const refKey = Object.keys(db.players).find(k=>db.players[k]===found);
+          if(refKey){
+            db.players[refKey]={...db.players[refKey], tier:info.tier};
+            updated++;
+          } else {
+            notFound.push(player);
+          }
+        }
       } else {
         notFound.push(player);
       }
     });
     // Filter out any ||Court keys that slipped through
     const realNotFound = notFound.filter(p=>!p.includes('||'));
-    if(realNotFound.length>0) console.log('assign-tiers: not found in DB:',realNotFound.join(', '));
+    if(realNotFound.length>0) console.log('assign-tiers: NOT FOUND in DB ('+realNotFound.length+'):',realNotFound.slice(0,10).join(', '));
+    console.log('assign-tiers: updated='+updated+', notFound='+realNotFound.length);
     // Save tier snapshot to the season — keyed by timestamp so history is preserved
     const snapshot = {
       assignedAt: new Date().toISOString(),

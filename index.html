@@ -231,30 +231,32 @@ tr:hover td{background:#ffffff03;}
 
 
   /* Weekly Report */
-  /* Report — portrait/vertical layout for WhatsApp */
-  .report-wrap{background:#0d0d1a;padding:16px;border-radius:12px;width:480px;margin:0 auto;font-family:'Space Mono',monospace;box-sizing:border-box;border:1px solid #1e1e2e;}
-  .report-header{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #00ff9d30;}
-  .report-logo{width:72px;height:72px;border-radius:14px;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid #00ff9d30;}
-  .report-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#00ff9d,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-  .report-week{font-size:10px;color:#666680;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
-  .report-section{margin-bottom:14px;}
-  .report-section-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#00ff9d;margin-bottom:8px;display:flex;align-items:center;gap:6px;padding-bottom:4px;border-bottom:1px solid #1e1e2e;}
-  /* 2-column grid for report cards */
+  .report-wrap{background:#0d0d1a;padding:20px;border-radius:14px;width:460px;margin:0 auto;font-family:'Space Mono',monospace;box-sizing:border-box;border:1px solid #1e1e2e;overflow:hidden;}
+  .report-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #1e1e2e;}
+  .report-logo{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid #00ff9d30;}
+  .report-header-text{flex:1;min-width:0;}
+  .report-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#00ff9d,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;}
+  .report-week{font-size:9px;color:#666680;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+  .report-section{margin-bottom:0;}
+  .report-section-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#00ff9d;margin-bottom:8px;display:flex;align-items:center;gap:6px;padding-bottom:5px;border-bottom:1px solid #1a1a2e;}
   .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .report-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-  .report-player{background:#0a0a14;border:1px solid #1e1e2e;border-radius:8px;padding:7px 8px;display:flex;align-items:center;gap:7px;}
-  .report-player.gold{border-color:#ffd70050;background:#ffd70010;}
-  .report-player.up{border-color:#00ff9d40;background:#00ff9d08;}
-  .report-player.down{border-color:#ff6b6b40;background:#ff6b6b08;}
-  .report-player.promoted{border-color:#7c3aed40;background:#7c3aed08;}
+  .report-player{background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;min-width:0;}
+  .report-player.gold{border-color:#ffd70040;background:#ffd70008;}
+  .report-player.up{border-color:#00ff9d30;background:#00ff9d06;}
+  .report-player.down{border-color:#ff6b6b30;background:#ff6b6b06;}
+  .report-player.promoted{border-color:#7c3aed30;background:#7c3aed06;}
+  .report-player-full{background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;}
+  .report-player-full.gold{border-color:#ffd70040;background:#ffd70008;}
+  .report-player-full.up{border-color:#00ff9d30;background:#00ff9d06;}
+  .report-player-full.down{border-color:#ff6b6b30;background:#ff6b6b06;}
   .report-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;}
-  .report-av-ph{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
-  .report-pname{font-size:11px;font-weight:700;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
-  .report-psub{font-size:9px;color:#666680;}
-  .report-pval{font-size:15px;font-weight:800;text-align:right;min-width:44px;margin-left:auto;}
-  .report-court-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-top:2px;display:inline-block;}
-  .report-footer{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #1e1e2e;font-size:9px;color:#444;letter-spacing:1px;}
-  .tier-arrow{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;}
+  .report-av-ph{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+  .report-pname{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;line-height:1.3;}
+  .report-psub{font-size:9px;color:#555580;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .report-pval{font-size:15px;font-weight:800;text-align:right;flex-shrink:0;margin-left:auto;}
+  .report-court-badge{font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;display:inline-block;}
+  .report-footer{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #1a1a2e;font-size:8px;color:#333;letter-spacing:1px;}
+  .tier-arrow{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;}
   .tier-up{background:#00ff9d15;color:#00ff9d;}
   .tier-down{background:#ff6b3515;color:#ff6b35;}
   /* Drag and drop ranking */
@@ -378,12 +380,12 @@ tr:hover td{background:#ffffff03;}
       <div class="card-title">① URLs</div>
       <div class="col" style="margin-bottom:10px">
         <label class="fl"><em>Score Sheet URL</em> — required</label>
-        <input type="text" id="scoreUrl" placeholder="https://api.reclub.co/export/score-sheets?m=XXXXXX"
+        <input type="text" id="scoreUrl" placeholder="R84T0F  or full URL"
           onblur="saveURLs()" oninput="saveURLs()">
       </div>
       <div class="col" style="margin-bottom:14px">
         <label class="fl">Meet Page URL — optional (photos, team colours)</label>
-        <input type="text" id="meetUrl" placeholder="https://reclub.co/m/XXXXXX" style="border-color:#7c3aed33"
+        <input type="text" id="meetUrl" placeholder="XXXXXX  or full URL  (optional)" style="border-color:#7c3aed33"
           onblur="saveURLs()" oninput="saveURLs()">
       </div>
 
@@ -478,7 +480,13 @@ tr:hover td{background:#ffffff03;}
 
     <div id="lbSection" style="display:none;margin-top:16px">
       <div class="card">
-        <div class="card-title" id="lbTitle">Season Leaderboard</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div class="card-title" id="lbTitle">Season Leaderboard</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="lbDragHint" style="font-size:10px;color:#555">⠿ Drag rows to reorder</span>
+            <button id="lbResetRank" onclick="" style="display:none;font-size:10px;padding:4px 10px;background:#1a0a0a;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:5px;cursor:pointer">↺ Reset Order</button>
+          </div>
+        </div>
         <div class="tw"><table id="tLeaderboard"></table></div>
       </div>
     </div>
@@ -546,17 +554,17 @@ tr:hover td{background:#ffffff03;}
         <div style="background:var(--bg);border:1px solid #ffd70030;border-radius:10px;padding:14px 16px;">
           <div style="font-size:11px;font-weight:700;color:#ffd700;margin-bottom:3px">🥇 Tier S</div>
           <div style="font-size:9px;color:var(--muted);margin-bottom:10px">Highest tier · 400 pts base</div>
-          <input type="number" id="tierS" value="21" min="1" max="999" style="text-align:center;font-size:18px;font-weight:700;color:#ffd700;border-color:#ffd70030">
+          <input type="number" id="tierS" value="21" min="1" max="999" onchange="CFG.tierSizes=CFG.tierSizes||{};CFG.tierSizes.S=parseInt(this.value)||21" style="text-align:center;font-size:18px;font-weight:700;color:#ffd700;border-color:#ffd70030">
         </div>
         <div style="background:var(--bg);border:1px solid #00ccff30;border-radius:10px;padding:14px 16px;">
           <div style="font-size:11px;font-weight:700;color:#00ccff;margin-bottom:3px">🥈 Tier A</div>
           <div style="font-size:9px;color:var(--muted);margin-bottom:10px">Second tier · 350 pts base</div>
-          <input type="number" id="tierA" value="21" min="1" max="999" style="text-align:center;font-size:18px;font-weight:700;color:#00ccff;border-color:#00ccff30">
+          <input type="number" id="tierA" value="21" min="1" max="999" onchange="CFG.tierSizes=CFG.tierSizes||{};CFG.tierSizes.A=parseInt(this.value)||21" style="text-align:center;font-size:18px;font-weight:700;color:#00ccff;border-color:#00ccff30">
         </div>
         <div style="background:var(--bg);border:1px solid #00ff9d30;border-radius:10px;padding:14px 16px;">
           <div style="font-size:11px;font-weight:700;color:#00ff9d;margin-bottom:3px">🥉 Tier B</div>
           <div style="font-size:9px;color:var(--muted);margin-bottom:10px">Third tier · 300 pts base</div>
-          <input type="number" id="tierB" value="22" min="1" max="999" style="text-align:center;font-size:18px;font-weight:700;color:#00ff9d;border-color:#00ff9d30">
+          <input type="number" id="tierB" value="22" min="1" max="999" onchange="CFG.tierSizes=CFG.tierSizes||{};CFG.tierSizes.B=parseInt(this.value)||22" style="text-align:center;font-size:18px;font-weight:700;color:#00ff9d;border-color:#00ff9d30">
         </div>
         <div style="background:var(--bg);border:1px solid #ff6b3530;border-radius:10px;padding:14px 16px;">
           <div style="font-size:11px;font-weight:700;color:#ff6b35;margin-bottom:3px">4️⃣ Tier C</div>
@@ -833,6 +841,8 @@ const KNOWN_HANDLES = {
   '@faiz-979':'689636','@afiq-524':'368697','@afiqim00':'210956',
 };
 let MANUAL_RANK={};  // court -> [playerName, ...] custom order
+let SEASON_MANUAL_RANK={};  // seasonName -> [playerName, ...] custom order
+let LB_CURRENT_ORDER=[];  // current rendered leaderboard order
 let LAST_TITLE='',LAST_DATE='',IS_WEEK1=false;
 
 
@@ -931,8 +941,18 @@ function setP(pct,msg,type='loading'){
 
 // ── Load match ────────────────────────────────────────────
 async function loadMatch(){
-  const scoreUrl=document.getElementById('scoreUrl').value.trim();
-  const meetUrl=document.getElementById('meetUrl').value.trim();
+  // Auto-expand short match code to full URL
+  const rawScore = document.getElementById('scoreUrl').value.trim();
+  const scoreUrl = /^[A-Z0-9]{6}$/i.test(rawScore)
+    ? 'https://api.reclub.co/export/score-sheets?m='+rawScore.toUpperCase()
+    : rawScore;
+  if(rawScore !== scoreUrl) document.getElementById('scoreUrl').value = scoreUrl;
+  // Auto-expand meet code to full URL
+  const rawMeet = document.getElementById('meetUrl').value.trim();
+  const meetUrl = /^[A-Z0-9]{6}$/i.test(rawMeet)
+    ? 'https://reclub.co/m/'+rawMeet.toUpperCase()
+    : rawMeet;
+  if(rawMeet && rawMeet !== meetUrl) document.getElementById('meetUrl').value = meetUrl;
   if(!scoreUrl){alert('Score sheet URL required');return;}
   document.getElementById('loadBtn').disabled=true;
   document.getElementById('prog').classList.add('show');
@@ -951,10 +971,12 @@ async function loadMatch(){
     setP(75,'Building standings...');
     MATCHES=data.matches; PROFILES=data.playerProfiles||{}; COURT_PROFILES=data.courtProfiles||{};
     MANUAL_SCORE={}; // reset manual scores on new load
+    MANUAL_RANK={}; // reset manual rank on new load
     COURT_RESULTS=data.courtResults||{}; PLAYER_WPT=data.playerWeekPoints||{};
     LAST_TITLE=data.title||'Match Results'; LAST_DATE=data.date||'';
 
-    const cs=new Set(MATCHES.map(m=>m.court));
+    // Build COURTS from COURT_RESULTS keys (handles merged courts like "Court 7+Court 8")
+    const cs=new Set(Object.keys(COURT_RESULTS));
     COURTS=[...cs].sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
     overall={};
     MATCHES.forEach(m=>{
@@ -1086,12 +1108,14 @@ async function saveWeek(){
     await loadSeasons();
     populateAssignSeasons();populateRmSeasons();populateReportSeasons();
     // Auto-run tier assignment immediately after save
-    const autoAssignRes = await fetch('/seasons/assign-tiers',{
+    // Use saved tier sizes from CFG (set in Settings → Save Tier Sizes)
+    const _ts = CFG.tierSizes||{};
+    const autoAssignRes = await fetch('/seasons/assign-tiers?league='+LEAGUE,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({season, tierSizes:{
-        S:parseInt(document.getElementById('tierS')?.value)||21,
-        A:parseInt(document.getElementById('tierA')?.value)||21,
-        B:parseInt(document.getElementById('tierB')?.value)||22,
+        S:parseInt(document.getElementById('tierS')?.value)||_ts.S||21,
+        A:parseInt(document.getElementById('tierA')?.value)||_ts.A||21,
+        B:parseInt(document.getElementById('tierB')?.value)||_ts.B||22,
         C:999
       }})
     });
@@ -1150,6 +1174,44 @@ async function saveWeek(){
 }
 
 // ── Config ────────────────────────────────────────────────
+// ── Leaderboard drag-to-reorder ──────────────────────────
+let lbDragSrc = null; // kept for compatibility
+
+function lbMove(idx, dir){
+  const table = document.getElementById('tLeaderboard');
+  if(!table) return;
+  const rows = [...table.querySelectorAll('tr[data-idx]')];
+  if(!rows.length) return;
+  const newIdx = idx + dir;
+  if(newIdx < 0 || newIdx >= rows.length) return;
+
+  const rowA = rows[idx];
+  const rowB = rows[newIdx];
+
+  // Swap rows in DOM
+  if(dir < 0){
+    rowB.parentNode.insertBefore(rowA, rowB);
+  } else {
+    rowA.parentNode.insertBefore(rowB, rowA);
+  }
+
+  // Renumber all data rows
+  const updated = [...table.querySelectorAll('tr[data-idx]')];
+  updated.forEach((r, i) => {
+    r.dataset.idx = i;
+    const rb = r.querySelector('.rb');
+    if(rb) rb.textContent = i + 1;
+    const btns = r.querySelectorAll('button[onclick^="lbMove"]');
+    if(btns[0]) btns[0].setAttribute('onclick', 'lbMove('+i+',-1)');
+    if(btns[1]) btns[1].setAttribute('onclick', 'lbMove('+i+',1)');
+  });
+
+  // Save order
+  SEASON_MANUAL_RANK[currentSeasonName] = updated.map(r => r.dataset.player).filter(Boolean);
+  const resetBtn = document.getElementById('lbResetRank');
+  if(resetBtn) resetBtn.style.display = 'inline-block';
+}
+
 async function exportData(){
   const status = document.getElementById('backupStatus');
   status.textContent = 'Exporting...';
@@ -1274,46 +1336,82 @@ async function assignTiers(){
   const btn = document.querySelector('[onclick="assignTiers()"]');
   if(btn){ btn.disabled=true; btn.textContent='Assigning...'; }
 
-  const tierSizes={S:parseInt(document.getElementById('tierS').value)||21,
-    A:parseInt(document.getElementById('tierA').value)||21,
-    B:parseInt(document.getElementById('tierB').value)||22,C:999};
+  const _ts2=CFG.tierSizes||{};
+  const tierSizes={
+    S:parseInt(document.getElementById('tierS').value)||_ts2.S||21,
+    A:parseInt(document.getElementById('tierA').value)||_ts2.A||21,
+    B:parseInt(document.getElementById('tierB').value)||_ts2.B||22,
+    C:999
+  };
+
+  // If the leaderboard has been manually reordered, use that order for tier assignment
+  const manualOrder = SEASON_MANUAL_RANK[seasonToUse];
+  let manualAssignments = null;
+  if(manualOrder && manualOrder.length > 0){
+    const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
+    // We need totalPoints/wins/diff — get them from the leaderboard totals
+    const s=SEASONS[seasonToUse];
+    const totals={};
+    if(s){ Object.values(s.weeks||{}).forEach(w=>{
+      const _best={};
+      Object.values(w.courtResults||{}).forEach(cp=>cp.forEach(r=>{
+        if(!totals[r.player]) totals[r.player]={wins:0,diff:0,points:0};
+        totals[r.player].wins+=(r.wins||0);
+        totals[r.player].diff+=(r.diff||0);
+        const pts=r.weekPoints||0;
+        if(!_best[r.player]||pts>_best[r.player]) _best[r.player]=pts;
+      }));
+      Object.entries(_best).forEach(([p,pts])=>{ if(!totals[p]) totals[p]={wins:0,diff:0,points:0}; totals[p].points+=pts; });
+    }); }
+    manualAssignments={};
+    manualOrder.forEach((name,i)=>{
+      const tier=i<sEnd?'S':i<aEnd?'A':i<bEnd?'B':'C';
+      const td=totals[name]||{wins:0,diff:0,points:0};
+      manualAssignments[name]={tier, rank:i+1, totalPoints:td.points, totalWins:td.wins, totalDiff:td.diff};
+    });
+    console.log('assignTiers: using leaderboard manual order for',Object.keys(manualAssignments).length,'players');
+  }
+
   try{
-  const res=await fetch('/seasons/assign-tiers?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({season:seasonToUse,tierSizes})});
-  if(res.status===403){ alert('Not logged in as admin. Click the 🔑 key in the sidebar.'); return; }
-  const d=await res.json();
-  if(d.error){alert('Error: '+d.error);return;}
+    const res=await fetch('/seasons/assign-tiers?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({season:seasonToUse,tierSizes,manualAssignments})});
+    if(res.status===403){ alert('Not logged in as admin. Click the 🔑 key in the sidebar.'); return; }
+    const d=await res.json();
+    if(d.error){alert('Error: '+d.error);return;}
 
+    const msg=document.getElementById('assignMsg');
+    let assignMsg = 'Assigned tiers for '+d.totalPlayers+' players!';
+    if(d.notFound&&d.notFound.length>0)
+      assignMsg += ' ('+d.notFound.length+' not in DB yet — run Roster Import first: '+d.notFound.slice(0,5).join(', ')+(d.notFound.length>5?'...':'')+')';
+    msg.textContent=assignMsg; msg.classList.add('show');
+    await loadDB();
+    // Re-render leaderboard so tier badges update immediately
+    if(currentSeasonName && document.getElementById('lbSection')?.style.display!=='none'){
+      showLeaderboard(currentSeasonName);
+    }
 
-  const msg=document.getElementById('assignMsg');
-  let assignMsg = 'Assigned tiers for '+d.totalPlayers+' players!';
-  if(d.notFound&&d.notFound.length>0)
-    assignMsg += ' ('+d.notFound.length+' not in DB yet — run Roster Import first: '+d.notFound.slice(0,5).join(', ')+(d.notFound.length>5?'...':'')+')';
-  msg.textContent=assignMsg; msg.classList.add('show');
-  await loadDB();
+    // Store for manual editor
+    const sorted=Object.entries(d.assignments).sort((a,b)=>a[1].rank-b[1].rank);
+    LAST_ASSIGNMENTS=sorted.map(([name,info])=>({name,...info}));
+
+    // Show preview table
+    let h=`<tr><th>Rank</th><th>Player</th><th>New Tier</th><th>Total W</th><th>Total +/-</th><th>Season Pts</th></tr>`;
+    sorted.slice(0,50).forEach(([p,info])=>{
+      h+=`<tr>
+        <td style="color:var(--muted)">${info.rank}</td>
+        <td>${p}</td>
+        <td>${tbadge(info.tier)}</td>
+        <td class="win">${info.totalWins||0}</td>
+        <td style="color:${(info.totalDiff||0)>=0?'var(--accent)':'#ff6b6b'}">${(info.totalDiff||0)>=0?'+':''}${info.totalDiff||0}</td>
+        <td class="pts">${Math.round(info.totalPoints||0)}</td>
+      </tr>`;
+    });
+    if(sorted.length>50)h+=`<tr><td colspan="6" style="text-align:center;color:var(--muted);font-size:10px">...and ${sorted.length-50} more</td></tr>`;
+    document.getElementById('tAssignPreview').innerHTML=h;
+    document.getElementById('assignPreview').style.display='block';
+    document.getElementById('btnApplyAssign').style.display='inline-block';
   } catch(e){ alert('Network error: '+e.message); return; }
   finally{ if(btn){ btn.disabled=false; btn.textContent='🔄 Auto-Assign Tiers Now'; } }
-
-  // Store for manual editor
-  const sorted=Object.entries(d.assignments).sort((a,b)=>a[1].rank-b[1].rank);
-  LAST_ASSIGNMENTS=sorted.map(([name,info])=>({name,...info}));
-
-  // Show preview table
-  let h=`<tr><th>Rank</th><th>Player</th><th>New Tier</th><th>Total W</th><th>Total +/-</th><th>Season Pts</th></tr>`;
-  sorted.slice(0,50).forEach(([p,info])=>{
-    h+=`<tr>
-      <td style="color:var(--muted)">${info.rank}</td>
-      <td>${p}</td>
-      <td>${tbadge(info.tier)}</td>
-      <td class="win">${info.totalWins||0}</td>
-      <td style="color:${(info.totalDiff||0)>=0?'var(--accent)':'#ff6b6b'}">${(info.totalDiff||0)>=0?'+':''}${info.totalDiff||0}</td>
-      <td class="pts">${Math.round(info.totalPoints||0)}</td>
-    </tr>`;
-  });
-  if(sorted.length>50)h+=`<tr><td colspan="6" style="text-align:center;color:var(--muted);font-size:10px">...and ${sorted.length-50} more</td></tr>`;
-  document.getElementById('tAssignPreview').innerHTML=h;
-  document.getElementById('assignPreview').style.display='block';
-  document.getElementById('btnApplyAssign').style.display='inline-block';
 }
 
 // ── Manual Tier Rank Editor ──────────────────────────────
@@ -1400,6 +1498,10 @@ async function applyManualRank(){
   document.getElementById('manualRankPanel').style.display='none';
   document.getElementById('assignMsg').textContent='✅ Manual tier ranking applied for '+d.totalPlayers+' players!';
   await loadDB();
+  // Re-render leaderboard so tier badges update immediately
+  if(currentSeasonName && document.getElementById('lbSection')?.style.display!=='none'){
+    showLeaderboard(currentSeasonName);
+  }
   alert('✅ Tiers applied! '+d.totalPlayers+' players updated.');
 }
 
@@ -1461,9 +1563,9 @@ function renderSeasons(){
           <div class="ws">Players: <strong>${Object.keys(w.playerWeekPoints||{}).length}</strong><br>Courts: <strong>${Object.keys(w.courtResults||{}).length}</strong></div>
         </div>`).join('')}
       </div>
-      <button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
+      ${CURRENT_USER?.role==='admin' ? `<button class="assign-btn" onclick="showPage('config',document.querySelector('.nav-btn:nth-child(3)'));setTimeout(()=>document.getElementById('assignSeason').value='${s.name}',100)">
         🔄 Auto-Assign Tiers for ${s.name}
-      </button>
+      </button>` : ''}
     </div>`;
   }).join('');
 }
@@ -1598,6 +1700,7 @@ function showLeaderboard(seasonName){
   document.getElementById('tierHistorySection').style.display='none';
   document.getElementById('lbSection').style.display='block';
   const s=SEASONS[seasonName]; if(!s)return;
+  currentSeasonName = seasonName; // always track current
   const weeks=Object.values(s.weeks||{}).sort((a,b)=>a.week-b.week);
   if(!weeks.length)return;
   const weekNums=weeks.map(w=>w.week);
@@ -1635,6 +1738,12 @@ function showLeaderboard(seasonName){
     (b[1].wins||0)-(a[1].wins||0)
   );
   document.getElementById('lbTitle').textContent=`${seasonName} — Season Leaderboard`;
+  // Show/hide reset button
+  const resetBtn = document.getElementById('lbResetRank');
+  if(resetBtn){
+    resetBtn.style.display = SEASON_MANUAL_RANK[seasonName] ? 'inline-block' : 'none';
+    resetBtn.onclick = ()=>{ delete SEASON_MANUAL_RANK[currentSeasonName||seasonName]; showLeaderboard(currentSeasonName||seasonName); };
+  }
 
   // Detect ties on wins+diff to highlight them
   function isTiedLb(entries, i) {
@@ -1671,10 +1780,22 @@ function showLeaderboard(seasonName){
     ${wSubh}
   </tr>`;
 
-  sorted.forEach(([p,d],i)=>{
+  // Apply manual rank override
+  const manualOrder = SEASON_MANUAL_RANK[seasonName];
+  let finalSorted;
+  if(manualOrder && manualOrder.length > 0){
+    const map = new Map(sorted.map(([p,d])=>[p,d]));
+    finalSorted = manualOrder.map(p=>[p, map.get(p)]).filter(([,d])=>d);
+    sorted.forEach(([p,d])=>{ if(!manualOrder.includes(p)) finalSorted.push([p,d]); });
+  } else {
+    finalSorted = sorted;
+  }
+
+  LB_CURRENT_ORDER = finalSorted.map(([p])=>p);
+  finalSorted.forEach(([p,d],i)=>{
     const tier=dbPlayer(p)?.tier;
     const prof=PROFILES[p]||{};
-    const tied=isTiedLb(sorted,i);
+    const tied=!manualOrder && isTiedLb(finalSorted,i);
     // Per-week cells
     const wc=weekNums.map(w=>{
       const wr=d.weekData?.[w];
@@ -1683,16 +1804,33 @@ function showLeaderboard(seasonName){
       const wDiff=wr?.diff;
       return`<td style="text-align:center;font-size:11px;color:#00ff9d;font-weight:700;border-left:1px solid #1e1e2e">${wWins}</td>
         <td style="text-align:center;font-size:11px;color:${wDiff>=0?'var(--accent)':'#ff6b6b'}">${wDiff!=null?(wDiff>=0?'+':'')+wDiff:'—'}</td>
-        <td style="text-align:center;font-size:11px;color:${wPts?'var(--accent)':'#333'};cursor:${wPts?'pointer':'default'}"
-          onclick="${wPts?'editSavedScore(this)':''}"
-          data-season="${seasonName}" data-week="${w}" data-player="${p}" data-pts="${wPts||0}"
-          title="${wPts?'Click to edit':''}">
-          ${wPts?Math.round(wPts):'—'}${wPts?' <span style="font-size:8px;color:#555">✎</span>':''}
-        </td>`;
+        ${(()=>{
+          const isAdmin = CURRENT_USER?.role==='admin';
+          if(isAdmin){
+            // Admin: existing score is editable, missing score (—) is clickable to add
+            const clickable = wPts || true; // always clickable for admin
+            return `<td style="text-align:center;font-size:11px;color:${wPts?'var(--accent)':'#555'};cursor:pointer"
+              onclick="editSavedScore(this)"
+              data-season="${seasonName}" data-week="${w}" data-player="${p}" data-pts="${wPts||0}"
+              title="${wPts?'Click to edit':'Click to add score'}">
+              ${wPts?Math.round(wPts):'—'} <span style="font-size:8px;color:#555">✎</span>
+            </td>`;
+          } else {
+            // Guest: read-only, no pencil, no click
+            return `<td style="text-align:center;font-size:11px;color:${wPts?'var(--accent)':'#333'}"
+              data-season="${seasonName}" data-week="${w}" data-player="${p}" data-pts="${wPts||0}">
+              ${wPts?Math.round(wPts):'—'}
+            </td>`;
+          }
+        })()}`;
     }).join('');
     const tiedStyle=tied?'background:#7c3aed08;':'';
-    h+=`<tr style="${tiedStyle}">
-      <td>${rankBdg(i+1)}${tied?'<span style="font-size:9px;color:#7c3aed;margin-left:3px">TIE</span>':''}</td>
+    h+=`<tr data-idx="${i}" data-player="${p.replace(/"/g,'&quot;')}" style="${tiedStyle}">
+      <td style="white-space:nowrap">
+        <span class="rb">${i+1}</span>${tied?'<span style="font-size:9px;color:#7c3aed;margin-left:3px">TIE</span>':''}
+        ${CURRENT_USER?.role==='admin'?`<button onclick="lbMove(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;padding:0 3px" title="Move up">▲</button>
+        <button onclick="lbMove(${i},1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;padding:0 3px" title="Move down">▼</button>`:''}
+      </td>
       <td><div class="pc">${avEl(p,28,prof.teamColor)}<div class="pi"><span class="pn">${p}</span><span class="ps">${prof.handle||''}</span></div></div></td>
       <td>${tbadge(tier)}</td>
       <td style="text-align:center;color:#00ff9d;font-weight:700">${d.wins}</td>
@@ -1726,9 +1864,14 @@ async function loadWeekView(season,week){
 
 async function deleteWeek(e,season,week){
   e.stopPropagation();
-  if(!confirm(`Delete ${season} Week ${week}?`))return;
-  await fetch('/seasons/week',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
+  if(!confirm(`Delete ${season} Week ${week}? This cannot be undone.`))return;
+  const res=await fetch('/seasons/week?league='+LEAGUE,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({season,week})});
+  if(!res.ok){alert('Delete failed: '+res.status);return;}
   await loadSeasons();
+  // Clear current match state if the deleted week was loaded
+  if(currentSeasonName===season){
+    COURT_RESULTS={}; PLAYER_WPT={}; MATCHES=[]; PROFILES={};
+  }
 }
 
 // ── DB ────────────────────────────────────────────────────
@@ -1826,7 +1969,7 @@ function renderDB(){
   pl.forEach((p,i)=>{
     const td=p.teamColor?`<span class="tdot" style="background:${p.teamColor}"></span>`:'';
     h+=`<tr><td style="color:var(--muted);font-size:10px">${i+1}</td>
-      <td><div class="pc">${p.avatarId?`<img class="av" src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border);object-fit:cover" onerror="this.style.display='none'">`:phAv(p.name,26)}<span class="pn">${p.name}</span></div></td>
+      <td><div class="pc">${p.avatarId?`<img class="av" src="https://assets.reclub.co/user-avatars/${p.avatarId}.webp" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border);object-fit:cover" onerror="this.style.display='none'">`:phAv(p.name,26)}<span class="pn" style="cursor:pointer;border-bottom:1px dashed #333" title="Click to rename" onclick="editPlayerName(this,'${p.name.replace(/'/g,"\\'")}')">${p.name} <span style="font-size:9px;color:#444">✎</span></span></div></td>
       <td><select class="ti-sel" style="color:${TIER_COLOR[p.tier]||'var(--muted)'}" onchange="updateTier('${p.name.replace(/'/g,"\\'")}',this.value)">
         ${['S','A','B','C'].map(t=>`<option value="${t}"${p.tier===t?' selected':''}>${t}(${TIER_SCORE[t]})</option>`).join('')}
       </select></td>
@@ -1908,6 +2051,36 @@ async function commitHandle(inp, playerName, newHandle, newAvatarId){
   await fetch('/db/player?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(updated)});
   await loadDB();
+}
+
+// Edit player display name inline
+function editPlayerName(span, currentName){
+  if(span.querySelector('input')) return;
+  const inp = document.createElement('input');
+  inp.type='text'; inp.value=currentName; inp.placeholder='Display name';
+  inp.style.cssText='width:160px;background:#0a0a0f;border:1px solid #ff6eb4;border-radius:5px;padding:3px 7px;color:#ff6eb4;font-family:Space Mono,monospace;font-size:11px;outline:none';
+  inp.onclick = e => e.stopPropagation();
+  inp.onkeydown = e => {
+    if(e.key==='Enter') inp.blur();
+    if(e.key==='Escape'){ inp.value=currentName; inp.blur(); }
+  };
+  inp.onblur = async () => {
+    const newName = inp.value.trim();
+    if(!newName || newName===currentName){ await loadDB(); return; }
+    if(!confirm(`Rename "${currentName}" → "${newName}"?\n\nThis will update their name in the database AND all saved week results.`)){ await loadDB(); return; }
+    span.textContent='Renaming...';
+    try{
+      const res = await fetch('/db/rename?league='+LEAGUE,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({oldName:currentName, newName})});
+      const d = await res.json();
+      if(d.error){ alert('Rename failed: '+d.error); }
+      else{ console.log('Renamed in '+d.renamedWeeks+' week entries'); }
+    } catch(e){ alert('Network error: '+e.message); }
+    await loadDB();
+    await loadSeasons();
+    if(currentSeasonName) showLeaderboard(currentSeasonName);
+  };
+  span.innerHTML=''; span.appendChild(inp); inp.focus(); inp.select();
 }
 
 // Edit handle directly from court card
@@ -2177,13 +2350,18 @@ function standingsHTML(){
 
 function getCourtResults(court){
   const base = (COURT_RESULTS[court]||[])
-    .map(r => ({...r, weekPoints: PLAYER_WPT[r.player+'||'+court] ?? PLAYER_WPT[r.player] ?? r.weekPoints}))
-    .sort((a,b) => b.weekPoints - a.weekPoints || b.wins - a.wins || b.diff - a.diff);
-  if (MANUAL_RANK[court] && MANUAL_RANK[court].length === base.length) {
+    .map(r => ({...r, weekPoints: PLAYER_WPT[r.player+'||'+court] ?? PLAYER_WPT[r.player] ?? r.weekPoints}));
+  // If manual rank exists, apply it directly WITHOUT re-sorting
+  if (MANUAL_RANK[court] && MANUAL_RANK[court].length >= base.length-1) {
     const map = Object.fromEntries(base.map(r=>[r.player,r]));
-    return MANUAL_RANK[court].map(name => map[name]).filter(Boolean);
+    const ordered = MANUAL_RANK[court].map(name => map[name]).filter(Boolean);
+    // Add any players not in manual rank at the end
+    const inManual = new Set(MANUAL_RANK[court]);
+    base.forEach(r=>{ if(!inManual.has(r.player)) ordered.push(r); });
+    return ordered;
   }
-  return base;
+  // Default: sort by weekPoints then wins then diff
+  return base.sort((a,b) => b.weekPoints - a.weekPoints || b.wins - a.wins || b.diff - a.diff);
 }
 
 function courtCardHTML(court){
@@ -2482,12 +2660,21 @@ function buildCumulativeRanking(season, upToWeek){
   return ranks;
 }
 
-function renderRankMovement(){
+async function renderRankMovement(){
+  const cont=document.getElementById('rankContent');
+  // If SEASONS not loaded yet, load them first
+  if(!Object.keys(SEASONS).length){
+    cont.innerHTML='<p style="color:var(--muted);font-size:12px">Loading seasons...</p>';
+    await loadSeasons();
+    populateRmSeasons();
+  }
   const season=document.getElementById('rmSeason')?.value;
   const wA=parseInt(document.getElementById('rmWeekA')?.value||0);
   const wB=parseInt(document.getElementById('rmWeekB')?.value||0);
-  const cont=document.getElementById('rankContent');
-  if(!season||!wA||!wB||!SEASONS[season]){cont.innerHTML='<p style="color:var(--muted);font-size:12px">Select a season and weeks to compare.</p>';return;}
+  if(!season||!SEASONS[season]){cont.innerHTML='<p style="color:var(--muted);font-size:12px">No seasons found. Save a week first.</p>';return;}
+  const weekCount=Object.keys(SEASONS[season]?.weeks||{}).length;
+  if(weekCount<2){cont.innerHTML='<p style="color:var(--muted);font-size:12px">Need at least 2 weeks saved to compare rank movement.</p>';return;}
+  if(!wA||!wB){cont.innerHTML='<p style="color:var(--muted);font-size:12px">Select two different weeks to compare.</p>';return;}
   if(wA===wB){cont.innerHTML='<p style="color:var(--muted);font-size:12px">Select two different weeks.</p>';return;}
 
   const rankA=buildCumulativeRanking(season, wA);
@@ -2734,6 +2921,7 @@ function cancelEdit(inp, playerName, oldPts) {
 
 // Edit score in saved season week
 async function editSavedScore(el) {
+  if(CURRENT_USER?.role !== 'admin'){ return; } // guests cannot edit
   const season = el.getAttribute('data-season');
   const week = parseInt(el.getAttribute('data-week'));
   const playerName = el.getAttribute('data-player');
@@ -2790,12 +2978,15 @@ document.addEventListener('dragleave', e => {
 });
 
 document.addEventListener('drop', e => {
-  const targetRow = e.target.closest('.drag-row');
-  if (!targetRow || !dragSrc || targetRow === dragSrc) return;
   e.preventDefault();
 
+  // ── Court row drag ──────────────────────────────────────
+  const targetRow = e.target.closest('.drag-row');
+  if (!targetRow || !dragSrc || targetRow === dragSrc) return;
+
   const court = dragSrc.getAttribute('data-court');
-  if (court !== targetRow.getAttribute('data-court')) return; // different courts
+  const targetCourt = targetRow.getAttribute('data-court');
+  if (court !== targetCourt) return; // different courts
 
   // Get current order from DOM of this court's table
   const table = dragSrc.closest('table');
@@ -3096,6 +3287,11 @@ function applyRoleUI(role){
   // Hide user management for non-admins
   const umCard = document.getElementById('userMgmtCard');
   if(umCard) umCard.style.display = isAdmin ? 'block' : 'none';
+  // Hide leaderboard reorder controls for non-admins
+  const dragHint = document.getElementById('lbDragHint');
+  const resetRank = document.getElementById('lbResetRank');
+  if(dragHint) dragHint.style.display = isAdmin ? '' : 'none';
+  if(resetRank && !isAdmin) resetRank.style.display = 'none';
 }
 
 // ── User management ────────────────────────────────────────
@@ -3154,8 +3350,8 @@ async function changePassword(username){
 async function populateReportSeasons(){
   const sel = document.getElementById('reportSeason');
   if(!sel) return;
-  // Reload seasons from server to get latest data
-  const res = await fetch('/seasons'); const d = await res.json(); SEASONS = d.seasons||{};
+  // Reload seasons from server to get latest data (with correct league)
+  const res = await fetch('/seasons?league='+LEAGUE); const d = await res.json(); SEASONS = d.seasons||{};
   sel.innerHTML = Object.keys(SEASONS).map(s=>`<option value="${s}">${s}</option>`).join('');
   populateReportWeeks();
 }
@@ -3175,17 +3371,25 @@ function rpAv(name){
   return `<div class="report-av-ph" style="background:#${abg(name)};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${ini(name)}</div>`;
 }
 
-function generateReport(){
+async function generateReport(){
   const season = document.getElementById('reportSeason')?.value;
   const week   = parseInt(document.getElementById('reportWeek')?.value||0);
-  if(!season||!week||!SEASONS[season]?.weeks[week]){ alert('Select a season and week'); return; }
+  // If seasons empty or week not found, reload with correct league first
+  if(!season||!week||!SEASONS[season]?.weeks[week]){
+    await populateReportSeasons();
+    const season2 = document.getElementById('reportSeason')?.value;
+    const week2   = parseInt(document.getElementById('reportWeek')?.value||0);
+    if(!season2||!week2||!SEASONS[season2]?.weeks[week2]){ alert('Select a season and week'); return; }
+  }
+  const seasonFinal = document.getElementById('reportSeason')?.value;
+  const weekFinal   = parseInt(document.getElementById('reportWeek')?.value||0);
 
-  const wData  = SEASONS[season].weeks[week];
-  const prevWk = Object.values(SEASONS[season].weeks||{}).filter(w=>w.week<week).sort((a,b)=>b.week-a.week)[0];
+  const wData  = SEASONS[seasonFinal].weeks[weekFinal];
+  const prevWk = Object.values(SEASONS[seasonFinal].weeks||{}).filter(w=>w.week<weekFinal).sort((a,b)=>b.week-a.week)[0];
 
   // ── Build ranking for this week and previous ──
-  const rankCur  = buildCumulativeRanking(season, week);
-  const rankPrev = prevWk ? buildCumulativeRanking(season, prevWk.week) : {};
+  const rankCur  = buildCumulativeRanking(seasonFinal, weekFinal);
+  const rankPrev = prevWk ? buildCumulativeRanking(seasonFinal, prevWk.week) : {};
 
   // ── Court champions (rank 1 per court) ──
   const champions = [];
@@ -3220,53 +3424,62 @@ function generateReport(){
   // ── Build HTML report ──
   const LOGO_SRC = document.getElementById('logoData')?.dataset?.src || '';
 
-  function rpAv(name, size=38){
-    const p = PROFILES[name]||{};
-    if(p.photoUrl) return `<img class="report-av" src="${p.photoUrl}" style="width:${size}px;height:${size}px;border:2px solid ${p.teamColor||'#333'}" onerror="this.style.display='none'">`;
-    return `<div class="report-av-ph" style="width:${size}px;height:${size}px;background:#${abg(name)}">${ini(name)}</div>`;
+  // Avatar: try DB avatarId first (works for saved weeks), fallback to initials
+  function rpAv(name, size=36){
+    const dbP = dbPlayer(name);
+    const avatarId = dbP?.avatarId || PROFILES[name]?.avatarId || null;
+    const sz = `width:${size}px;height:${size}px;flex-shrink:0;border-radius:50%`;
+    if(!avatarId) return `<div class="report-av-ph" style="${sz};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:700;color:#fff;background:#${abg(name)}">${ini(name)}</div>`;
+    // Wrap in a container so failed img shows initials fallback
+    return `<div style="${sz};overflow:hidden;position:relative;background:#${abg(name)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:700;color:#fff">
+      ${ini(name)}<img src="https://assets.reclub.co/user-avatars/${avatarId}.webp"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
+        onerror="this.remove()">
+    </div>`;
   }
-  function rpTier(t){ if(!t)return''; const c={S:'#ffd700',A:'#00ccff',B:'#00ff9d',C:'#ff6b35'}[t]||'#888'; return `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:${c}20;color:${c};border:1px solid ${c}40">${t}</span>`; }
-  function rpCourtBadge(court){ const p=Object.values(PROFILES).find(pp=>pp.court===court&&pp.teamColor); return p?`<span class="report-court-badge" style="background:${p.teamColor}20;color:${p.teamColor}">${court}</span>`:`<span class="report-court-badge" style="background:#333;color:#888">${court}</span>`; }
+  function rpTier(t){ if(!t)return''; const c={S:'#ffd700',A:'#00ccff',B:'#00ff9d',C:'#ff6b35'}[t]||'#888'; return `<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:${c}20;color:${c};border:1px solid ${c}40">${t}</span>`; }
+  function rpCourtBadge(court){ return `<span class="report-court-badge" style="background:#1a1a2e;color:#666">${court}</span>`; }
 
-  // Header HTML (shared across all cards)
+  // Shared compact header (logo left, text right)
   const headerHTML = `
     <div class="report-header">
-      <img class="report-logo" src="${LOGO_SRC}" alt="BP">
-      <div class="report-title">Bangi Picklers</div>
-      <div class="report-week">🏆 ${season} · Week ${week} · ${wData.date||''}</div>
+      <img class="report-logo" src="${LOGO_SRC}" alt="BP" onerror="this.style.display='none'">
+      <div class="report-header-text">
+        <div class="report-title">Bangi Picklers</div>
+        <div class="report-week">🏆 ${seasonFinal} &middot; Week ${weekFinal} &middot; ${wData.date||''}</div>
+      </div>
     </div>`;
 
   // Build each section as its own standalone card
-  let html = '<div style="display:flex;flex-direction:column;gap:12px">';
+  let html = '<div style="display:flex;flex-direction:column;gap:16px">';
 
   // Court Champions
   html += `<div id="rs-champions" class="report-wrap">${headerHTML}<div class="report-section">
     <div class="report-section-title">👑 Court Champions</div>
-    <div class="report-grid">
+    <div style="display:flex;flex-direction:column;gap:5px">
     ${champions.map(c=>{
-      return`<div class="report-player gold">
-        ${rpAv(c.player)}
+      const tier = dbPlayer(c.player)?.tier;
+      return`<div class="report-player-full gold">
+        ${rpAv(c.player,36)}
         <div style="flex:1;min-width:0">
           <div class="report-pname">${c.player}</div>
-          <div class="report-psub">${rpTier(dbPlayer(c.player)?.tier)} ${rpCourtBadge(c.court)}</div>
+          <div class="report-psub">${rpTier(tier)} ${rpCourtBadge(c.court)}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-          <div class="report-pval" style="color:#ffd700">${c.wins}W</div>
-          <div style="font-size:9px;color:#666">${c.court}</div>
-        </div>
+        <div style="text-align:right;flex-shrink:0;font-size:15px;font-weight:800;color:#ffd700">${c.wins}W</div>
       </div>`;
     }).join('')}
     </div>
-  </div>`;
+    <div class="report-footer">bangipicklerstier.onrender.com</div>
+  </div></div>`;
 
   // Top performers
   html += `<div id="rs-performers" class="report-wrap">${headerHTML}<div class="report-section">
     <div class="report-section-title">🔥 Top Performers This Week</div>
-    <div class="report-grid">
+    <div style="display:flex;flex-direction:column;gap:5px">
     ${topWins.slice(0,4).map(([name,s],i)=>{
       const medals=['🥇','🥈','🥉','4️⃣'];
-      return`<div class="report-player">
-        ${rpAv(name)}
+      return`<div class="report-player-full">
+        ${rpAv(name,36)}
         <div style="flex:1;min-width:0">
           <div class="report-pname">${medals[i]} ${name}</div>
           <div class="report-psub">${s.wins}W · ${s.diff>=0?'+':''}${s.diff} diff</div>
@@ -3275,34 +3488,28 @@ function generateReport(){
       </div>`;
     }).join('')}
     </div>
-  </div>`;
+    <div class="report-footer">bangipicklerstier.onrender.com</div>
+  </div></div>`;
 
   // Climbers & droppers (only if previous week exists)
   if(prevWk && (climbers.length||droppers.length)){
     html += `<div id="rs-movers" class="report-wrap">${headerHTML}<div class="report-section">
       <div class="report-section-title">📈 Biggest Movers vs Week ${prevWk.week}</div>
-      <div class="report-grid">`;
-    climbers.forEach(m=>{
-      html+=`<div class="report-player up">
-        ${rpAv(m.player)}
+      <div style="display:flex;flex-direction:column;gap:5px">`;
+    [...climbers, ...droppers].forEach(m=>{
+      const isUp = m.change > 0;
+      html+=`<div class="report-player-full ${isUp?'up':'down'}">
+        ${rpAv(m.player,36)}
         <div style="flex:1;min-width:0">
           <div class="report-pname">${m.player}</div>
           <div class="report-psub">#${m.rankPrev} → #${m.rankNow}</div>
         </div>
-        <div class="report-pval" style="color:#00ff9d;font-size:16px">🔼+${m.change}</div>
+        <div class="report-pval" style="color:${isUp?'#00ff9d':'#ff6b6b'}">${isUp?'🔼+':'🔻'}${Math.abs(m.change)}</div>
       </div>`;
     });
-    droppers.forEach(m=>{
-      html+=`<div class="report-player down">
-        ${rpAv(m.player)}
-        <div style="flex:1;min-width:0">
-          <div class="report-pname">${m.player}</div>
-          <div class="report-psub">#${m.rankPrev} → #${m.rankNow}</div>
-        </div>
-        <div class="report-pval" style="color:#ff6b6b;font-size:16px">🔻${m.change}</div>
-      </div>`;
-    });
-    html += `</div></div>`;
+    html += `</div>
+      <div class="report-footer">bangipicklerstier.onrender.com</div>
+    </div></div>`;
   }
 
   // Tier changes
@@ -3310,66 +3517,56 @@ function generateReport(){
     html += `<div id="rs-tiers" class="report-wrap">${headerHTML}<div class="report-section">
       <div class="report-section-title">⚡ Tier Changes</div>
       <div class="report-grid">`;
-    promoted.forEach(m=>{
-      html+=`<div class="report-player promoted">
+    [...promoted, ...relegated].forEach(m=>{
+      const isUp = promoted.includes(m);
+      html+=`<div class="report-player ${isUp?'promoted':'down'}">
         ${rpAv(m.player,32)}
         <div style="flex:1;min-width:0">
-          <div class="report-pname" style="font-size:11px">${m.player}</div>
-          <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
-            ${rpTier(m.tierPrev)} <span style="color:#666">→</span> ${rpTier(m.tierNow)}
-            <span class="tier-arrow tier-up">▲ PROMOTED</span>
+          <div class="report-pname">${m.player}</div>
+          <div style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap">
+            ${rpTier(m.tierPrev)} <span style="color:#555">→</span> ${rpTier(m.tierNow)}
           </div>
         </div>
+        <span class="tier-arrow ${isUp?'tier-up':'tier-down'}">${isUp?'▲':'▼'}</span>
       </div>`;
     });
-    relegated.forEach(m=>{
-      html+=`<div class="report-player down">
-        ${rpAv(m.player,32)}
-        <div style="flex:1;min-width:0">
-          <div class="report-pname" style="font-size:11px">${m.player}</div>
-          <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
-            ${rpTier(m.tierPrev)} <span style="color:#666">→</span> ${rpTier(m.tierNow)}
-            <span class="tier-arrow tier-down">▼ RELEGATED</span>
-          </div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
+    html += `</div>
+      <div class="report-footer">bangipicklerstier.onrender.com</div>
+    </div></div>`;
   }
 
   // Top 5 overall standings
   const topOverall = Object.entries(rankCur).sort((a,b)=>a[1].rank-b[1].rank).slice(0,5);
   html += `<div id="rs-overall" class="report-wrap">${headerHTML}<div class="report-section">
     <div class="report-section-title">🏆 Top 5 Overall (Season)</div>
-    <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;flex-direction:column;gap:5px">
     ${topOverall.map(([name,d],i)=>{
       const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-      return`<div class="report-player" style="padding:8px 12px">
-        ${rpAv(name,30)}
+      return`<div class="report-player-full">
+        ${rpAv(name,32)}
         <div style="flex:1;min-width:0">
           <div class="report-pname">${medals[i]} ${name}</div>
           <div class="report-psub">${rpTier(d.tier)} ${d.wins}W · ${d.diff>=0?'+':''}${d.diff} diff</div>
         </div>
-        <div class="report-pval" style="color:#ffd700;font-size:16px">${Math.round(d.total)}</div>
+        <div style="font-size:16px;font-weight:800;color:#ffd700;flex-shrink:0">${Math.round(d.total)}</div>
       </div>`;
     }).join('')}
     </div>
-  </div>`;
-
-  // No footer on individual cards — each card is self-contained
+    <div class="report-footer">bangipicklerstier.onrender.com</div>
+  </div></div>`;
 
   html += '</div>'; // close outer flex container
   const card = document.getElementById('reportCard');
   card.innerHTML = html;
-  card.style.cssText = 'display:flex;flex-direction:column;gap:24px;padding:12px;background:#070710;border-radius:12px';
+  card.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding:12px;background:#070710;border-radius:12px';
   const sb = document.getElementById('shareButtons');
   sb.style.display = 'flex';
   card.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 async function captureEl(el, filename){
-  const season = document.getElementById('reportSeason')?.value||'season';
-  const week   = document.getElementById('reportWeek')?.value||'week';
+  const season = document.getElementById('reportSeason')?.value||seasonFinal||'season';
+  const week   = document.getElementById('reportWeek')?.value||String(weekFinal)||'week';
   const prefix = 'BP_'+season.replace(/\s/g,'')+'_W'+week+'_';
 
   // Hide siblings in REAL DOM before capture, restore after

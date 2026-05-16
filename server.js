@@ -211,6 +211,7 @@ const KNOWN_PLAYERS = {
   'ali yepe':          {handle:'@yepelus',              avatarId:'1156000'},
   'R.Afiq':            {handle:'@afiq00',               avatarId:'673194'},
   'Afiq (afiq-524)':   {handle:'@afiq-524',             avatarId:'368697'},
+  'Afiq (afiqim00)':   {handle:'@afiqim00',             avatarId:'210956'},
   // W4 new players
   'Thabrani':          {handle:'@thabrani-marwan-384',  avatarId:'552692'},
   'Karl.El':           {handle:'@karlhamzah',           avatarId:'65979'},
@@ -354,10 +355,8 @@ const _MEN_W4 = {
   // Two Faiz players — court disambiguates
   'Faiz||Court 7':       {handle:'@faiz60111',          avatarId:'1035005'},
   'Faiz||Court 8':       {handle:'@faiz-979',           avatarId:'689636'},
-  // Two Afiq players — both registered separately
-  'Afiq':                {handle:'@afiq-524',           avatarId:'368697'},  // W3 Light Blue default
-  'Afiq (afiqim00)':     {handle:'@afiqim00',           avatarId:'210956'},  // W1/W2 Afiq
-  // Court-based disambiguation (used by load match)
+  // Two Afiq players — court disambiguates
+  'Afiq':                {handle:'@afiqim00',           avatarId:'210956'},  // W1/W2 Yellow team Afiq
   'Afiq||Court 2':       {handle:'@afiq-524',           avatarId:'368697'},
   'Afiq||Court 6':       {handle:'@afiq-524',           avatarId:'368697'},
   'Afiq||Court 8':       {handle:'@afiqim00',           avatarId:'210956'},

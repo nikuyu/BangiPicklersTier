@@ -2191,9 +2191,13 @@ function editHandleFromCourt(div){
   const court = div.getAttribute('data-court');
   const currentHandle = getProfile(name, court).handle || PROFILES[name]?.handle || '';
 
-  // Get ALL DB players with this display name
+  // Get ALL DB players with this display name (exact or starts-with for duplicate names)
   const dbMatches = Object.values(DB.players||{}).filter(p=>
-    p.name && p.name.toLowerCase().trim() === name.toLowerCase().trim() && p.handle
+    p.name && (
+      p.name.toLowerCase().trim() === name.toLowerCase().trim() ||
+      p.name.toLowerCase().trim().startsWith(name.toLowerCase().trim()+' ') ||
+      p.name.toLowerCase().trim().startsWith(name.toLowerCase().trim()+'(')
+    ) && p.handle
   );
 
   // Also check KNOWN_PLAYERS for this name

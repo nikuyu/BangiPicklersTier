@@ -192,10 +192,44 @@ const KNOWN_PLAYERS = {
   'mirulz':              {handle:'@mirulz08',           avatarId:'879964'},
   'YEN R':               {handle:'@yen_r',              avatarId:'978250'},
   "arieff 'A":           {handle:'@arieffariffin',      avatarId:'554140'},
-  "arieff ‘A":          {handle:'@arieffariffin',      avatarId:'554140'},
-  "arieff ’A":          {handle:'@arieffariffin',      avatarId:'554140'},
-  // Women W2-W4 new players (added to women known players)
+  // W3+ new players
+  'Isnu':              {handle:'@isnu1210',             avatarId:'322814'},
+  'Poji Stiffler':     {handle:'@poji-stiffler-960',   avatarId:'1297958'},
+  'Hazwan Mohamad':    {handle:'@hazwan-mohamad-820',  avatarId:'1043723'},
+  'Rizal':             {handle:'@rizal-470',            avatarId:'742677'},
+  'Ayieikie93':        {handle:'@ayieikie93',           avatarId:'15973'},
+  'Azhar y':           {handle:'@azhar-y-479',          avatarId:'364361'},
+  'Mujahid Shukri':    {handle:'@mujahid-shukri-585',  avatarId:'756383'},
+  'Ezuardi (Wady)':    {handle:'@ezuardi2005',          avatarId:'1009149'},
+  'Afiq Ross':         {handle:'@ar_',                  avatarId:'653772'},
+  'AriffNordin':       {handle:'@an10',                 avatarId:'653795'},
+  'Nafees Najib':      {handle:'@nafeesnajib',          avatarId:'547514'},
+  'Lutfi Daud':        {handle:'@lutfidaud',            avatarId:'428885'},
+  'Alif Noor':         {handle:'@malifnoor',            avatarId:'393351'},
+  'Zaidani':           {handle:'@zaidani',              avatarId:'382969'},
+  'Hafiz N':           {handle:'@dfish',                avatarId:'365713'},
+  'ali yepe':          {handle:'@yepelus',              avatarId:'1156000'},
+  'R.Afiq':            {handle:'@afiq00',               avatarId:'673194'},
+  'Afiq (afiq-524)':   {handle:'@afiq-524',             avatarId:'368697'},
+  // W4 new players
+  'Thabrani':          {handle:'@thabrani-marwan-384',  avatarId:'552692'},
+  'Karl.El':           {handle:'@karlhamzah',           avatarId:'65979'},
+  'FarizSan':          {handle:'@farizsan',             avatarId:'1083786'},
+  'Jabir Malik':       {handle:'@jabir-malik-69',       avatarId:'695270'},
+  'Jegan':             {handle:'@jegan-948',            avatarId:'584033'},
+  'Apishx':            {handle:'@apishx',               avatarId:'559983'},
+  'Hielmie Shah':      {handle:'@hielmie-shah-823',     avatarId:'467628'},
+  'Amzar':             {handle:'@amzar-272',            avatarId:'937640'},
+  'K Hafiz':           {handle:'@khairulhafiz',         avatarId:'836824'},
+  'Shaz':              {handle:'@shahz',                avatarId:'507405'},
+  // W6 new players
+  'Sho':               {handle:'@shishomon',            avatarId:'235190'},
+  'Afie Zulhaimi':     {handle:'@skymer',               avatarId:'239302'},
+  'Nmi':               {handle:'@nikinwan',             avatarId:'516980'},
+  'Puad':              {handle:'@poadpauzi94',          avatarId:'1384337'},
+  'Apeez':             {handle:'@apeezzz',              avatarId:'540097'},
 };
+
 
 // ── Women Known Players ────────────────────────────────────
 const KNOWN_PLAYERS_WOMEN = {
@@ -241,51 +275,6 @@ const KNOWN_PLAYERS_WOMEN = {
   "Izza Ilham":      {handle:"@izza-ilham-739",      avatarId:"669342"},
   "miemie":          {handle:"@mimizz",              avatarId:"1006830"},
 };
-
-// Add W2-W4 women players to KNOWN_PLAYERS_WOMEN
-Object.assign(KNOWN_PLAYERS_WOMEN, {
-  "AIN NS 💚":       {handle:"@ainns",                         avatarId:"668152"},
-  "Nur Fadhilah":    {handle:"@nur-fadhilah-201",              avatarId:"1192842"},
-  "Azrifah":         {handle:"@azrifahzainudin",               avatarId:"966310"},
-  "K@kz":            {handle:"@kkz-304",                       avatarId:"1137230"},
-  "Sara Affandi":    {handle:"@_saraaffandi",                  avatarId:"749561"},
-  "Caa":             {handle:"@caamuchacos",                   avatarId:"671725"},
-  "Fra":             {handle:"@frazowski",                     avatarId:"507423"},
-  "Aqila Azmi":      {handle:"@aqila-azmi-457",                avatarId:"322811"},
-  "Maizurah":        {handle:"@jaymmi",                        avatarId:"862589"},
-  "Wanie Harman":    {handle:"@wanie-harman-638",              avatarId:"886635"},
-  "Adilla":          {handle:"@dyllopie",                      avatarId:"1143582"},
-  "ShekynUsesoft":   {handle:"@shekynusesoft",                 avatarId:"1128292"},
-  "Intan":           {handle:"@intannnnns",                    avatarId:"286027"},
-  "Siska Khalil":    {handle:"@siskakhalil",                   avatarId:"881021"},
-  "Nadea Abdullah":  {handle:"@nadea-abdullah-951",            avatarId:"1285602"},
-  "zara":            {handle:"@themaderzarra",                 avatarId:"923735"},
-  "Fazzz":           {handle:"@farzanayahya-417",              avatarId:"577553"},
-  "Elle":            {handle:"@elle-465",                      avatarId:"712762"},
-  "Azliana Azlin":   {handle:"@azliana-azlin-634",             avatarId:"1315082"},
-  "Zulaikha Zahirah":{handle:"@zulaikha-zahirah-1",            avatarId:"733441"},
-  "Iryani Baharom":  {handle:"@yanibites",                     avatarId:"1058098"},
-  "Nurin":           {handle:"@nurinaqilah",                   avatarId:"644268"},
-  "Kakak semut":     {handle:"@kakak-semut-180",               avatarId:"1295405"},
-  "Erlis":           {handle:"@erlis",                         avatarId:"630265"},
-  "Emy":             {handle:"@wan-salmizan-binti-md-zain-8",  avatarId:"1204038"},
-  "Ag":              {handle:"@agismail",                      avatarId:"432261"},
-  "Zeq Azura":       {handle:"@dashazzra",                     avatarId:"1511863"},
-  "cda":             {handle:"@cda-822",                       avatarId:"545336"},
-  "Atiqah":          {handle:"@atiqah-665",                    avatarId:"257574"},
-  "Yana Mariana":    {handle:"@yana mariana",                  avatarId:"572774"},
-  "MynMuslim":       {handle:"@mynamuslim",                    avatarId:"517101"},
-  "Sarah Danisha":   {handle:"@sarahdanisha",                  avatarId:"1282821"},
-  "Norish":          {handle:"@norislina-817",                 avatarId:"681623"},
-  "Sha M":           {handle:"@shamyto",                       avatarId:"514797"},
-  "Azira Ishak":     {handle:"@azira.ishak",                   avatarId:"819826"},
-  "Fee.":            {handle:"@fee_shekry",                    avatarId:"661737"},
-  "Amirah Najla":    {handle:"@miranajla",                     avatarId:"619056"},
-  "Marl":            {handle:"@marm4r",                        avatarId:"775844"},
-  "Salwa":           {handle:"@salwa-442",                     avatarId:"743154"},
-  "Rara":            {handle:"@rara8881",                      avatarId:"767291"},
-  "Izza O":          {handle:"@izzatul22",                      avatarId:"1115983"},
-});
 
 
 
@@ -967,7 +956,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/import-all','/config','/aliases'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases'];
   // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
@@ -1034,6 +1023,1815 @@ const server = http.createServer(async(req,res)=>{
     delete db.players[newKey].teamColor;
     await saveDB(db, lg);return json({success:true,player:db.players[newKey]});
   }
+  // Sync DB from match history — add any player in saved courtResults missing from DB
+  if(pathname==='/db/sync-history'&&req.method==='POST'){
+    const db=await loadDB(lg);
+    const seasons=await loadSeasons(lg);
+    let added=0;
+    const missing=[];
+    Object.values(seasons.seasons||{}).forEach(season=>{
+      Object.values(season.weeks||{}).forEach(week=>{
+        Object.values(week.courtResults||{}).forEach(players=>{
+          players.forEach(r=>{
+            if(!r.player) return;
+            const nameKey=normalizeName(r.player).toLowerCase().trim();
+            // Check if player exists in DB (by name key or name field)
+            const exists = db.players[nameKey]
+              || Object.values(db.players).some(p=>p.name&&normalizeName(p.name).toLowerCase().trim()===nameKey);
+            if(!exists){
+              db.players[nameKey]={name:r.player,tier:'C',handle:'',avatarId:'',addedAt:new Date().toISOString(),source:'history-sync'};
+              added++;
+              missing.push(r.player);
+            }
+          });
+        });
+      });
+    });
+    if(added>0) await saveDB(db,lg);
+    console.log('sync-history: added',added,'missing players:',missing.slice(0,10).join(', '));
+    return json({success:true,added,missing});
+  }
+
+  // Rename a player: update DB name field AND all saved week courtResults
+  if(pathname==='/db/rename'&&req.method==='POST'){
+    const{oldName, newName}=JSON.parse(await body());
+    if(!oldName||!newName||oldName===newName) return json({error:'oldName and newName required'},400);
+    const db=await loadDB(lg);
+    const seasons=await loadSeasons(lg);
+    const oldKey=normalizeName(oldName).toLowerCase().trim();
+    const newKey=normalizeName(newName).toLowerCase().trim();
+
+    // Find the DB entry (may be handle-keyed)
+    const entryKey = db.players[oldKey]
+      ? oldKey
+      : Object.keys(db.players).find(k=>{
+          const p=db.players[k];
+          return p.name && normalizeName(p.name).toLowerCase().trim()===oldKey;
+        });
+
+    if(!entryKey) return json({error:'Player not found: '+oldName},404);
+
+    // Update name in DB entry
+    const entry = db.players[entryKey];
+    entry.name = newName;
+    // If keyed by old name, re-key to new name; if keyed by handle, just update name field
+    if(entryKey===oldKey && oldKey!==newKey){
+      db.players[newKey] = entry;
+      delete db.players[oldKey];
+    }
+
+    // Rename in all seasons/weeks courtResults and playerWeekPoints
+    let renamedWeeks=0;
+    Object.values(seasons.seasons||{}).forEach(season=>{
+      Object.values(season.weeks||{}).forEach(week=>{
+        let changed=false;
+        // courtResults
+        Object.values(week.courtResults||{}).forEach(players=>{
+          players.forEach(r=>{ if(r.player===oldName){ r.player=newName; changed=true; } });
+        });
+        // playerWeekPoints — re-key entries
+        const wpt=week.playerWeekPoints||{};
+        Object.keys(wpt).forEach(k=>{
+          if(k===oldName){ wpt[newName]=wpt[k]; delete wpt[k]; changed=true; }
+          if(k.startsWith(oldName+'||')){ const court=k.slice(oldName.length+2); wpt[newName+'||'+court]=wpt[k]; delete wpt[k]; changed=true; }
+        });
+        // tierSnapshot
+        const ts=week.tierSnapshot||{};
+        if(ts[oldKey]){ ts[newKey]=ts[oldKey]; delete ts[oldKey]; changed=true; }
+        if(changed) renamedWeeks++;
+      });
+    });
+
+    await saveDB(db, lg);
+    await saveSeasons(seasons, lg);
+    console.log('Renamed "'+oldName+'" -> "'+newName+'", updated '+renamedWeeks+' week entries');
+    return json({success:true, renamedWeeks});
+  }
+  // Update handles/avatarId for existing players without changing tiers
+  if(pathname==='/db/update-handles'&&req.method==='POST'){
+    const{meetUrl}=JSON.parse(await body());
+    if(!meetUrl)return json({error:'meetUrl required'},400);
+    try{
+      const tcm=await getTeamCourtMap(lg);
+      const html=await fetchURL(meetUrl);
+      const{players:mp,playersByCourtName}=parseMeetPage(html, tcm, lg);
+      const db=await loadDB(lg);
+      let updated=0, skipped=0, added=0;
+      const matchLog=[];
+
+      // Build a map of all existing DB players for fuzzy lookup
+      const existingPlayers = Object.entries(db.players)
+        .filter(([k,v])=>v.name) // only real entries
+        .map(([k,v])=>({key:k, name:v.name, nameLower:v.name.toLowerCase().trim()}));
+
+      Object.values(mp).forEach(meetPlayer=>{
+        const handleKey = meetPlayer.handle ? meetPlayer.handle.replace('@','').toLowerCase().trim() : null;
+        const nameLower = meetPlayer.name.toLowerCase().trim();
+
+        // Match ONLY by exact full name (case-insensitive) or handle key
+        // No fuzzy matching — prevents wrong merges like "Khairul Azmi" ≠ "Khairul Abid"
+        let match = existingPlayers.find(e=>e.nameLower===nameLower);
+        if(!match && handleKey) match = existingPlayers.find(e=>e.key===handleKey);
+
+        // Also check known players lookup
+        if(!match){
+          const known = lookupKnownPlayer(meetPlayer.name, meetPlayer.court||'', lg);
+          if(known && !meetPlayer.handle) meetPlayer = {...meetPlayer, ...known};
+        }
+
+        if(match){
+          const existing = db.players[match.key];
+          if(existing.handle && existing.avatarId){
+            skipped++; return; // already has handle
+          }
+          // Update fields — keep tier!
+          existing.handle    = meetPlayer.handle;
+          existing.avatarId  = meetPlayer.avatarId;
+          // team/court NOT stored — changes per week
+          // team/court NOT stored — changes per week
+          // team/court NOT stored — changes per week
+          // If handle key is different, also index by handle
+          // Migrate to handle key if different — remove old name key
+          if(handleKey && handleKey!==match.key){
+            db.players[handleKey] = existing;
+            delete db.players[match.key]; // remove old name-based key
+          }
+          matchLog.push({dbName:existing.name, meetName:meetPlayer.name, handle:meetPlayer.handle});
+          updated++;
+        } else {
+          // Not found — add as new player
+          const saveKey = handleKey || nameLower;
+          db.players[saveKey]={name:meetPlayer.name, tier:'C',
+            handle:meetPlayer.handle, avatarId:meetPlayer.avatarId,
+            // team/court NOT stored — changes per week
+            addedAt:new Date().toISOString()};
+          if(handleKey && nameLower!==handleKey) db.players[nameLower]=db.players[saveKey];
+          added++;
+          matchLog.push({dbName:'(new)', meetName:meetPlayer.name, handle:meetPlayer.handle});
+        }
+      });
+
+      await saveDB(db, lg);
+      console.log('Update handles matches:', matchLog.map(m=>`${m.meetName}→${m.handle}`).join(', '));
+      return json({success:true, updated, skipped, added, total:Object.keys(db.players).length, matchLog});
+    }catch(e){console.error(e);return json({error:e.message},500);}
+  }
+
+  // Remove duplicate entries — group by name AND by handle
+  if(pathname==='/db/dedupe'&&req.method==='POST'){
+    const db=await loadDB(lg);
+    const TIER_ORDER={S:4,A:3,B:2,C:1};
+
+    // Step 1: group by display name (case-insensitive)
+    const byName={};
+    Object.entries(db.players).forEach(([k,v])=>{
+      if(!v.name) return;
+      const n=v.name.toLowerCase().trim();
+      if(!byName[n]) byName[n]=[];
+      byName[n].push({key:k,player:{...v}});
+    });
+
+    const toDelete=new Set();
+
+    Object.values(byName).forEach(entries=>{
+      if(entries.length<=1) return;
+      // Score: tier rank (most important) then handle then avatarId
+      entries.sort((a,b)=>{
+        const sa=(TIER_ORDER[a.player.tier]||0)*100+(a.player.handle?10:0)+(a.player.avatarId?1:0);
+        const sb=(TIER_ORDER[b.player.tier]||0)*100+(b.player.handle?10:0)+(b.player.avatarId?1:0);
+        return sb-sa;
+      });
+      const best=entries[0];
+      // Merge data from duplicates into winner
+      entries.slice(1).forEach(e=>{
+        if(!best.player.handle   && e.player.handle)    best.player.handle=e.player.handle;
+        if(!best.player.avatarId && e.player.avatarId)  best.player.avatarId=e.player.avatarId;
+        if(!best.player.team     && e.player.team)      best.player.team=e.player.team;
+        if(!best.player.teamColor&& e.player.teamColor) best.player.teamColor=e.player.teamColor;
+        if(!best.player.court    && e.player.court)     best.player.court=e.player.court;
+        if((TIER_ORDER[e.player.tier]||0)>(TIER_ORDER[best.player.tier]||0))
+          best.player.tier=e.player.tier;
+        toDelete.add(e.key);
+      });
+      db.players[best.key]=best.player;
+    });
+
+    // Step 2: also group by handle — same handle = same person
+    const byHandle={};
+    Object.entries(db.players).forEach(([k,v])=>{
+      if(!v.handle||toDelete.has(k)) return;
+      const h=v.handle.toLowerCase().trim();
+      if(!byHandle[h]) byHandle[h]=[];
+      byHandle[h].push({key:k,player:{...v}});
+    });
+    Object.values(byHandle).forEach(entries=>{
+      if(entries.length<=1) return;
+      entries.sort((a,b)=>{
+        const sa=(TIER_ORDER[a.player.tier]||0)*100+(a.player.avatarId?1:0);
+        const sb=(TIER_ORDER[b.player.tier]||0)*100+(b.player.avatarId?1:0);
+        return sb-sa;
+      });
+      const best=entries[0];
+      entries.slice(1).forEach(e=>{
+        if((TIER_ORDER[e.player.tier]||0)>(TIER_ORDER[best.player.tier]||0)) best.player.tier=e.player.tier;
+        toDelete.add(e.key);
+      });
+      db.players[best.key]=best.player;
+    });
+
+    toDelete.forEach(k=>delete db.players[k]);
+    await saveDB(db, lg);
+    return json({success:true, removed:toDelete.size, total:Object.keys(db.players).length});
+  }
+
+  if(pathname==='/db/bulk'&&req.method==='POST'){
+    const{meetUrl,defaultTier}=JSON.parse(await body());
+    if(!meetUrl)return json({error:'meetUrl required'},400);
+    try{
+      const tcm=await getTeamCourtMap(lg);
+      const html=await fetchURL(meetUrl);const{players:mp}=parseMeetPage(html, tcm, lg);
+      const db=await loadDB(lg);let added=0,updated=0;
+      Object.values(mp).forEach(p=>{
+        // Use handle as primary key to prevent same-name collisions
+        const key = p.handle ? p.handle.replace('@','').toLowerCase().trim() : p.name.toLowerCase().trim();
+        const nameKey = p.name.toLowerCase().trim();
+        const existed = !!db.players[key] || !!db.players[nameKey];
+        const existingTier = db.players[key]?.tier || db.players[nameKey]?.tier;
+        db.players[key]={name:p.name,tier:existingTier||defaultTier||'C',
+          handle:p.handle, avatarId:p.avatarId,
+          // photoUrl derived from avatarId always — not stored
+          // team/court NOT stored — changes per week
+          addedAt:db.players[key]?.addedAt||db.players[nameKey]?.addedAt||new Date().toISOString()};
+        // Also keep name-based key pointing to same entry for backward compat
+        if(key!==nameKey) db.players[nameKey]=db.players[key];
+        existed?updated++:added++;
+      });
+      await saveDB(db, lg);return json({success:true,added,updated,total:Object.keys(db.players).length});
+    }catch(e){return json({error:e.message},500);}
+  }
+  if(pathname==='/seasons'&&req.method==='GET')return json(await loadSeasons(lg));
+  if(pathname==='/seasons/save'&&req.method==='POST'){
+    const{season,week,title,date,scoreUrl,meetUrl,playerWeekPoints,courtResults,isWeek1}=JSON.parse(await body());
+    if(!season||!week)return json({error:'season and week required'},400);
+    // Debug: log court scores being saved
+    console.log('💾 Saving '+season+' W'+week+' isWeek1='+isWeek1);
+    Object.entries(courtResults||{}).forEach(([court,players])=>{
+      const pts=(players||[]).map(r=>r.player+'='+r.weekPoints+'(cs='+r.courtScore+')').join(', ');
+      console.log('  Court '+court+': '+pts.substring(0,120));
+    });
+    const seasons=await loadSeasons(lg);
+    const db=await loadDB(lg);
+    if(!seasons.seasons[season])seasons.seasons[season]={name:season,createdAt:new Date().toISOString(),weeks:{}};
+
+    // Rebuild playerWeekPoints from courtResults to ensure correctness
+    // Use player||court key to avoid collision, and best (highest) points for overall key
+    const rebuiltWPT = {};
+    Object.entries(courtResults||{}).forEach(([court, results])=>{
+      (results||[]).forEach(r=>{
+        const courtKey = r.player+'||'+court;
+        rebuiltWPT[courtKey] = r.weekPoints;
+        // For overall key, keep highest points (in case player appears on multiple courts)
+        if(!rebuiltWPT[r.player] || r.weekPoints > rebuiltWPT[r.player]){
+          rebuiltWPT[r.player] = r.weekPoints;
+        }
+      });
+    });
+
+    const tierSnapshot={};
+    Object.values(db.players).forEach(p=>{
+      if(p.name&&p.tier){
+        tierSnapshot[normalizeName(p.name).toLowerCase().trim()]=p.tier;
+        if(p.handle) tierSnapshot[p.handle.replace('@','').toLowerCase().trim()]=p.tier;
+      }
+    });
+    seasons.seasons[season].weeks[week]={week:parseInt(week),title,date,scoreUrl,meetUrl,isWeek1,
+      savedAt:new Date().toISOString(),playerWeekPoints:rebuiltWPT,courtResults,
+      tierSnapshot};
+    await saveSeasons(seasons, lg);return json({success:true,season,week});
+  }
+  if(pathname==='/seasons/week/points'&&req.method==='POST'){
+    const{season,week,player,points}=JSON.parse(await body());
+    const seasons=await loadSeasons(lg);const w=seasons.seasons[season]?.weeks[week];
+    if(!w)return json({error:'Week not found'},404);
+    w.playerWeekPoints[player]=parseFloat(points);
+    Object.values(w.courtResults||{}).forEach(cr=>{const r=cr.find(r=>r.player===player);if(r)r.weekPoints=parseFloat(points);});
+    w.savedAt=new Date().toISOString();await saveSeasons(seasons, lg);return json({success:true});
+  }
+  if(pathname==='/seasons/assign-tiers'&&req.method==='POST'){
+    const{season,tierSizes,manualAssignments}=JSON.parse(await body());
+    const seasons=await loadSeasons(lg);const db=await loadDB(lg);const cfg=await loadConfig(lg);
+    // Auto-populate DB from KNOWN_PLAYERS if empty
+    if(Object.keys(db.players).length===0){
+      console.log('DB empty — auto-populating from KNOWN_PLAYERS...');
+      Object.entries(KNOWN_PLAYERS).forEach(([name,info])=>{
+        if(!info.handle) return;
+        const key=info.handle.replace('@','').toLowerCase().trim();
+        if(!db.players[key]) db.players[key]={name,handle:info.handle,avatarId:info.avatarId||'',tier:'C',addedAt:new Date().toISOString()};
+      });
+      await saveDB(db, lg);
+      console.log('Auto-populated '+Object.keys(db.players).length+' players');
+    }
+    const sizes=tierSizes||cfg.tierSizes||{S:21,A:21,B:22,C:999};
+    if(!seasons.seasons[season])return json({error:'Season not found'},404);
+    // Use manual assignments if provided, otherwise auto-assign
+    const assignments=manualAssignments||autoAssignTiers(seasons.seasons[season],sizes);
+    let updated=0, notFound=[];
+    console.log('assign-tiers: '+Object.keys(assignments).length+' players to assign, DB has '+Object.keys(db.players).length+' entries');
+    console.log('assign-tiers: DB sample keys:', Object.keys(db.players).slice(0,5));
+    Object.entries(assignments).forEach(([player,info])=>{
+      // Use findPlayerInDB which handles both name-keyed and handle-keyed entries
+      const found = findPlayerInDB(player, db);
+      if(found){
+        // Get the actual key this player is stored under
+        const nameKey = normalizeName(player).toLowerCase().trim();
+        const existingKey = db.players[nameKey]
+          ? nameKey
+          : Object.keys(db.players).find(k=>{
+              const p=db.players[k];
+              return p.name && normalizeName(p.name).toLowerCase().trim()===nameKey;
+            })
+            // Also try handle-based key via found entry's handle
+            || (found.handle && Object.keys(db.players).find(k=>{
+              return db.players[k]===found || (found.handle && db.players[k]?.handle===found.handle);
+            }));
+        if(existingKey){
+          db.players[existingKey]={...db.players[existingKey], tier:info.tier};
+          updated++;
+        } else {
+          // findPlayerInDB found it by reference — find its key by scanning
+          const refKey = Object.keys(db.players).find(k=>db.players[k]===found);
+          if(refKey){
+            db.players[refKey]={...db.players[refKey], tier:info.tier};
+            updated++;
+          } else {
+            notFound.push(player);
+          }
+        }
+      } else {
+        notFound.push(player);
+      }
+    });
+    // Filter out any ||Court keys that slipped through
+    const realNotFound = notFound.filter(p=>!p.includes('||'));
+    if(realNotFound.length>0) console.log('assign-tiers: NOT FOUND in DB ('+realNotFound.length+'):',realNotFound.slice(0,10).join(', '));
+    console.log('assign-tiers: updated='+updated+', notFound='+realNotFound.length);
+    // Save tier snapshot to the season — keyed by timestamp so history is preserved
+    const snapshot = {
+      assignedAt: new Date().toISOString(),
+      tierSizes: sizes,
+      tiers: {} // tier -> [player names ranked]
+    };
+    const tierGroups = {S:[],A:[],B:[],C:[]};
+    Object.entries(assignments).sort((a,b)=>a[1].rank-b[1].rank).forEach(([player,info])=>{
+      if(tierGroups[info.tier]) tierGroups[info.tier].push({
+        name: player,
+        rank: info.rank,
+        totalPoints: info.totalPoints,
+        totalWins: info.totalWins,
+        totalDiff: info.totalDiff
+      });
+    });
+    snapshot.tiers = tierGroups;
+    // Store latest snapshot on the season (overwrites previous)
+    if(!seasons.seasons[season].tierSnapshots) seasons.seasons[season].tierSnapshots = [];
+    // Keep last 10 snapshots
+    seasons.seasons[season].tierSnapshots.push(snapshot);
+    if(seasons.seasons[season].tierSnapshots.length > 10)
+      seasons.seasons[season].tierSnapshots.shift();
+    await saveSeasons(seasons, lg);
+    await saveDB(db, lg);cfg.tierSizes=sizes;await saveConfig(cfg, lg);
+    return json({success:true,assignments,totalPlayers:updated,notFound,snapshot});
+  }
+  if(pathname==='/seasons/week'&&req.method==='DELETE'){
+    const{season,week}=JSON.parse(await body());
+    const seasons=await loadSeasons(lg);
+    if(seasons.seasons[season]?.weeks[week])delete seasons.seasons[season].weeks[week];
+    await saveSeasons(seasons, lg);return json({success:true});
+  }
+  if(pathname==='/aliases'&&req.method==='GET')return json(await loadAliases(lg));
+  if(pathname==='/aliases'&&req.method==='POST'){
+    const{scoreName,court,dbKey}=JSON.parse(await body());
+    const aliases=await loadAliases(lg);aliases[scoreName+'||'+court]=dbKey.toLowerCase().trim();
+    await saveAliases(aliases, lg);return json({success:true,aliases});
+  }
+  if(pathname==='/aliases'&&req.method==='DELETE'){
+    const{scoreName,court}=JSON.parse(await body());
+    const aliases=await loadAliases(lg);delete aliases[scoreName+'||'+court];
+    await saveAliases(aliases, lg);return json({success:true});
+  }
+
+  // Expose KNOWN_PLAYERS to frontend
+  if(pathname==='/db/known'&&req.method==='GET'){
+    return json(KNOWN_PLAYERS);
+  }
+
+  // Auto-populate DB from KNOWN_PLAYERS if empty or has no handles
+  if(pathname==='/db/auto-populate'&&req.method==='POST'){
+    const db = await loadDB(lg);
+    const{force}=JSON.parse(await body()||'{}');
+    const hasHandles = Object.values(db.players).some(p=>p.handle);
+    if(hasHandles&&!force) return json({skipped:true, message:'DB already has players with handles', total:Object.keys(db.players).length});
+
+    // Populate from correct KNOWN_PLAYERS based on league
+    const KP_SOURCE = lg === 'women' ? KNOWN_PLAYERS_WOMEN : KNOWN_PLAYERS;
+    let added = 0;
+    const seenHandles = new Set();
+    Object.entries(KP_SOURCE).forEach(([key, p])=>{
+      if(!p.handle) return;
+      const handleKey = p.handle.replace('@','').toLowerCase().trim();
+      if(seenHandles.has(handleKey)) return;
+      seenHandles.add(handleKey);
+      const displayName = key.split('||')[0].replace(/\s*\(.*\)$/, '').trim();
+      if(!db.players[handleKey]){
+        db.players[handleKey] = {
+          name: displayName,
+          tier: 'C',
+          handle: p.handle,
+          avatarId: p.avatarId,
+          addedAt: new Date().toISOString()
+        };
+        added++;
+      }
+    });
+    await saveDB(db, lg);
+    return json({success:true, added, total:Object.keys(db.players).length});
+  }
+
+  // Health check — shows DB connection status
+  // ── Export all data ────────────────────────────────────────
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const out = {};
+    for(const lg of ['men','women']){
+      out[lg] = {
+        players:  await loadDB(lg),
+        seasons:  await loadSeasons(lg),
+        config:   await loadConfig(lg),
+        aliases:  await loadAliases(lg),
+      };
+    }
+    out.users = await loadUsers();
+    res.writeHead(200,{'Content-Type':'application/json','Content-Disposition':'attachment;filename="bangipicklers-backup.json"'});
+    return res.end(JSON.stringify(out,null,2));
+  }
+
+  // ── Import all data ────────────────────────────────────────
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const s = await getSession(req);
+    if(!s||s.role!=='admin') return json({error:'Admin only'},403);
+    try{
+      const raw = JSON.parse(await body());
+      for(const lg of ['men','women']){
+        if(raw[lg]){
+          if(raw[lg].players)  await saveDB(raw[lg].players, lg);
+          if(raw[lg].seasons)  await saveSeasons(raw[lg].seasons, lg);
+          if(raw[lg].config)   await saveConfig(raw[lg].config, lg);
+          if(raw[lg].aliases)  await saveAliases(raw[lg].aliases, lg);
+        }
+      }
+      return json({success:true,message:'All data restored successfully'});
+    } catch(e){ return json({error:'Import failed: '+e.message},400); }
+  }
+
+  if(pathname==='/health'){
+    return json({
+      status: 'ok',
+      storage: mongo ? 'mongodb' : 'local-json',
+      mongoConnected: !!mongo,
+      mongoUri: MONGO_URI ? MONGO_URI.replace(/:([^@]+)@/, ':***@') : null,
+      time: new Date().toISOString()
+    });
+  }
+
+  // Restore tiers from a tier snapshot
+  if(pathname==='/seasons/restore-tiers'&&req.method==='POST'){
+    const{season, snapIndex}=JSON.parse(await body());
+    const seasons=await loadSeasons(lg);
+    const snap=seasons.seasons[season]?.tierSnapshots?.[snapIndex];
+    if(!snap) return json({error:'Snapshot not found'},404);
+    const db=await loadDB(lg);
+    let updated=0, notFound=[];
+    ['S','A','B','C'].forEach(tier=>{
+      (snap.tiers[tier]||[]).forEach(p=>{
+        const nameKey=normalizeName(p.name).toLowerCase().trim();
+        const existingKey=db.players[nameKey]
+          ?nameKey
+          :Object.keys(db.players).find(k=>{
+            const dp=db.players[k];
+            return dp.name&&normalizeName(dp.name).toLowerCase().trim()===nameKey;
+          });
+        if(existingKey){ db.players[existingKey].tier=tier; updated++; }
+        else notFound.push(p.name);
+      });
+    });
+    await saveDB(db, lg);
+    return json({success:true, updated, notFound, restoredFrom:snap.assignedAt});
+  }
+
+  // Export ALL data as JSON dump for migration
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const db = await loadDB(lg);
+    const seasons = await loadSeasons(lg);
+    const aliases = await loadAliases(lg);
+    const cfg = await loadConfig(lg);
+    return json({players:db.players, seasons:seasons.seasons, aliases, config:cfg});
+  }
+
+  // Import ALL data from JSON dump (migration from local to cloud)
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const{players,seasons,aliases,config,overwrite}=JSON.parse(await body());
+    // Players
+    if(players){
+      const db = await loadDB(lg);
+      if(overwrite){
+        db.players = players;
+      } else {
+        // Merge — existing entries take priority for tier
+        Object.entries(players).forEach(([k,p])=>{
+          if(!db.players[k]) db.players[k]=p;
+          else {
+            // Keep existing tier, update handle/avatarId if missing
+            db.players[k].handle = db.players[k].handle||p.handle;
+            db.players[k].avatarId = db.players[k].avatarId||p.avatarId;
+          }
+        });
+      }
+      await saveDB(db, lg);
+    }
+    // Seasons
+    if(seasons){
+      const s = await loadSeasons(lg);
+      if(overwrite) s.seasons=seasons;
+      else Object.assign(s.seasons, seasons);
+      await saveSeasons(s, lg);
+    }
+    // Aliases
+    if(aliases){
+      const a = await loadAliases(lg);
+      if(overwrite) Object.assign(a,aliases);
+      else Object.assign(a,aliases);
+      await saveAliases(a, lg);
+    }
+    // Config
+    if(config){
+      const cfg = await loadConfig(lg);
+      if(overwrite) Object.assign(cfg,config);
+      await saveConfig(cfg, lg);
+    }
+    return json({success:true, message:'Import complete'});
+  }
+
+  // Strip team/court/teamColor from ALL existing DB entries
+  if(pathname==='/db/strip-location'&&req.method==='POST'){
+    const db = await loadDB(lg);
+    let cleaned = 0;
+    Object.keys(db.players).forEach(k=>{
+      const p = db.players[k];
+      if(p.team||p.court||p.teamColor){
+        delete p.team; delete p.court; delete p.teamColor;
+        cleaned++;
+      }
+    });
+    await saveDB(db, lg);
+    return json({success:true, cleaned, total:Object.keys(db.players).length});
+  }
+
+  // Full DB cleanup — remove bare name-key entries that have a handle-key equivalent
+  if(pathname==='/db/clean'&&req.method==='POST'){
+    const db = await loadDB(lg);
+    const toDelete = [];
+    const byHandle = {};
+
+    // Index all entries that have handles
+    Object.entries(db.players).forEach(([k,v])=>{
+      if(v.handle) byHandle[v.handle.toLowerCase()] = k;
+    });
+
+    // Find bare name-key entries (no handle) that duplicate a handle-key entry
+    Object.entries(db.players).forEach(([k,v])=>{
+      if(v.handle) return; // has handle — keep
+      // Check if a handle-key entry exists for same player name
+      const nameLower = (v.name||k).toLowerCase().trim();
+      const hasHandleVersion = Object.values(db.players).some(p=>
+        p.handle && (p.name||'').toLowerCase().trim()===nameLower
+      );
+      if(hasHandleVersion) toDelete.push(k);
+    });
+
+    toDelete.forEach(k=>delete db.players[k]);
+    await saveDB(db, lg);
+    return json({success:true, removed:toDelete.length, total:Object.keys(db.players).length});
+  }
+
+  // Parse pasted roster text and import to DB
+  // Only adds NEW players (by handle). Never duplicates, never changes existing tiers.
+  if(pathname==='/db/roster'&&req.method==='POST'){
+    const{rosterText,defaultTier}=JSON.parse(await body());
+    if(!rosterText) return json({error:'rosterText required'},400);
+    try{
+      const tcm = await getTeamCourtMap(lg);
+      const db  = await loadDB(lg);
+      const TIER_ORDER={S:4,A:3,B:2,C:1};
+
+      // Stop at Waitlisted section
+      const waitIdx = rosterText.search(/Waitlisted/i);
+      const text = waitIdx>0 ? rosterText.substring(0,waitIdx) : rosterText;
+
+      // Detect team headers and their positions
+      const teamPositions=[]; // [{pos, team}]
+      const teamRegex = /\b(red|white|blue|black|yellow|light blue|gray|grey|green)\s+team\b/gi;
+      let tm;
+      while((tm=teamRegex.exec(text))!==null){
+        const t=tm[1].trim().toLowerCase();
+        if(TEAM_COLORS[t]!==undefined)
+          teamPositions.push({pos:tm.index, team:tm[1].charAt(0).toUpperCase()+tm[1].slice(1).toLowerCase()});
+      }
+
+      // Extract all player blocks using a comprehensive regex
+      // Handles both newline and single-line formats
+      // Pattern: user-avatars/NNN.webp ... NAME ... players/@HANDLE
+      const playerRegex = /user-avatars\/(\d+)\.webp[^)]*\)\s*\n?\s*\n?\s*([^\[\]]+?)\]\(https:\/\/reclub\.co\/players\/@([^\)\s]+)/g;
+      let pm;
+      const parsed=[];
+      while((pm=playerRegex.exec(text))!==null){
+        const avatarId=pm[1];
+        const name=pm[2].replace(/\n/g,'').replace(/!\[\]\([^)]+\)/g,'').trim();
+        const handle='@'+pm[3].trim();
+        if(!name||name.length<1||name.includes('http')) continue;
+        // Find team — nearest header before this position
+        let team=null;
+        for(let t=teamPositions.length-1;t>=0;t--){
+          if(teamPositions[t].pos<pm.index){team=teamPositions[t].team;break;}
+        }
+        const tl=(team||'').toLowerCase();
+        const court=tcm[tl]||null;
+        parsed.push({name,handle,avatarId,team,court,teamColor:TEAM_COLORS[tl]||'#888'});
+      }
+      // Also try markdown table format: | Name | @handle | avatarId |
+      // This lets users paste Claude's analysis output directly
+      if(parsed.length===0){
+        const tableRegex = /\|\s*([^|\n]+?)\s*\|\s*(@[^\s|]+)\s*\|\s*(\d+)\s*\|/g;
+        let tr;
+        while((tr=tableRegex.exec(text))!==null){
+          const name=tr[1].trim();
+          const handle=tr[2].trim();
+          const avatarId=tr[3].trim();
+          if(!name||name==='Name'||name==='---') continue;
+          // Find team from nearby text
+          let team=null;
+          for(let t=teamPositions.length-1;t>=0;t--){
+            if(teamPositions[t].pos<tr.index){team=teamPositions[t].team;break;}
+          }
+          const tl=(team||'').toLowerCase();
+          parsed.push({name,handle,avatarId,team,court:tcm[tl]||null,teamColor:TEAM_COLORS[tl]||'#888'});
+        }
+        console.log('Roster parser (table format): found',parsed.length,'players');
+      } else {
+        console.log('Roster parser: found',parsed.length,'players from text of length',text.length);
+      }
+
+      // Import to DB — skip if handle already exists
+      let added=0,skipped=0,updated=0;
+      const log=[];
+      parsed.forEach(p=>{
+        const handleKey=p.handle.replace('@','').toLowerCase().trim();
+        const nameKey=p.name.toLowerCase().trim();
+        // Check if player already exists by handle key
+        if(db.players[handleKey]){
+          const existing=db.players[handleKey];
+          const changed = !existing.avatarId||!existing.team||!existing.handle;
+          db.players[handleKey]={
+            ...existing,
+            name: existing.name||p.name,
+            handle: p.handle,
+            avatarId: p.avatarId||existing.avatarId,
+            // team/court NOT stored in DB — per-week only
+          };
+          // Also clean up any stale name-key pointing to same player
+          const staleKey = Object.keys(db.players).find(k=>
+            k!==handleKey && k.toLowerCase()===nameKey &&
+            (db.players[k].handle===p.handle || !db.players[k].handle)
+          );
+          if(staleKey) delete db.players[staleKey];
+          changed?updated++:skipped++;
+          log.push({status:changed?'updated':'skipped', name:p.name, handle:p.handle});
+          return;
+        }
+        // Check by name key fallback (case-insensitive)
+        const existingNameKey = Object.keys(db.players).find(k=>
+          k.toLowerCase()===nameKey && !db.players[k].handle
+        );
+        if(existingNameKey){
+          // Existing name-only entry — enrich with handle and migrate to handle key
+          db.players[handleKey]={
+            ...db.players[existingNameKey],
+            name: p.name,
+            handle: p.handle,
+            avatarId: p.avatarId,
+            // team/court NOT stored — changes every week
+          };
+          // Remove ALL old name-based keys for this player
+          delete db.players[existingNameKey];
+          if(existingNameKey !== nameKey) delete db.players[nameKey];
+          updated++;
+          log.push({status:'migrated', name:p.name, handle:p.handle});
+          return;
+        }
+        // Brand new player
+        db.players[handleKey]={
+          name:p.name,
+          tier:defaultTier||'C',
+          handle:p.handle,
+          avatarId:p.avatarId,
+          // team/court NOT stored — changes per week
+
+
+          addedAt:new Date().toISOString()
+        };
+        added++;
+        log.push({status:'added', name:p.name, handle:p.handle});
+      });
+
+      await saveDB(db, lg);
+      return json({success:true, parsed:parsed.length, added, updated, skipped, log,
+        total:Object.keys(db.players).length});
+    }catch(e){console.error(e);return json({error:e.message},500);}
+  }
+
+  // Apply known players lookup directly to DB
+  if(pathname==='/db/apply-known'&&req.method==='POST'){
+    const db = await loadDB(lg);
+    const TIER_ORDER={S:4,A:3,B:2,C:1};
+    let updated=0, skipped=0;
+    // First pass: update existing entries only
+    Object.entries(db.players).forEach(([key, p])=>{
+      if(!p.name) return;
+      const known = lookupKnownPlayer(p.name, p.court||'', lg);
+      if(known){
+        if(p.handle && p.avatarId){ skipped++; return; }
+        db.players[key].handle   = known.handle;
+        db.players[key].avatarId = known.avatarId;
+        // team/court NOT stored — changes per week
+        updated++;
+      }
+    });
+    // Second pass: dedupe immediately after applying
+    const byName={};
+    Object.entries(db.players).forEach(([k,v])=>{
+      if(!v.name) return;
+      const n=v.name.toLowerCase().trim();
+      if(!byName[n]) byName[n]=[];
+      byName[n].push({key:k,player:v});
+    });
+    const toDelete=[];
+    Object.values(byName).forEach(entries=>{
+      if(entries.length<=1) return;
+      entries.sort((a,b)=>{
+        const sa=(TIER_ORDER[a.player.tier]||0)*10+(a.player.handle?2:0)+(a.player.avatarId?1:0);
+        const sb=(TIER_ORDER[b.player.tier]||0)*10+(b.player.handle?2:0)+(b.player.avatarId?1:0);
+        return sb-sa;
+      });
+      const best=entries[0];
+      entries.slice(1).forEach(e=>{
+        if(!best.player.handle&&e.player.handle) best.player.handle=e.player.handle;
+        if(!best.player.avatarId&&e.player.avatarId) best.player.avatarId=e.player.avatarId;
+        if((TIER_ORDER[e.player.tier]||0)>(TIER_ORDER[best.player.tier]||0)) best.player.tier=e.player.tier;
+        toDelete.push(e.key);
+      });
+      db.players[best.key]=best.player;
+    });
+    toDelete.forEach(k=>delete db.players[k]);
+    await saveDB(db, lg);
+    return json({success:true, updated, skipped, deduped:toDelete.length, total:Object.keys(db.players).length});
+  }
+
+  // Debug: test parseMeetPage and return raw results
+  if(pathname==='/db/debug-meet'&&req.method==='POST'){
+    const{meetUrl}=JSON.parse(await body());
+    if(!meetUrl) return json({error:'meetUrl required'},400);
+    try{
+      const tcm=await getTeamCourtMap(lg);
+      const html=await fetchURL(meetUrl);
+      // Sample the HTML to see structure
+      const lines=html.split('\n');
+      const avatarLines=lines.map((l,i)=>({i:i+1,l})).filter(x=>x.l.includes('user-avatars'));
+      const handleLines=lines.map((l,i)=>({i:i+1,l})).filter(x=>x.l.includes('players/@'));
+      const teamLines=lines.map((l,i)=>({i:i+1,l})).filter(x=>/team/i.test(x.l)&&x.l.length<200);
+      const result=parseMeetPage(html, tcm, lg);
+      // Since HTML is 1 line, search in the full string
+      // Try Reclub API endpoints directly
+      const meetId = meetUrl.split('/m/')[1]?.split('?')[0]?.trim();
+      const apiUrls = [
+        'https://api.reclub.co/meets/'+meetId,
+        'https://api.reclub.co/meets/'+meetId+'/registrations',
+        'https://api.reclub.co/meets/'+meetId+'/participants',
+        'https://api.reclub.co/export/meet?m='+meetId,
+      ];
+      const apiResults = {};
+      for(const apiUrl of apiUrls){
+        try{
+          const r = await fetchURL(apiUrl);
+          apiResults[apiUrl] = r.substring(0,500);
+        }catch(e){ apiResults[apiUrl] = 'ERROR: '+e.message; }
+      }
+      const nextData = extractNextData(html);
+      return json({
+        htmlLength: html.length,
+        hasNextData: !!nextData,
+        meetId,
+        apiResults,
+        playersFound: Object.keys(result.players).length,
+        htmlChunk1: html.substring(0,300),
+        htmlChunk2: html.substring(html.length-300),
+      });
+    }catch(e){return json({error:e.message,stack:e.stack});}
+  }
+
+  if(pathname==='/fetch'){
+    const scoreUrl=query.scoreUrl||query.url;
+    const meetUrl=query.meetUrl;
+    const isWeek1=query.isWeek1==='true';
+    if(!scoreUrl||!scoreUrl.includes('reclub.co'))return json({error:'Score sheet URL required'},400);
+    try{
+      const scoreHtml=await fetchURL(scoreUrl);
+      const{title,date,matches}=parseScoresheet(scoreHtml);
+      let meetData={players:{},playersByHandle:{},playersByCourtName:{}};
+      const tcm=await getTeamCourtMap(lg);
+      if(meetUrl&&meetUrl.includes('reclub.co')){const mh=await fetchURL(meetUrl);meetData=parseMeetPage(mh, tcm, lg);}
+      const{players:meetPlayers,playersByCourtName}=meetData;
+      const db=await loadDB(lg);
+      // Debug: check DB state
+      const _total=Object.keys(db.players).length;
+      const _tiered=Object.values(db.players).filter(p=>p.tier&&p.tier!=='C').length;
+      console.log('📊 /fetch DB: '+_total+' players, '+_tiered+' with S/A/B tier');
+      if(_tiered===0&&!isWeek1) console.warn('⚠️  All players Tier C — auto-assign may not have run');
+      const aliases=await loadAliases(lg);
+      const playerNames=new Set();
+      matches.forEach(m=>{playerNames.add(m.t1a);playerNames.add(m.t1b);playerNames.add(m.t2a);playerNames.add(m.t2b);});
+      const playerCourt={};
+      matches.forEach(m=>{[m.t1a,m.t1b,m.t2a,m.t2b].forEach(p=>{
+        if(!playerCourt[p])playerCourt[p]=m.court;
+        else if(playerCourt[p]!==m.court)playerCourt[p]='multiple';
+      });});
+      const playerProfiles={};
+      playerNames.forEach(name=>{
+        const court=playerCourt[name]||'';
+        let md=null;
+        const aliasKey=name+'||'+court;
+        if(aliases[aliasKey]){md=Object.values(meetPlayers).find(p=>p.name.toLowerCase()===aliases[aliasKey])||meetPlayers[name];}
+        else if(court&&playersByCourtName[name+'||'+court]){md=playersByCourtName[name+'||'+court];console.log(`  ✓ "${name}" on ${court} → ${md.handle}`);}
+        else if(meetPlayers[name]){md=meetPlayers[name];}
+        else{md=fuzzyMatch(name,meetPlayers);}
+        // Fallback to known player lookup if meet page parsing failed
+        if(!md||!md.handle){
+          const known=lookupKnownPlayer(name, court, lg);
+          if(known){
+            md={...known, name};
+            console.log(`  📚 Known player: "${name}" → ${known.handle}`);
+          }
+        }
+        const dbKey=resolvePlayer(name,court,aliases,playersByCourtName);
+        // Look up by handle key first, then name key
+        const handleKey = md?.handle ? md.handle.replace('@','').toLowerCase().trim() : null;
+        // Find DB entry: try handle key, then name key, then search by name field
+        let dbP = (handleKey&&db.players[handleKey])
+          || db.players[dbKey]
+          || db.players[name.toLowerCase().trim()];
+        // If not found by key, search by name field across all entries
+        if(!dbP){
+          const nameLower = name.toLowerCase().trim();
+          const foundKey = Object.keys(db.players).find(k=>{
+            const p = db.players[k];
+            return p.name && p.name.toLowerCase().trim()===nameLower;
+          });
+          if(foundKey) dbP = db.players[foundKey];
+        }
+        const finalAvatarId = dbP?.avatarId||md?.avatarId||null;
+        const finalHandle    = dbP?.handle   ||md?.handle   ||null;
+        playerProfiles[name]={
+          name,
+          tier:       dbP?.tier       || null,
+          handle:     finalHandle,
+          avatarId:   finalAvatarId,
+          // Always derive photoUrl from avatarId — never use stale stored URL
+          photoUrl:   finalAvatarId ? avatarUrl(finalAvatarId) : null,
+          team:       dbP?.team       ||md?.team       ||null,
+          teamColor:  dbP?.teamColor  ||md?.teamColor  ||null,
+          court:      dbP?.court      ||md?.court      ||court||null,
+          tierScore:  TIER_SCORE[dbP?.tier]||null,
+          inDB:       !!dbP
+        };
+        // Use meet page data to enrich the player profile for display ONLY
+        // Do NOT write to DB — DB is managed via Roster Import only
+        if(md){
+          // Update the in-memory profile with meet page data
+          playerProfiles[name].handle   = md.handle   || playerProfiles[name].handle;
+          playerProfiles[name].avatarId = md.avatarId || playerProfiles[name].avatarId;
+          playerProfiles[name].photoUrl = md.avatarId ? avatarUrl(md.avatarId) : playerProfiles[name].photoUrl;
+          playerProfiles[name].team      = md.team     || playerProfiles[name].team;
+          playerProfiles[name].teamColor = md.teamColor|| playerProfiles[name].teamColor;
+          playerProfiles[name].court     = md.court    || playerProfiles[name].court;
+          if(!playerProfiles[name].tier){
+            // Try to get tier from DB using handle key
+            const hk = md.handle?md.handle.replace('@','').toLowerCase().trim():dbKey;
+            const dbEntry = db.players[hk]||db.players[dbKey];
+            playerProfiles[name].tier      = dbEntry?.tier||'C';
+            playerProfiles[name].tierScore = TIER_SCORE[playerProfiles[name].tier]||250;
+          }
+        } else if(!db.players[dbKey]){
+          // Not in DB — use C tier for scoring but DO NOT save to DB
+          // Players are added via Roster Import only
+          playerProfiles[name].tier='C'; playerProfiles[name].tierScore=250; playerProfiles[name].inDB=false;
+        }
+      });
+      // DO NOT saveDB here — /fetch is read-only for DB
+      // Players are managed via Roster Import (/db/roster)
+      // ALWAYS use current DB tiers for display — shows correct court scores immediately
+      // (The tier snapshot is only used when saving to maintain historical accuracy)
+      let currentTierSnapshot = null;
+      if(!isWeek1){
+        currentTierSnapshot = {};
+        Object.values(db.players).forEach(p=>{
+          if(p.tier){
+            if(p.name) currentTierSnapshot[normalizeName(p.name).toLowerCase().trim()] = p.tier;
+            if(p.handle) currentTierSnapshot[p.handle.replace('@','').toLowerCase().trim()] = p.tier;
+          }
+        });
+        const tiered = Object.values(currentTierSnapshot).filter(t=>t!=='C').length;
+        console.log('Using current DB tiers: '+Object.keys(currentTierSnapshot).length+
+          ' players, '+tiered+' with S/A/B tier');
+      }
+      const{courtResults,playerWeekPoints}=calcStandings(matches,db,isWeek1,currentTierSnapshot);
+      playerNames.forEach(name=>{playerProfiles[name].weekPoints=playerWeekPoints[name]||null;});
+      const noTierPlayers=[...playerNames].filter(name=>{
+        const p=findPlayerInDB(name,db);
+        return !TIER_SCORE[p?.tier];
+      });
+      // Build court-aware profiles using aliases for disambiguation
+      const aliases2 = await loadAliases(lg);
+      const courtProfiles = {};
+      Object.entries(playerCourt).forEach(([name, court])=>{
+        if(!court || court==='multiple') return;
+        const aliasKey = name+'||'+court;
+        if(aliases2[aliasKey]){
+          // Alias set — find the specific DB player
+          const aliasedKey = aliases2[aliasKey];
+          const dbEntry = db.players[aliasedKey] || Object.values(db.players).find(p=>p.handle&&p.handle.replace('@','').toLowerCase()===aliasedKey);
+          if(dbEntry){
+            courtProfiles[aliasKey] = {
+              ...playerProfiles[name],
+              handle: dbEntry.handle,
+              avatarId: dbEntry.avatarId,
+              photoUrl: dbEntry.avatarId ? avatarUrl(dbEntry.avatarId) : null,
+              tier: dbEntry.tier
+            };
+            return;
+          }
+        }
+        courtProfiles[aliasKey] = playerProfiles[name];
+      });
+      return json({title,date,matches,playerProfiles,courtProfiles,courtResults,playerWeekPoints,isWeek1,
+        noTierPlayers:isWeek1?[]:noTierPlayers,
+        matchedCount:Object.values(playerProfiles).filter(p=>p.photoUrl).length});
+    }catch(e){console.error(e.message);return json({error:e.message},500);}
+  }
+
+  res.writeHead(404);res.end('Not found');
+});
+
+connectMongo().then(()=>{
+  server.listen(PORT,()=>{
+    console.log(`\n  ⚡ Bangi Picklers Tier Ranking`);
+    console.log(`  Mode: ${mongo?'MongoDB':'Local JSON'}`);
+    console.log(`  http://localhost:${PORT}\n`);
+  });
+}).catch(err=>{
+  console.error('MongoDB failed:', err.message, '— using local files');
+  server.listen(PORT,()=>console.log(`\n  ⚡ Running on http://localhost:${PORT}\n`));
+});// ── Women Known Players ────────────────────────────────────────────────────
+// Updated from W1–W6 roster data (84 players). Handles verified from reclub usersMap.
+const KNOWN_PLAYERS_WOMEN = {
+  // W1
+  "Shikin Salim":    {handle:"@shikin-salim-491",                         avatarId:"1071634"},
+  "Iky":             {handle:"@rezki-afrina-binti-muhammad-nasir-769",     avatarId:"428220"},
+  "Shira":           {handle:"@shira-641",                                 avatarId:"516587"},
+  "Fie":             {handle:"@fie-21",                                    avatarId:"947967"},
+  "Niza":            {handle:"@niza04",                                    avatarId:"501847"},
+  "WANAWD":          {handle:"@wanawd",                                    avatarId:"596620"},
+  "Echa":            {handle:"@echa-308",                                  avatarId:"1007020"},
+  "Suhaizah":        {handle:"@sue-961",                                   avatarId:"1033139"},
+  "Aide":            {handle:"@mochi-9",                                   avatarId:"1221108"},
+  "Jannah":          {handle:"@jannah-806",                                avatarId:"461578"},
+  "is_aishah":       {handle:"@privateappleuser-6mjpr4bmmv-945",          avatarId:"457235"},
+  "Rezawana":        {handle:"@rezawana-222",                              avatarId:"869162"},
+  "Farah":           {handle:"@farah-779",                                 avatarId:"1024066"},
+  "Fareena Aziz":    {handle:"@fareenaziz",                                avatarId:"552037"},
+  "Bell":            {handle:"@bell_ainbyla",                              avatarId:"1223370"},
+  "Alia Ramli":      {handle:"@alramli",                                   avatarId:"560007"},
+  "Asykin":          {handle:"@asykin-224",                                avatarId:"1218697"},
+  "Hasliza":         {handle:"@noor-haslizawati-binti-hasan-592",         avatarId:"836406"},
+  "Sharin":          {handle:"@sharin",                                    avatarId:"392498"},
+  "Naza Yusof":      {handle:"@nazayusof",                                 avatarId:"870913"},
+  "Kak Rose":        {handle:"@kak-rose-614",                             avatarId:"915838"},
+  "Aida Zain":       {handle:"@aida-zain-407",                            avatarId:"849969"},
+  "nurulathiah":     {handle:"@nurulathiah-933",                          avatarId:"820656"},
+  "Suhai":           {handle:"@suhai-155",                                 avatarId:"517597"},
+  "Mira idora":      {handle:"@mira-19",                                   avatarId:"777092"},
+  "Hikmah Madhuri":  {handle:"@hikmah-206",                               avatarId:"890531"},
+  "Sofia Bahren":    {handle:"@sofiajanebahren",                          avatarId:"1075866"},
+  "Fura":            {handle:"@fura-438",                                  avatarId:"583914"},
+  "Azikin Nurul":    {handle:"@azikin-358",                               avatarId:"757052"},
+  "Pijah5587":       {handle:"@pijah5587",                                 avatarId:"486112"},
+  "Ain Sallahuddin": {handle:"@ain-sallahuddin-950",                      avatarId:"1283913"},
+  "zaleha":          {handle:"@kakleha",                                   avatarId:"352841"},
+  "Miss Sha":        {handle:"@miss-sha-689",                             avatarId:"1009810"},
+  "Chu Are":         {handle:"@chu are",                                  avatarId:"484692"},
+  "Hanis":           {handle:"@wanianis",                                  avatarId:"228758"},
+  "Izza Ilham":      {handle:"@izza-ilham-739",                           avatarId:"669342"},
+  "miemie":          {handle:"@mimizz",                                    avatarId:"1006830"},
+  "Fae":             {handle:"@faefauzi",                                  avatarId:"678728"},
+  "Ag":              {handle:"@agismail",                                  avatarId:"432261"},
+  "Azrifah":         {handle:"@azrifahzainudin",                          avatarId:"966310"},
+  "zara":            {handle:"@themaderzarra",                             avatarId:"923735"},
+  "Fazzz":           {handle:"@farzanayahya-417",                         avatarId:"577553"},
+  "Salwa":           {handle:"@salwa-442",                                 avatarId:"743154"},
+  "Amirah Najla":    {handle:"@miranajla",                                 avatarId:"619056"},
+  "Intan":           {handle:"@intannnnns",                                avatarId:"286027"},
+  "Maizurah":        {handle:"@jaymmi",                                    avatarId:"862589"},
+  "Izza O":          {handle:"@izzatul22",                                 avatarId:"1115983"},
+  "ShekynUsesoft":   {handle:"@shekynusesoft",                            avatarId:"1128292"},
+  // W2 new
+  "AIN NS 💚": {handle:"@ainns",                                  avatarId:"668152"},
+  "Fadh":            {handle:"@nur-fadhilah-201",                         avatarId:"1192842"},
+  "K@kz":            {handle:"@kkz-304",                                  avatarId:"1137230"},
+  "Sara Affandi":    {handle:"@_saraaffandi",                             avatarId:"749561"},
+  "Fra":             {handle:"@frazowski",                                 avatarId:"507423"},
+  "Caa":             {handle:"@caamuchacos",                              avatarId:"671725"},
+  "Wanie Harman":    {handle:"@wanie-harman-638",                         avatarId:"886635"},
+  "Adilla":          {handle:"@dyllopie",                                  avatarId:"1143582"},
+  "Siska Khalil":    {handle:"@siskakhalil",                              avatarId:"881021"},
+  "Nadea Abdullah":  {handle:"@nadea-abdullah-951",                       avatarId:"1285602"},
+  "Elle":            {handle:"@elle-465",                                  avatarId:"712762"},
+  "Emy":             {handle:"@wan-salmizan-binti-md-zain-8",             avatarId:"1204038"},
+  // W3 new
+  "Azliana Azlin":   {handle:"@azliana-azlin-634",                        avatarId:"1315082"},
+  "Zulaikha Zahirah":{handle:"@zulaikha-zahirah-1",                       avatarId:"733441"},
+  "Iryani Baharom":  {handle:"@yanibites",                                 avatarId:"1058098"},
+  "Nurin":           {handle:"@nurinaqilah",                              avatarId:"644268"},
+  "Kakak semut":     {handle:"@kakak-semut-180",                          avatarId:"1295405"},
+  "Erlis":           {handle:"@erlis",                                     avatarId:"630265"},
+  "Zeq Azura":       {handle:"@dashazzra",                                 avatarId:"1511863"},
+  "cda":             {handle:"@cda-822",                                  avatarId:"545336"},
+  "Atiqah":          {handle:"@atiqah-665",                               avatarId:"257574"},
+  // W4 new
+  "Yana Mariana":    {handle:"@yana mariana",                             avatarId:"572774"},
+  "Sarah Danisha":   {handle:"@sarahdanisha",                             avatarId:"1282821"},
+  "Fee.":            {handle:"@feeqafee",                                  avatarId:"661737"},
+  "Sha M":           {handle:"@shamyto",                                  avatarId:"514797"},
+  "MynMuslim":       {handle:"@mynamuslim",                               avatarId:"517101"},
+  "Azira Ishak":     {handle:"@azira.ishak",                              avatarId:"819826"},
+  "Norish":          {handle:"@norislina-817",                            avatarId:"681623"},
+  "Marl":            {handle:"@marm4r",                                   avatarId:"775844"},
+  "Rara":            {handle:"@rara8881",                                 avatarId:"767291"},
+  // W5 new
+  "Qila":            {handle:"@qlashfqa_",                                 avatarId:"897426"},
+  "Ainn":            {handle:"@ainn",                                      avatarId:"965761"},
+  "Elynna":          {handle:"@elynna-703",                               avatarId:"1198831"},
+  // W6 new
+  "ilaaa":           {handle:"@azielajafre",                              avatarId:"744246"},
+  "zana":            {handle:"@znrhmhdtp",                                 avatarId:"912896"},
+  "ANIES Mf":        {handle:"@anis-988",                                 avatarId:"603303"},
+};
+// ── Men Week 4 new players ──────────────────────────────
+const _MEN_W4 = {
+  // Week 4 new players
+  "Isnu":                {handle:'@isnu1210',            avatarId:'322814'},
+  "Danial Darwis":       {handle:'@danial darwis',       avatarId:'866737'},
+  "Eymeerul":            {handle:'@eymrul',              avatarId:'347861'},
+  "Rizal":               {handle:'@rizal-470',           avatarId:'742677'},
+  "Jegan":               {handle:'@jegan-948',           avatarId:'584033'},
+  "Jabir Malik":         {handle:'@jabir-malik-69',      avatarId:'695270'},
+  "Thabrani":            {handle:'@thabrani-marwan-384', avatarId:'552692'},
+  "Karl.El":             {handle:'@karlhamzah',          avatarId:'65979'},
+  "FarizSan":            {handle:'@farizsan',            avatarId:'1083786'},
+  "∆p!z":                {handle:'@apishx',              avatarId:'559983'},
+  "Azhar y":             {handle:'@azhar-y-479',         avatarId:'364361'},
+  "Fariz Pandi":         {handle:'@fariz-pandi',         avatarId:'600308'},
+  "Ezuardi":             {handle:'@ezuardi2005',         avatarId:'1009149'},
+  'Nafees Najib':        {handle:'@nafeesnajib',        avatarId:'547514'},
+  'Lutfi Daud':          {handle:'@lutfidaud',          avatarId:'428885'},
+  'Alif Noor':           {handle:'@malifnoor',          avatarId:'393351'},
+  // W3 only players
+  'Mujahid Shukri':      {handle:'@mujahid-shukri-585', avatarId:'756383'},
+  'ali yepe':            {handle:'@yepelus',            avatarId:'1156000'},
+  'Poji Stiffler':       {handle:'@poji-stiffler-960',  avatarId:'1297958'},
+  'Hazwan Mohamad':      {handle:'@hazwan-mohamad-820', avatarId:'1043723'},
+  'Rizal':               {handle:'@rizal-470',          avatarId:'742677'},
+  '#15 Ayie \uD83D\uDEEB': {handle:'@ayieikie93',    avatarId:'15973'},
+  '#15 Ayie 🛫':         {handle:'@ayieikie93',         avatarId:'15973'},
+  'Azhar y':             {handle:'@azhar-y-479',        avatarId:'364361'},
+  'Ezuardi':             {handle:'@ezuardi2005',        avatarId:'1009149'},
+  'Isnu':                {handle:'@isnu1210',           avatarId:'322814'},
+  // Two Faiz players — court disambiguates
+  'Faiz||Court 7':       {handle:'@faiz60111',          avatarId:'1035005'},
+  'Faiz||Court 8':       {handle:'@faiz-979',           avatarId:'689636'},
+  // Two Afiq players — both registered separately
+  'Afiq':                {handle:'@afiq-524',           avatarId:'368697'},  // W3 Light Blue default
+  'Afiq (afiqim00)':     {handle:'@afiqim00',           avatarId:'210956'},  // W1/W2 Afiq
+  // Court-based disambiguation (used by load match)
+  'Afiq||Court 2':       {handle:'@afiq-524',           avatarId:'368697'},
+  'Afiq||Court 6':       {handle:'@afiq-524',           avatarId:'368697'},
+  'Afiq||Court 8':       {handle:'@afiqim00',           avatarId:'210956'},
+};
+
+function normalizeName(n) {
+  // Normalize apostrophes/quotes for consistent matching
+  return (n||'').replace(/[\u2018\u2019\u201a\u201b\u2032\u0060]/g,"'").trim();
+}
+
+function lookupKnownPlayer(name, court, lg='men') {
+  const KP = lg === 'women' ? KNOWN_PLAYERS_WOMEN : KNOWN_PLAYERS;
+  const norm = normalizeName(name);
+  // Check court-specific key first (for duplicate names)
+  if(KP[name+'||'+court]) return KP[name+'||'+court];
+  if(KP[norm+'||'+court]) return KP[norm+'||'+court];
+  // Check direct name match
+  if(KP[name]) return KP[name];
+  if(KP[norm]) return KP[norm];
+  // Case-insensitive with normalization
+  const lower = norm.toLowerCase();
+  const key = Object.keys(KP).find(k=>normalizeName(k).toLowerCase()===lower);
+  return key ? KP[key] : null;
+}
+
+// Default team→court mapping (can be overridden in config)
+const DEFAULT_TEAM_COURT = {
+  'red':'Court 1','white':'Court 2','blue':'Court 3','black':'Court 4',
+  'yellow':'Court 5','light blue':'Court 6','gray':'Court 7','grey':'Court 7','green':'Court 8',
+};
+const TEAM_COLORS = {
+  'red':'#e53935','white':'#bdbdbd','blue':'#1565c0','black':'#616161',
+  'yellow':'#f9a825','light blue':'#0288d1','gray':'#757575','grey':'#757575','green':'#2e7d32',
+};
+
+// Get live mapping from config (falls back to default)
+async function getTeamCourtMap(lg='men') {
+  const cfg = await loadConfig(lg);
+  return cfg.teamCourtMap || DEFAULT_TEAM_COURT;
+}
+
+// ── Scoring ────────────────────────────────────────────────
+function findPlayerInDB(name, db) {
+  const nameKey = normalizeName(name).toLowerCase().trim();
+  // Try name key first
+  if(db.players[nameKey]) return db.players[nameKey];
+  // Search by name field (with apostrophe normalization)
+  const found = Object.values(db.players).find(p=>
+    p.name && normalizeName(p.name).toLowerCase().trim()===nameKey
+  );
+  return found || null;
+}
+
+function calcCourtScore(playerNames, db, isWeek1, tierSnapshot) {
+  if (isWeek1) return 200;
+  const scores = playerNames.map(n => {
+    const nk = normalizeName(n).toLowerCase().trim();
+    // Use week's own tier snapshot if available — most accurate
+    let tier = tierSnapshot?.[nk] || null;
+    if(!tier){
+      const p = findPlayerInDB(n, db);
+      tier = p?.tier || null;
+    }
+    if (!tier||!TIER_SCORE[tier]) console.warn('  ⚠️  No tier: "'+n+'" → C (250)');
+    return TIER_SCORE[tier] || 250;
+  });
+  return Math.round(scores.reduce((a,b)=>a+b,0) / playerNames.length);
+}
+function rankPoints(rank, courtScore) { return Math.round(courtScore * Math.pow(0.85, rank-1)); }
+
+function calcStandings(matches, db, isWeek1, tierSnapshot) {
+  const courts = {};
+  matches.forEach(m => {
+    if (!courts[m.court]) courts[m.court] = {};
+    const c = courts[m.court];
+    const w1 = m.s1>m.s2;
+    [[m.t1a,m.s1,m.s2,w1],[m.t1b,m.s1,m.s2,w1],[m.t2a,m.s2,m.s1,!w1],[m.t2b,m.s2,m.s1,!w1]].forEach(([p,pf,pa,win])=>{
+      if(!c[p]) c[p]={wins:0,losses:0,diff:0};
+      c[p].diff+=(pf-pa); if(win) c[p].wins++; else c[p].losses++;
+    });
+  });
+
+  // Merge courts that share 60%+ of same players (e.g. Court 7+8 rotating players)
+  const courtKeys = Object.keys(courts);
+  const mergeMap = {}; // court -> merged label
+  for(let i=0;i<courtKeys.length;i++){
+    for(let j=i+1;j<courtKeys.length;j++){
+      const a=courtKeys[i], b=courtKeys[j];
+      const pA=new Set(Object.keys(courts[a]));
+      const pB=new Set(Object.keys(courts[b]));
+      const overlap=[...pA].filter(p=>pB.has(p)).length;
+      if(overlap/Math.max(pA.size,pB.size)>=0.6){
+        const label=a+'+'+b;
+        mergeMap[a]=label; mergeMap[b]=label;
+        console.log('Merging courts '+a+'+'+b+' ('+overlap+' shared players)');
+      }
+    }
+  }
+  // Build final courts (merged where applicable)
+  const finalCourts={};
+  Object.entries(courts).forEach(([court,players])=>{
+    const label=mergeMap[court]||court;
+    if(!finalCourts[label]) finalCourts[label]={};
+    Object.entries(players).forEach(([name,stats])=>{
+      if(!finalCourts[label][name]) finalCourts[label][name]={wins:0,losses:0,diff:0};
+      finalCourts[label][name].wins+=stats.wins;
+      finalCourts[label][name].losses+=stats.losses||0;
+      finalCourts[label][name].diff+=stats.diff;
+    });
+  });
+
+  const courtResults={}, playerWeekPoints={};
+  Object.entries(finalCourts).forEach(([court,players])=>{
+    const list=Object.keys(players);
+    const courtScore=calcCourtScore(list,db,isWeek1,tierSnapshot);
+    // Sort by win% if players have played different numbers of games, else by wins then diff
+    const maxGames = Math.max(...list.map(n=>(players[n].wins+(players[n].losses||0))));
+    const minGames = Math.min(...list.map(n=>(players[n].wins+(players[n].losses||0))));
+    const unevenGames = maxGames - minGames > 1;
+    const sorted=list.map(n=>({name:n,...players[n]})).sort((a,b)=>{
+      if(unevenGames){
+        const gA=(a.wins+(a.losses||0))||1, gB=(b.wins+(b.losses||0))||1;
+        return (b.wins/gB)-(a.wins/gA) || b.diff-a.diff;
+      }
+      return b.wins-a.wins || b.diff-a.diff;
+    });
+    // Detect ties — same wins+losses AND same diff → share averaged points
+    const results = sorted.map((p,idx)=>({...p, rank:idx+1}));
+    // Group tied players
+    let i=0;
+    while(i < results.length){
+      let j=i;
+      // Find all players tied with results[i]
+      while(j+1 < results.length &&
+            results[j+1].wins === results[i].wins &&
+            (results[j+1].losses||0) === (results[i].losses||0) &&
+            results[j+1].diff === results[i].diff){
+        j++;
+      }
+      if(j > i){
+        // Average points across tied ranks
+        let totalPts = 0;
+        for(let k=i;k<=j;k++) totalPts += rankPoints(k+1, courtScore);
+        const avgPts = Math.round(totalPts / (j-i+1));
+        for(let k=i;k<=j;k++) results[k].weekPoints = avgPts;
+      }
+      i = j+1;
+    }
+    courtResults[court]=results.map((p,idx)=>{
+      const weekPoints = p.weekPoints !== undefined ? p.weekPoints : rankPoints(idx+1, courtScore);
+      const games=p.wins+(p.losses||0);
+      const winPct=games>0?Math.round(p.wins/games*100):0;
+      const key = p.name+'||'+court;
+      playerWeekPoints[key]=weekPoints;
+      playerWeekPoints[p.name]=weekPoints;
+      return {player:p.name,rank:p.rank,wins:p.wins,losses:p.losses||0,games,winPct,diff:p.diff,courtScore,weekPoints};
+    });
+  });
+  return {courtResults,playerWeekPoints};
+}
+
+function autoAssignTiers(seasonData, tierSizes) {
+  const totals = {};
+  Object.values(seasonData.weeks||{}).forEach(w => {
+    // Use best points per player per week (highest court wins)
+    const _weekBest = {};
+    Object.values(w.courtResults||{}).forEach(cp => {
+      cp.forEach(r => {
+        const pn = normalizeName(r.player);
+        const pts = r.weekPoints||0;
+        if(!_weekBest[pn] || pts > _weekBest[pn]) _weekBest[pn] = pts;
+        if(!totals[pn]) totals[pn]={wins:0,diff:0,points:0};
+        totals[pn].wins += r.wins||0;
+        totals[pn].diff += r.diff||0;
+      });
+    });
+    Object.entries(_weekBest).forEach(([pn, pts]) => {
+      if(!totals[pn]) totals[pn]={wins:0,diff:0,points:0};
+      totals[pn].points += pts;
+    });
+  });
+  const ranked = Object.entries(totals).sort((a,b) =>
+    b[1].points-a[1].points || b[1].diff-a[1].diff || b[1].wins-a[1].wins
+  );
+  const assignments = {};
+  let idx = 0;
+  for (const tier of ['S','A','B','C']) {
+    const size = tier==='C' ? Infinity : (tierSizes[tier]||21);
+    const count = Math.min(size, ranked.length-idx);
+    for (let i=0; i<count; i++) {
+      if (idx < ranked.length) {
+        const [pName, pData] = ranked[idx];
+        assignments[pName] = { tier, rank:idx+1, totalPoints:pData.points, totalWins:pData.wins, totalDiff:pData.diff };
+        idx++;
+      }
+    }
+  }
+  return assignments;
+}
+
+// ── Fetch & parse ──────────────────────────────────────────
+function fetchURL(targetUrl, extraHeaders={}) {
+  return new Promise((resolve,reject) => {
+    const lib = targetUrl.startsWith('https') ? https : http;
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Cache-Control': 'no-cache',
+      ...extraHeaders
+    };
+    const req = lib.get(targetUrl,{headers},(res)=>{
+      // Follow redirects
+      if(res.statusCode===301||res.statusCode===302){
+        return fetchURL(res.headers.location||targetUrl,extraHeaders).then(resolve).catch(reject);
+      }
+      let d=''; res.on('data',c=>d+=c); res.on('end',()=>resolve(d));
+    });
+    req.on('error',reject);
+    req.setTimeout(20000,()=>{req.destroy();reject(new Error('Timeout'));});
+  });
+}
+
+// Fetch meet page and extract player data from embedded JSON chunks
+// Reclub embeds data as window.__data__ or similar patterns
+function extractPlayersFromHTML(html) {
+  const results = [];
+  // Pattern 1: JSON chunks with username + avatarId in script tags
+  const scriptMatches = html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+  for(const sm of scriptMatches) {
+    const script = sm[1];
+    if(script.includes('avatarId') || script.includes('username')) {
+      // Try to find player-like objects
+      const playerPattern = /"username":"([^"]+)"[^}]*"avatarId":(\d+)[^}]*"displayName":"([^"]+)"/g;
+      const playerPattern2 = /"displayName":"([^"]+)"[^}]*"username":"([^"]+)"[^}]*"avatarId":(\d+)/g;
+      let m;
+      while((m = playerPattern.exec(script)) !== null)  results.push({username:m[1],avatarId:m[2],name:m[3]});
+      while((m = playerPattern2.exec(script)) !== null) results.push({name:m[1],username:m[2],avatarId:m[3]});
+    }
+  }
+  // Pattern 2: inline JSON data anywhere in HTML
+  const inlinePattern = /"username":"([^"]+)","avatarId":(\d+)[^}]*"displayName":"([^"]+)"/g;
+  let m2;
+  while((m2 = inlinePattern.exec(html)) !== null) results.push({username:m2[1],avatarId:m2[2],name:m2[3]});
+  return results;
+}
+function stripHTML(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'')
+    .replace(/<img[^>]*>/gi,'').replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<\/?(div|p|h[1-6]|li|tr|td|th|span|section)[^>]*>/gi,'\n')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/&#?\w+;/g,' ');
+}
+function parseScoresheet(html) {
+  const text=stripHTML(html);
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  let title='Match Results', date='';
+  for(let i=0;i<Math.min(lines.length,30);i++){
+    if(lines[i].toUpperCase()===lines[i]&&lines[i].length>10&&/CHALLENGE|LEAGUE|CUP|TOURNAMENT|TIER|WOMEN|MEN|OPEN/.test(lines[i])){title=lines[i];break;}
+  }
+  for(let i=0;i<Math.min(lines.length,40);i++){
+    if(/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/i.test(lines[i])){date=lines[i];break;}
+  }
+  const matches=[];
+  let round=null,court=null,i=0;
+  const isScore=v=>{const n=parseInt(v);return!isNaN(n)&&n>=0&&n<=30&&String(v).trim()===String(n);};
+  const isName=v=>v.length>0&&!isScore(v)&&v!=='Round'&&!/^Court\s+\d+$/.test(v)&&
+    !['Powered by Reclub','Print'].includes(v)&&!/^(Printable|Note:|This is)/.test(v);
+  while(i<lines.length){
+    const line=lines[i];
+    if(line==='Round'&&lines[i+1]&&!isNaN(parseInt(lines[i+1]))){round=parseInt(lines[i+1]);i+=2;continue;}
+    if(/^Court\s+\d+$/.test(line)){court=line;i++;continue;}
+    if(round&&court&&i+5<lines.length){
+      const[t1a,t1b,s1,t2a,t2b,s2]=[lines[i],lines[i+1],lines[i+2],lines[i+3],lines[i+4],lines[i+5]];
+      if(isName(t1a)&&isName(t1b)&&isScore(s1)&&isName(t2a)&&isName(t2b)&&isScore(s2)){
+        matches.push({round,court,t1a,t1b,s1:parseInt(s1),t2a,t2b,s2:parseInt(s2)});
+        i+=6;continue;
+      }
+    }
+    i++;
+  }
+  return{title,date,matches};
+}
+// Build Reclub avatar URL from avatarId
+function avatarUrl(avatarId){ return `https://assets.reclub.co/user-avatars/${avatarId}.webp`; }
+
+function extractNextData(html) {
+  // Next.js embeds all page data as JSON in <script id="__NEXT_DATA__">
+  const match = html.match(/<script[^>]+id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (match) {
+    try { return JSON.parse(match[1]); } catch(e) { return null; }
+  }
+  return null;
+}
+
+function parseMeetPage(html, teamCourtMap, lg='men') {
+  const tcm = teamCourtMap || DEFAULT_TEAM_COURT;
+  const players={}, playersByHandle={}, playersByCourtName={};
+
+  // ── Strategy 1: Extract from __NEXT_DATA__ JSON (most reliable) ─
+  const nextData = extractNextData(html);
+  if (nextData) {
+    try {
+      // Navigate to meet data — path varies but usually in props.pageProps
+      const pageProps = nextData?.props?.pageProps || nextData?.props || {};
+      // Find meet object containing registrations/teams
+      const findMeet = (obj, depth=0) => {
+        if (depth > 6 || !obj || typeof obj !== 'object') return null;
+        // Look for registrations array or teams object
+        if (obj.registrations || obj.teams || obj.participants) return obj;
+        if (Array.isArray(obj)) {
+          for (const item of obj) { const r = findMeet(item, depth+1); if(r) return r; }
+        } else {
+          for (const val of Object.values(obj)) { const r = findMeet(val, depth+1); if(r) return r; }
+        }
+        return null;
+      };
+
+      const meetObj = findMeet(pageProps);
+      console.log('__NEXT_DATA__ keys at pageProps:', Object.keys(pageProps).slice(0,10));
+      if (meetObj) {
+        console.log('Found meet object with keys:', Object.keys(meetObj).slice(0,10));
+      }
+
+      // Try to find user/player objects with avatarId and username
+      const findPlayers = (obj, depth=0) => {
+        if (depth > 8 || !obj || typeof obj !== 'object') return [];
+        if (Array.isArray(obj)) {
+          return obj.flatMap(item => findPlayers(item, depth+1));
+        }
+        // A player object has username/handle + avatarId/avatar
+        if ((obj.username || obj.handle) && (obj.avatarId || obj.avatar || obj.name || obj.displayName)) {
+          return [obj];
+        }
+        return Object.values(obj).flatMap(val => findPlayers(val, depth+1));
+      };
+
+      const foundPlayers = findPlayers(pageProps);
+      console.log('Players found in __NEXT_DATA__:', foundPlayers.length);
+
+      if (foundPlayers.length > 0) {
+        foundPlayers.forEach(u => {
+          const handle   = u.username ? '@'+u.username : u.handle || null;
+          const avatarId = u.avatarId || u.avatar?.id || null;
+          const name     = u.displayName || u.name || u.username || '';
+          const team     = u.team?.name || u.teamName || null;
+          if (!name || !handle) return;
+          const tl    = (team||'').toLowerCase();
+          const court = tcm[tl] || null;
+          const p = {name, handle, avatarId: String(avatarId||''),
+            photoUrl: avatarId ? avatarUrl(String(avatarId)) : null,
+            team, court, teamColor: TEAM_COLORS[tl]||'#888'};
+          players[name] = p;
+          if(handle) playersByHandle[handle] = p;
+          if(court)  playersByCourtName[name+'||'+court] = p;
+        });
+        console.log('parseMeetPage via __NEXT_DATA__: found', Object.keys(players).length, 'players');
+        if(Object.keys(players).length > 0)
+          return {players, playersByHandle, playersByCourtName};
+      }
+    } catch(e) {
+      console.log('__NEXT_DATA__ parse error:', e.message);
+    }
+  }
+
+  // ── Strategy 2: use regex on full HTML (not line-by-line) ─
+  // The raw HTML has player blocks like:
+  // <a href="https://reclub.co/players/@handle"><img src=".../user-avatars/NNN.webp">Name</a>
+  // OR spread across a few lines.
+  // We find each player by their handle link + avatar img.
+
+  // Step 1: Find the Waitlisted section — cut off HTML there
+  const waitlistIdx = html.search(/Waitlisted/i);
+  const confirmedHtml = waitlistIdx > 0 ? html.substring(0, waitlistIdx) : html;
+
+  // Step 2: Find all team sections + their player blocks
+  // Split by team headings to know which team each player belongs to
+  let currentTeam = null;
+  let pos = 0;
+  const teamRegex = />(\w[\w\s]*?)\s+team\s*</gi;
+
+  // Step 3: Extract ALL player entries using a comprehensive regex
+  // Pattern covers both single-line and multi-line player entries
+  // Each player: avatar img + link with handle + name
+  const playerRegex = /user-avatars\/([\d]+)\.webp[^<]*<[^>]*>[\s\S]*?players\/@([^"\s\)]+)[^>]*>([^<]+)<\/a>/gi;
+
+  // First pass: map positions of team headers
+  const teamPositions = [];
+  let tmatch;
+  const teamRegex2 = />(\w[\w\s]*?)\s+team\s*</gi;
+  while((tmatch = teamRegex2.exec(confirmedHtml)) !== null){
+    const t = tmatch[1].trim().toLowerCase();
+    if(tcm[t] !== undefined || TEAM_COLORS[t]){
+      teamPositions.push({pos: tmatch.index, team: tmatch[1].trim()});
+    }
+  }
+
+  // Second pass: extract all players, find their nearest preceding team
+  let pmatch;
+  const playerRegex2 = /user-avatars\/(\d+)\.webp/g;
+  while((pmatch = playerRegex2.exec(confirmedHtml)) !== null){
+    const avatarPos = pmatch.index;
+    const avatarId  = pmatch[1];
+
+    // Find nearest team header BEFORE this avatar
+    let team = null;
+    for(let t=teamPositions.length-1; t>=0; t--){
+      if(teamPositions[t].pos < avatarPos){ team = teamPositions[t].team; break; }
+    }
+
+    // Find handle + name in the surrounding HTML (up to 500 chars after avatar)
+    const chunk = confirmedHtml.substring(avatarPos, avatarPos + 500);
+    const linkMatch = chunk.match(/players\/@([^"\s)]+)[^>]*>([^<]+)<\/a>/);
+    if(!linkMatch) continue;
+
+    const handle = '@' + linkMatch[1];
+    const name   = linkMatch[2].trim();
+    if(!name || name.length < 1) continue;
+
+    const tl    = (team||'').toLowerCase();
+    const court = tcm[tl] || null;
+
+    const p = {name, handle, avatarId,
+      photoUrl:  avatarUrl(avatarId),
+      team:      team||null,
+      court,
+      teamColor: TEAM_COLORS[tl] || '#888'
+    };
+
+    // Only add if not already seen (avoid duplicates from repeated img tags)
+    if(!players[name]) {
+      players[name] = p;
+      if(handle) playersByHandle[handle] = p;
+      if(court)  playersByCourtName[name+'||'+court] = p;
+    }
+  }
+
+  console.log('parseMeetPage: found', Object.keys(players).length, 'confirmed players');
+  if(Object.keys(players).length === 0){
+    console.log('WARNING: 0 players found. HTML length:', html.length,
+      '| Sample:', html.substring(0, 200).replace(/\n/g,' '));
+  }
+  return {players, playersByHandle, playersByCourtName};
+}
+function fuzzyMatch(sn,mp){
+  const s=sn.toLowerCase().trim();
+  if(mp[sn])return mp[sn];
+  const ci=Object.keys(mp).find(k=>k.toLowerCase()===s);if(ci)return mp[ci];
+  const pt=Object.keys(mp).find(k=>{const m=k.toLowerCase();return m.includes(s)||s.includes(m)||m.split(' ')[0]===s.split(' ')[0];});
+  if(pt)return mp[pt];
+  const bg=s=>{const b=new Set();for(let i=0;i<s.length-1;i++)b.add(s[i]+s[i+1]);return b;};
+  let best=null,bs=0.6;
+  Object.keys(mp).forEach(k=>{const a=bg(s),b=bg(k.toLowerCase());let inter=0;a.forEach(g=>{if(b.has(g))inter++;});const sc=(2*inter)/(a.size+b.size);if(sc>bs){bs=sc;best=k;}});
+  return best?mp[best]:null;
+}
+function resolvePlayer(name,court,aliases,playersByCourtName){
+  // 1. Manual alias takes priority
+  if(aliases[name+'||'+court]) return aliases[name+'||'+court];
+  // 2. Court+name match → use handle as DB key (unique, prevents same-name collision)
+  if(playersByCourtName && playersByCourtName[name+'||'+court]){
+    const p = playersByCourtName[name+'||'+court];
+    if(p.handle) return p.handle.replace('@','').toLowerCase().trim();
+  }
+  // 3. Name-only fuzzy — still try to get handle from meetPlayers
+  return name.toLowerCase().trim();
+}
+
+// Build DB key from handle (preferred) or name
+function dbKeyFromHandle(handle, name){
+  if(handle) return handle.replace('@','').toLowerCase().trim();
+  return name.toLowerCase().trim();
+}
+
+// ── HTTP Server ────────────────────────────────────────────
+const server = http.createServer(async(req,res)=>{
+  const parsed = new URL(req.url,'http://localhost');
+  const pathname = parsed.pathname;
+  const query = Object.fromEntries(parsed.searchParams);
+  const lg = query.league === 'women' ? 'women' : 'men';  // league param
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  if(req.method==='OPTIONS'){res.writeHead(200);return res.end();}
+  const json=(d,c=200)=>{res.writeHead(c,{'Content-Type':'application/json;charset=utf-8'});res.end(JSON.stringify(d));};
+  const body=()=>new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>r(b));});
+
+  // ── Export all data ────────────────────────────────────────
+  if(pathname==='/export-all'&&req.method==='GET'){
+    const out = {};
+    for(const lg of ['men','women']){
+      out[lg] = {
+        players:  await loadDB(lg),
+        seasons:  await loadSeasons(lg),
+        config:   await loadConfig(lg),
+        aliases:  await loadAliases(lg),
+      };
+    }
+    out.users = await loadUsers();
+    res.writeHead(200,{'Content-Type':'application/json','Content-Disposition':'attachment;filename="bangipicklers-backup.json"'});
+    return res.end(JSON.stringify(out,null,2));
+  }
+
+  // ── Import all data ────────────────────────────────────────
+  if(pathname==='/import-all'&&req.method==='POST'){
+    const s = await getSession(req);
+    if(!s||s.role!=='admin') return json({error:'Admin only'},403);
+    try{
+      const raw = JSON.parse(await body());
+      for(const lg of ['men','women']){
+        if(raw[lg]){
+          if(raw[lg].players)  await saveDB(raw[lg].players, lg);
+          if(raw[lg].seasons)  await saveSeasons(raw[lg].seasons, lg);
+          if(raw[lg].config)   await saveConfig(raw[lg].config, lg);
+          if(raw[lg].aliases)  await saveAliases(raw[lg].aliases, lg);
+        }
+      }
+      return json({success:true,message:'All data restored successfully'});
+    } catch(e){ return json({error:'Import failed: '+e.message},400); }
+  }
+
+  if(pathname==='/health'){
+    return json({
+      status:'ok',
+      mongo: mongo ? 'connected' : (MONGO_URI ? 'failed' : 'not configured'),
+      mode: mongo ? 'MongoDB Atlas' : 'Local JSON (data resets on redeploy)',
+      time: new Date().toISOString()
+    });
+  }
+
+  // Debug: show tier distribution and sample entries in DB
+  if(pathname==='/debug/tiers'&&req.method==='GET'){
+    const db=await loadDB(lg);
+    const players=Object.entries(db.players);
+    const bySample=players.slice(0,20).map(([k,p])=>({key:k,name:p.name,tier:p.tier,handle:p.handle}));
+    const counts={S:0,A:0,B:0,C:0,none:0};
+    players.forEach(([,p])=>counts[p.tier]?counts[p.tier]++:counts.none++);
+    return json({total:players.length,counts,sample:bySample});
+  }
+
+  if(pathname==='/'||pathname==='/index.html'){
+    try{const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html);}
+    catch(e){res.writeHead(500);return res.end('index.html not found');}
+  }
+
+  // Auth
+  if(pathname==='/auth/login'&&req.method==='POST'){
+    const{username,password}=JSON.parse(await body());
+    const{users}=await loadUsers();
+    const user=users.find(u=>u.username===username&&u.password===hashPwd(password));
+    if(!user) return json({error:'Invalid username or password'},401);
+    const token=genToken();
+    const sessions=await loadSessions();
+    sessions[token]={username:user.username,role:user.role,createdAt:Date.now()};
+    await saveSessions(sessions);
+    const isHttps = req.headers['x-forwarded-proto']==='https';
+    const cookieFlags = isHttps ? '; Secure; SameSite=None' : '; SameSite=Lax';
+    res.setHeader('Set-Cookie',`token=${token}; Path=/; HttpOnly; Max-Age=${30*24*60*60}${cookieFlags}`);
+    return json({success:true,username:user.username,role:user.role});
+  }
+  if(pathname==='/auth/logout'&&req.method==='POST'){
+    const cookie=req.headers.cookie||'';
+    const match=cookie.match(/token=([a-f0-9]+)/);
+    if(match){const s=await loadSessions();delete s[match[1]];await saveSessions(s);}
+    const isHttps2 = req.headers['x-forwarded-proto']==='https';
+    const clearFlags = isHttps2 ? '; Secure; SameSite=None' : '; SameSite=Lax';
+    res.setHeader('Set-Cookie',`token=; Path=/; Max-Age=0${clearFlags}`);
+    return json({success:true});
+  }
+  if(pathname==='/auth/me'&&req.method==='GET'){const s=await getSession(req);return json(s?{loggedIn:true,username:s.username,role:s.role}:{loggedIn:false});}
+  if(pathname==='/auth/users'&&req.method==='GET'){if(!await requireAdmin(req,res))return;const{users}=await loadUsers();return json(users.map(u=>({username:u.username,role:u.role,createdAt:u.createdAt})));}
+  if(pathname==='/auth/users'&&req.method==='POST'){
+    if(!await requireAdmin(req,res))return;
+    const{username,password,role}=JSON.parse(await body());
+    if(!username||!password||!['admin','viewer'].includes(role))return json({error:'username, password, role required'},400);
+    const data=await loadUsers();
+    if(data.users.find(u=>u.username===username))return json({error:'Username already exists'},400);
+    data.users.push({username,password:hashPwd(password),role,createdAt:new Date().toISOString()});
+    await saveUsers(data);return json({success:true});
+  }
+  if(pathname.startsWith('/auth/users/')&&req.method==='DELETE'){
+    if(!await requireAdmin(req,res))return;
+    const username=pathname.split('/')[3];
+    const data=await loadUsers();data.users=data.users.filter(u=>u.username!==username);
+    await saveUsers(data);return json({success:true});
+  }
+  if(pathname.match(/^\/auth\/users\/[^/]+\/password$/)&&req.method==='PUT'){
+    const s=await getSession(req);if(!s)return json({error:'Not logged in'},401);
+    const username=pathname.split('/')[3];
+    if(s.role!=='admin'&&s.username!==username)return json({error:'Forbidden'},403);
+    const{newPassword}=JSON.parse(await body());
+    if(!newPassword||newPassword.length<4)return json({error:'Min 4 characters'},400);
+    const data=await loadUsers();const user=data.users.find(u=>u.username===username);
+    if(!user)return json({error:'User not found'},404);
+    user.password=hashPwd(newPassword);await saveUsers(data);return json({success:true});
+  }
+
+  // Protect writes
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases'];
+  // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
+  if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
+    const s=await getSession(req);
+    if(!s||s.role!=='admin'){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Admin required'}));return;}
+  }
+
+  if(pathname==='/config'&&req.method==='GET')return json(await loadConfig(lg));
+  if(pathname==='/config'&&req.method==='POST'){const c=JSON.parse(await body());await saveConfig(c, lg);return json({success:true,config:c});}
+  if(pathname==='/db'&&req.method==='GET'){
+    const db = await loadDB(lg);
+    // Enrich with fresh photoUrl derived from avatarId
+    Object.values(db.players).forEach(p=>{
+      if(p.avatarId && !p.photoUrl) p.photoUrl = avatarUrl(p.avatarId);
+      if(p.avatarId) p.photoUrl = avatarUrl(p.avatarId); // always refresh
+    });
+    return json(db);
+  }
+  if(pathname==='/db/player'&&req.method==='POST'){
+    const d=JSON.parse(await body());if(!d.name)return json({error:'name required'},400);
+    const db=await loadDB(lg);
+
+    // Determine the old entry key — use oldHandle if provided (most precise)
+    const newHandleKey = d.handle ? d.handle.replace('@','').toLowerCase().trim() : null;
+    const nameKey      = normalizeName(d.name).toLowerCase().trim();
+
+    // Always key by normalized name — find existing by name OR handle
+    const existing = db.players[nameKey]
+      || (newHandleKey && Object.values(db.players).find(p=>
+            (p.handle||'').replace('@','').toLowerCase().trim() === newHandleKey))
+      || {};
+
+    // Always store by normalized name key (consistent lookup)
+    const oldKey = newHandleKey && !db.players[nameKey]
+      ? Object.keys(db.players).find(k=>
+          (db.players[k].handle||'').replace('@','').toLowerCase().trim()===newHandleKey
+        ) || nameKey
+      : nameKey;
+    const newKey = nameKey;
+
+    const {photoUrl,oldHandle,court,team,teamColor,...dClean} = d; // strip non-DB fields
+    db.players[newKey]={
+      ...existing,
+      ...dClean,
+      // Never store team/court/teamColor — changes every week
+      team: undefined, court: undefined, teamColor: undefined,
+      addedAt: existing.addedAt||new Date().toISOString()
+    };
+    // Clean up undefined fields
+    delete db.players[newKey].team;
+    delete db.players[newKey].court;
+    delete db.players[newKey].teamColor;
+    db.players[newKey].photoUrl = db.players[newKey].avatarId ? avatarUrl(db.players[newKey].avatarId) : null;
+
+    // Clean up old key if it changed
+    if(oldKey !== newKey){
+      if(db.players[oldKey]) delete db.players[oldKey];
+    }
+    // Never delete the name key if other players still point to it
+    // (different player with same name on different court keeps their own entry)
+
+    // Final cleanup — ensure no team/court stored
+    delete db.players[newKey].team;
+    delete db.players[newKey].court;
+    delete db.players[newKey].teamColor;
+    await saveDB(db, lg);return json({success:true,player:db.players[newKey]});
+  }
+  // Sync DB from match history — add any player in saved courtResults missing from DB
+  if(pathname==='/db/sync-history'&&req.method==='POST'){
+    const db=await loadDB(lg);
+    const seasons=await loadSeasons(lg);
+    let added=0;
+    const missing=[];
+    Object.values(seasons.seasons||{}).forEach(season=>{
+      Object.values(season.weeks||{}).forEach(week=>{
+        Object.values(week.courtResults||{}).forEach(players=>{
+          players.forEach(r=>{
+            if(!r.player) return;
+            const nameKey=normalizeName(r.player).toLowerCase().trim();
+            // Check if player exists in DB (by name key or name field)
+            const exists = db.players[nameKey]
+              || Object.values(db.players).some(p=>p.name&&normalizeName(p.name).toLowerCase().trim()===nameKey);
+            if(!exists){
+              db.players[nameKey]={name:r.player,tier:'C',handle:'',avatarId:'',addedAt:new Date().toISOString(),source:'history-sync'};
+              added++;
+              missing.push(r.player);
+            }
+          });
+        });
+      });
+    });
+    if(added>0) await saveDB(db,lg);
+    console.log('sync-history: added',added,'missing players:',missing.slice(0,10).join(', '));
+    return json({success:true,added,missing});
+  }
+
   // Rename a player: update DB name field AND all saved week courtResults
   if(pathname==='/db/rename'&&req.method==='POST'){
     const{oldName, newName}=JSON.parse(await body());

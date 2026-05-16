@@ -688,6 +688,7 @@ Shaiful Anuar](https://reclub.co/players/@captsa)..."
         <button class="btn btn-sm btn-red" onclick="dedupeDB()">🧹 Remove Dupes</button>
         <button class="btn btn-sm" style="background:#1a1a2e;color:#7c3aed;border:1px solid #7c3aed40" onclick="cleanDB()">🗑 Clean Bare</button>
         <button class="btn btn-sm" style="background:#1a2a1a;color:#00ff9d;border:1px solid #00ff9d40" onclick="repopulateKnown()">⚡ Add Missing Players</button>
+        <button class="btn btn-sm" style="background:#0a1a2a;color:#00ccff;border:1px solid #00ccff40" onclick="syncFromHistory()" title="Add any player found in saved match results but missing from DB">🔄 Sync from Match History</button>
         <button class="btn btn-sm" style="background:#1a1a2e;color:#666;border:1px solid #33333340;font-size:9px" onclick="stripLocationData()" title="Remove team/court from DB (run once after update)">🧹 Strip Location</button>
         <span id="rosterStatus" style="font-size:11px;color:var(--accent)"></span>
       </div>
@@ -2093,6 +2094,25 @@ function editPlayerName(span, currentName){
   span.innerHTML=''; span.appendChild(inp); inp.focus(); inp.select();
 }
 
+// Sync DB from match history — find players in saved results missing from DB
+async function syncFromHistory(){
+  const btn = event.target;
+  btn.disabled=true; btn.textContent='Syncing...';
+  try{
+    const res = await fetch('/db/sync-history?league='+LEAGUE,{method:'POST'});
+    const d = await res.json();
+    if(d.error){ alert('Error: '+d.error); return; }
+    if(d.added===0){
+      document.getElementById('rosterStatus').textContent='✅ All match history players already in DB';
+    } else {
+      document.getElementById('rosterStatus').textContent=
+        `✅ Added ${d.added} missing players: ${d.missing.slice(0,5).join(', ')}${d.missing.length>5?'...':''}`;
+    }
+    await loadDB();
+  } catch(e){ alert('Error: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='🔄 Sync from Match History'; }
+}
+
 // Edit avatar ID inline
 function editAvatarId(td){
   if(td.querySelector('input')) return;
@@ -2228,36 +2248,24 @@ function editHandleFromCourt(div){
     document.getElementById('tStandings').innerHTML = standingsHTML();
   }
 
-  if(allOptions.length > 1){
-    // Show picker dropdown
-    const sel = document.createElement('select');
-    sel.style.cssText = 'background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:2px 5px;color:#7c3aed;font-family:Space Mono,monospace;font-size:9px;outline:none;cursor:pointer;max-width:160px';
-    sel.onclick = e=>e.stopPropagation();
-    sel.innerHTML = '<option value="">— who is this? —</option>'
-      + allOptions.map(o=>
-          '<option value="'+o.handle+'|'+(o.avatarId||'')+'"'+(o.handle===currentHandle?' selected':'')+'>'+o.handle+'</option>'
-        ).join('');
-    sel.onchange = async() => {
-      if(!sel.value) return;
-      const [handle, avatarId] = sel.value.split('|');
-      await applyChoice(handle, avatarId);
-    };
-    div.innerHTML=''; div.appendChild(sel); sel.focus();
-  } else {
-    // Unknown player — show searchable dropdown of ALL DB players
+  {
+    // Always show full searchable dropdown — pre-matched candidates shown at top
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:relative;display:inline-block';
     wrapper.onclick = e=>e.stopPropagation();
 
     const inp = document.createElement('input');
     inp.type='text'; inp.value=''; inp.placeholder='Search name or @handle...';
-    inp.style.cssText = 'width:160px;background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:2px 6px;color:#e0e0e0;font-family:Space Mono,monospace;font-size:9px;outline:none';
+    inp.style.cssText = 'width:180px;background:#0a0a0f;border:1px solid #7c3aed;border-radius:5px;padding:2px 6px;color:#e0e0e0;font-family:Space Mono,monospace;font-size:9px;outline:none';
 
     const dropdown = document.createElement('div');
-    dropdown.style.cssText = 'position:absolute;top:100%;left:0;z-index:9999;background:#13131a;border:1px solid #7c3aed;border-radius:5px;max-height:160px;overflow-y:auto;width:200px;box-shadow:0 4px 16px #0008';
+    dropdown.style.cssText = 'position:absolute;top:100%;left:0;z-index:9999;background:#13131a;border:1px solid #7c3aed;border-radius:5px;max-height:200px;overflow-y:auto;width:240px;box-shadow:0 4px 20px #000a';
 
-    // Build all players list from DB
-    const allDbPlayers = Object.values(DB.players||{}).filter(p=>p.handle).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    // Build all players list — pre-matched allOptions at top, rest sorted alphabetically
+    const matchedHandles = new Set(allOptions.map(o=>o.handle));
+    const restDbPlayers = Object.values(DB.players||{}).filter(p=>p.handle && !matchedHandles.has(p.handle))
+      .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    const allDbPlayers = [...allOptions, ...restDbPlayers];
 
     function renderDropdown(query){
       const q = query.toLowerCase().trim();
@@ -2313,6 +2321,14 @@ function editHandleFromCourt(div){
     inp.onblur = ()=>{ setTimeout(()=>{ if(document.contains(dropdown)){dropdown.remove(); wrapper.remove(); document.getElementById('courtGrid').innerHTML=COURTS.map(c=>courtCardHTML(c)).join('');} }, 250); };
     // Highlight first item on open
     setTimeout(()=>highlightItem(0), 50);
+
+    // Show "Suggested" label if there are pre-matched candidates
+    if(allOptions.length > 0){
+      const lbl = document.createElement('div');
+      lbl.style.cssText='padding:3px 8px;font-size:8px;color:#7c3aed;border-bottom:1px solid #2a1a3e;letter-spacing:1px;text-transform:uppercase';
+      lbl.textContent = '★ Suggested matches';
+      dropdown.prepend(lbl);
+    }
 
     wrapper.appendChild(inp);
     wrapper.appendChild(dropdown);

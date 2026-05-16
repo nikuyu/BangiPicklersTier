@@ -485,6 +485,7 @@ tr:hover td{background:#ffffff03;}
           <div style="display:flex;gap:8px;align-items:center">
             <span id="lbDragHint" style="font-size:10px;color:#555">⠿ Drag rows to reorder</span>
             <button id="lbResetRank" onclick="" style="display:none;font-size:10px;padding:4px 10px;background:#1a0a0a;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:5px;cursor:pointer">↺ Reset Order</button>
+            <button id="lbApplyTiers" onclick="assignTiers()" style="display:none;font-size:10px;padding:4px 12px;background:#1a003a;border:1px solid #7c3aed;color:#c084fc;border-radius:5px;cursor:pointer;font-weight:700">✓ Apply Order → Assign Tiers</button>
           </div>
         </div>
         <div class="tw"><table id="tLeaderboard"></table></div>
@@ -1224,6 +1225,8 @@ function lbMove(idx, dir){
   SEASON_MANUAL_RANK[currentSeasonName] = updated.map(r => r.dataset.player).filter(Boolean);
   const resetBtn = document.getElementById('lbResetRank');
   if(resetBtn) resetBtn.style.display = 'inline-block';
+  const applyBtn = document.getElementById('lbApplyTiers');
+  if(applyBtn) applyBtn.style.display = 'inline-block';
 }
 
 async function exportData(){
@@ -1396,8 +1399,13 @@ async function assignTiers(){
     C:999
   };
 
-  // If the leaderboard has been manually reordered, use that order for tier assignment
-  const manualOrder = SEASON_MANUAL_RANK[seasonToUse];
+  // Always read current leaderboard DOM order for tier assignment
+  const table = document.getElementById('tLeaderboard');
+  const lbRows = table ? [...table.querySelectorAll('tr[data-idx]')] : [];
+  const domOrder = lbRows.map(r => r.dataset.player).filter(Boolean);
+
+  // Use DOM order if available, otherwise fall back to SEASON_MANUAL_RANK
+  const manualOrder = domOrder.length > 0 ? domOrder : SEASON_MANUAL_RANK[seasonToUse];
   let manualAssignments = null;
   if(manualOrder && manualOrder.length > 0){
     const sEnd=tierSizes.S, aEnd=tierSizes.S+tierSizes.A, bEnd=tierSizes.S+tierSizes.A+tierSizes.B;
@@ -1437,6 +1445,9 @@ async function assignTiers(){
       assignMsg += ' ('+d.notFound.length+' not in DB yet — run Roster Import first: '+d.notFound.slice(0,5).join(', ')+(d.notFound.length>5?'...':'')+')';
     msg.textContent=assignMsg; msg.classList.add('show');
     await loadDB();
+    // Hide apply button — tiers saved
+    const applyBtn = document.getElementById('lbApplyTiers');
+    if(applyBtn) applyBtn.style.display = 'none';
     // Re-render leaderboard so tier badges update immediately
     if(currentSeasonName && document.getElementById('lbSection')?.style.display!=='none'){
       showLeaderboard(currentSeasonName);

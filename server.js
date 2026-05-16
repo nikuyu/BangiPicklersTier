@@ -1435,12 +1435,25 @@ const server = http.createServer(async(req,res)=>{
     const KP_SOURCE = lg === 'women' ? KNOWN_PLAYERS_WOMEN : KNOWN_PLAYERS;
     let added = 0;
     const seenHandles = new Set();
+    const seenNames = new Map(); // name -> count, to detect dups
+    // First pass: collect all display names to detect duplicates
+    const nameToHandles = {};
+    Object.entries(KP_SOURCE).forEach(([key, p])=>{
+      if(!p.handle || key.includes('||')) return;
+      const displayName = key.replace(/\s*\(.*\)$/, '').trim();
+      if(!nameToHandles[displayName]) nameToHandles[displayName]=[];
+      nameToHandles[displayName].push({key, handle:p.handle, avatarId:p.avatarId});
+    });
     Object.entries(KP_SOURCE).forEach(([key, p])=>{
       if(!p.handle) return;
+      if(key.includes('||')) return; // skip court-disambiguation entries
       const handleKey = p.handle.replace('@','').toLowerCase().trim();
       if(seenHandles.has(handleKey)) return;
       seenHandles.add(handleKey);
-      const displayName = key.split('||')[0].replace(/\s*\(.*\)$/, '').trim();
+      // Use full key name (including bracket suffix) if there are multiple players with same base name
+      const baseName = key.replace(/\s*\(.*\)$/, '').trim();
+      const isDup = (nameToHandles[baseName]||[]).length > 1;
+      const displayName = isDup ? key : baseName;
       if(!db.players[handleKey]){
         db.players[handleKey] = {
           name: displayName,

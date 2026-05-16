@@ -2185,44 +2185,49 @@ function editAvatarId(td){
 }
 
 // Edit handle directly from court card
-function editHandleFromCourt(div){
+async function editHandleFromCourt(div){
   if(div.querySelector('select')||div.querySelector('input')) return;
   const name  = div.getAttribute('data-name');
   const court = div.getAttribute('data-court');
-  const currentHandle = getProfile(name, court).handle || PROFILES[name]?.handle || '';
 
-  // Get ALL DB players with this display name (exact or starts-with for duplicate names)
-  const dbMatches = Object.values(DB.players||{}).filter(p=>
-    p.name && (
-      p.name.toLowerCase().trim() === name.toLowerCase().trim() ||
-      p.name.toLowerCase().trim().startsWith(name.toLowerCase().trim()+' ') ||
-      p.name.toLowerCase().trim().startsWith(name.toLowerCase().trim()+'(')
-    ) && p.handle
-  );
+  // Always fetch fresh data — DB players + KNOWN_PLAYERS fallback
+  let freshPlayers = [];
+  try {
+    const [dbRes, knownRes] = await Promise.all([
+      fetch('/db?league='+LEAGUE),
+      fetch('/db/known?league='+LEAGUE)
+    ]);
+    const dbData   = await dbRes.json();
+    const knownData = await knownRes.json();
+    // Merge: DB players first, then fill from KNOWN not yet in DB
+    const seen = new Set();
+    Object.values(dbData.players||{}).forEach(p=>{ if(p.handle){seen.add(p.handle); freshPlayers.push(p);} });
+    Object.entries(knownData||{}).forEach(([k,v])=>{
+      if(k.includes('||')||!v.handle||seen.has(v.handle)) return;
+      seen.add(v.handle);
+      freshPlayers.push({ name: k.replace(/\s*\(.*\)$/,'').trim(), handle:v.handle, avatarId:v.avatarId||'' });
+    });
+    // Update DB in memory too
+    if(Object.keys(dbData.players||{}).length > 0) DB = dbData;
+    SERVER_KNOWN_PLAYERS = knownData;
+  } catch(e) { console.error('editHandleFromCourt fetch error:', e); }
 
-  // Also check KNOWN_PLAYERS for this name — exact match OR name starts with score name
-  const knownMatches = Object.entries(SERVER_KNOWN_PLAYERS||{})
-    .filter(([k])=> {
-      if(k.includes('||')) return false; // skip court-specific entries
-      const base = k.replace(/\s*\(.*\)$/,'').trim().toLowerCase();
-      return base === name.toLowerCase().trim();
-    })
-    .map(([,v])=>v)
-    .filter((v,i,a)=>a.findIndex(x=>x.handle===v.handle)===i);
+  // Sort alphabetically
+  freshPlayers.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
 
-  // Merge: DB matches + any known not already in DB
-  const allOptions = [...dbMatches];
-  knownMatches.forEach(k=>{
-    if(!allOptions.find(o=>o.handle===k.handle))
-      allOptions.push({handle:k.handle, avatarId:k.avatarId, name});
+  // Suggested: players whose base name matches the score name
+  const suggested = freshPlayers.filter(p=>{
+    const base = (p.name||'').replace(/\s*\(.*\)$/,'').trim().toLowerCase();
+    return base === name.toLowerCase().trim();
   });
+  const suggestedHandles = new Set(suggested.map(o=>o.handle));
+  const rest = freshPlayers.filter(p=>!suggestedHandles.has(p.handle));
 
   async function applyChoice(handle, avatarId){
     const handleKey = handle.replace('@','').toLowerCase().trim();
-    // DB.players is keyed by normalized name — search by handle
-    const dbEntry = Object.values(DB.players).find(p=>
+    const dbEntry = Object.values(DB.players||{}).find(p=>
         (p.handle||'').replace('@','').toLowerCase().trim() === handleKey
-      ) || Object.values(DB.players).find(p=>p.handle===handle)
+      ) || freshPlayers.find(p=>(p.handle||'').replace('@','').toLowerCase().trim()===handleKey)
         || {name, tier:'C', handle, avatarId};
 
     // Get real name from DB entry (e.g. "Aqila Azmi" instead of "Shikin Salim")
@@ -2307,28 +2312,11 @@ function editHandleFromCourt(div){
   }
 
   {
-    // Show immediate visible dropdown — no typing needed, just scroll & tap
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:relative;display:inline-block;z-index:9999';
     wrapper.onclick = e=>e.stopPropagation();
 
-    // Build all players list — pre-matched allOptions at top, rest sorted alphabetically
-    const matchedHandles = new Set(allOptions.map(o=>o.handle));
-
-    // Use DB players if available, otherwise fall back to SERVER_KNOWN_PLAYERS
-    let sourceList = Object.values(DB.players||{}).filter(p=>p.handle);
-    if(sourceList.length === 0 && SERVER_KNOWN_PLAYERS){
-      // Build from KNOWN_PLAYERS — dedupe by handle, skip court-specific keys
-      const seen = new Set();
-      sourceList = Object.entries(SERVER_KNOWN_PLAYERS)
-        .filter(([k])=>!k.includes('||'))
-        .map(([k,v])=>({ name: k.replace(/\s*\(.*\)$/,'').trim(), handle:v.handle, avatarId:v.avatarId||'' }))
-        .filter(p=>{ if(!p.handle||seen.has(p.handle)) return false; seen.add(p.handle); return true; });
-    }
-
-    const restDbPlayers = sourceList.filter(p=>!matchedHandles.has(p.handle))
-      .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-    const allDbPlayers = [...allOptions, ...restDbPlayers];
+    const allDbPlayers = [...suggested, ...rest];
 
     // Search input at top of dropdown
     const inp = document.createElement('input');
@@ -2353,7 +2341,7 @@ function editHandleFromCourt(div){
       list.innerHTML = '';
 
       // Suggested label
-      if(!q && allOptions.length > 0){
+      if(!q && suggested.length > 0){
         const lbl = document.createElement('div');
         lbl.style.cssText='padding:3px 8px;font-size:8px;color:#7c3aed;background:#0d0a1a;border-bottom:1px solid #2a1a3e;letter-spacing:1px;text-transform:uppercase';
         lbl.textContent='★ Suggested';

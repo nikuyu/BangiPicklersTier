@@ -1634,7 +1634,7 @@ function renderSeasons(){
       </div>
       <div class="week-grid">
         ${weeks.map(w=>`<div class="week-card" onclick="loadWeekView('${s.name}',${w.week})">
-          <button class="del-x" onclick="deleteWeek(event,'${s.name}',${w.week})">✕</button>
+          ${CURRENT_USER?.role==='admin'?`<button class="del-x" onclick="deleteWeek(event,'${s.name}',${w.week})">✕</button>`:''}
           <h4>Week ${w.week} ${w.isWeek1?'<span class="week1-badge">W1</span>':''}</h4>
           <div class="wd">${w.date||w.title||'—'}</div>
           <div class="ws">Players: <strong>${Object.keys(w.playerWeekPoints||{}).length}</strong><br>Courts: <strong>${Object.keys(w.courtResults||{}).length}</strong></div>
@@ -1901,8 +1901,10 @@ function showLeaderboard(seasonName){
           }
         })()}`;
     }).join('');
-    const tiedStyle=tied?'background:#7c3aed08;':'';
-    h+=`<tr data-idx="${i}" data-player="${p.replace(/"/g,'&quot;')}" style="${tiedStyle}">
+    const band=Math.floor(i/9);
+    const bandBg=tied?'#7c3aed08':(['#7c3aed09','#0d6efd08','#19875408','#8a410008'][band]||'#ffffff03');
+    const bandBorder=i>0&&i%9===0?'border-top:2px solid #ffffff18;':'';
+    h+=`<tr data-idx="${i}" data-player="${p.replace(/"/g,'&quot;')}" style="background:${bandBg};${bandBorder}">
       <td style="white-space:nowrap">
         <span class="rb">${i+1}</span>${tied?'<span style="font-size:9px;color:#7c3aed;margin-left:3px">TIE</span>':''}
         ${CURRENT_USER?.role==='admin'?`<button onclick="lbMove(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;padding:0 3px" title="Move up">▲</button>
@@ -3047,25 +3049,29 @@ function cancelEdit(inp, playerName, oldPts) {
 
 // Edit score in saved season week
 async function editSavedScore(el) {
-  if(CURRENT_USER?.role !== 'admin'){ return; } // guests cannot edit
+  if(CURRENT_USER?.role !== 'admin'){ return; }
   const season = el.getAttribute('data-season');
   const week = parseInt(el.getAttribute('data-week'));
   const playerName = el.getAttribute('data-player');
   const currentPts = parseFloat(el.getAttribute('data-pts')) || 0;
-  const newVal = prompt('Edit week points for ' + playerName + ' (' + season + ' Week ' + week + '):', Math.round(currentPts));
+  const newVal = prompt('Edit week points for ' + playerName + '\n(' + season + ' Week ' + week + '):', Math.round(currentPts));
   if (newVal === null) return;
-  const pts = parseInt(newVal);
-  if (isNaN(pts) || pts < 0) { alert('Enter a valid whole number'); return; }
+  const pts = parseFloat(newVal);
+  if (isNaN(pts)) { alert('Enter a valid number'); return; }
 
-  const res = await fetch('/seasons/week/points', {
+  const res = await fetch('/seasons/week/points?league='+LEAGUE, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({season, week, player: playerName, points: pts})
+    body: JSON.stringify({season, week, player: playerName, points: pts, league: LEAGUE})
   });
   const d = await res.json();
   if (d.error) { alert('Error: ' + d.error); return; }
 
-  // Refresh seasons and re-render leaderboard
+  // Update cell immediately without full reload
+  el.setAttribute('data-pts', pts);
+  el.childNodes[0].textContent = Math.round(pts) + ' ';
+
+  // Refresh leaderboard
   await loadSeasons();
   showLeaderboard(season);
 }

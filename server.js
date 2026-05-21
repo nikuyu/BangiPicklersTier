@@ -1306,9 +1306,7 @@ const server = http.createServer(async(req,res)=>{
     const rebuiltWPT = {};
     Object.entries(courtResults||{}).forEach(([court, results])=>{
       (results||[]).forEach(r=>{
-        const courtKey = r.player+'||'+court;
-        rebuiltWPT[courtKey] = r.weekPoints;
-        // For overall key, keep highest points (in case player appears on multiple courts)
+        // Only store plain player name — no court-pipe keys
         if(!rebuiltWPT[r.player] || r.weekPoints > rebuiltWPT[r.player]){
           rebuiltWPT[r.player] = r.weekPoints;
         }

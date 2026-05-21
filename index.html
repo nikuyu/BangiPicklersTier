@@ -1786,6 +1786,7 @@ function showLeaderboard(seasonName){
     // Per-week wins+diff from courtResults
     Object.values(w.courtResults||{}).forEach(courtPlayers=>{
       courtPlayers.forEach(r=>{
+        if(!r.player || r.player.includes('||')) return; // skip court-pipe ghost entries
         if(!totals[r.player])totals[r.player]={total:0,wins:0,diff:0,weeks:{},weekData:{}};
         totals[r.player].wins=(totals[r.player].wins||0)+(r.wins||0);
         totals[r.player].diff=(totals[r.player].diff||0)+(r.diff||0);
@@ -1796,8 +1797,9 @@ function showLeaderboard(seasonName){
     });
     // Week points — best court per player, with playerWeekPoints override
     const _weekBest={};
-    // First apply manual overrides from playerWeekPoints
+    // First apply manual overrides from playerWeekPoints (skip court-pipe keys like "Player||Court 1")
     Object.entries(w.playerWeekPoints||{}).forEach(([p,pts])=>{
+      if(p.includes('||')) return; // skip court-specific keys
       if(pts>0) _weekBest[p]=Math.round(pts);
     });
     // Then apply courtResults (only override if higher, unless manual edit exists)
@@ -1809,6 +1811,7 @@ function showLeaderboard(seasonName){
           w.playerWeekPoints[r.player]!==undefined ||
           w.playerWeekPoints[r.player.replace(/\s*\(.*\)$/,'').trim()]!==undefined
         );
+        if(!r.player||r.player.includes('||')) return;
         if(!hasManuaOverride && (!_weekBest[r.player]||pts>_weekBest[r.player]))
           _weekBest[r.player]=pts;
       });

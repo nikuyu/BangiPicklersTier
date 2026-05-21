@@ -196,6 +196,9 @@ const KNOWN_PLAYERS = {
   "arieff 'A":           {handle:'@arieffariffin',      avatarId:'554140'},
   // W3+ new players
   'Isnu':              {handle:'@isnu1210',             avatarId:'322814'},
+  'Harris Annuar':     {handle:'@harris-annuar-414',    avatarId:'482007'},
+  'Aiman Zairudin':    {handle:'@aiman-zairudin-446',   avatarId:'1643150'},
+  'ABC':               {handle:'@ian-shahrin-137',       avatarId:'1609241'},
   'Poji Stiffler':     {handle:'@poji-stiffler-960',   avatarId:'1297958'},
   'Hazwan Mohamad':    {handle:'@hazwan-mohamad-820',  avatarId:'1043723'},
   'Rizal':             {handle:'@rizal-470',            avatarId:'742677'},
@@ -204,6 +207,10 @@ const KNOWN_PLAYERS = {
   'Mujahid Shukri':    {handle:'@mujahid-shukri-585',  avatarId:'756383'},
   'Ezuardi (Wady)':    {handle:'@ezuardi2005',          avatarId:'1009149'},
   'Ezuardi':           {handle:'@ezuardi2005',          avatarId:'1009149'},
+  'Raidi Roslee':      {handle:'@raidi roslee',         avatarId:'709193'},
+  'Arif mustaqim':     {handle:'@arifmustaqim',         avatarId:'701005'},
+  '#15 Ayie 🛫':       {handle:'@ayieikie93',           avatarId:'15973'},
+  'Ayieikie93':        {handle:'@ayieikie93',           avatarId:'15973'},
   'Afiq Ross':         {handle:'@ar_',                  avatarId:'653772'},
   'AriffNordin':       {handle:'@an10',                 avatarId:'653795'},
   'Nafees Najib':      {handle:'@nafeesnajib',          avatarId:'547514'},
@@ -353,8 +360,8 @@ const _MEN_W4 = {
   '#15 Ayie \uD83D\uDEEB': {handle:'@ayieikie93',    avatarId:'15973'},
   '#15 Ayie 🛫':         {handle:'@ayieikie93',         avatarId:'15973'},
   'Azhar y':             {handle:'@azhar-y-479',        avatarId:'364361'},
-  'Ezuardi':             {handle:'@ezuardi2005',        avatarId:'1009149'},
   'Isnu':                {handle:'@isnu1210',           avatarId:'322814'},
+  'Ezuardi':             {handle:'@ezuardi2005',        avatarId:'1009149'},
   // Two Faiz players — court disambiguates
   'Faiz||Court 7':       {handle:'@faiz60111',          avatarId:'1035005'},
   'Faiz||Court 8':       {handle:'@faiz-979',           avatarId:'689636'},
@@ -433,8 +440,9 @@ function calcCourtScore(playerNames, db, isWeek1, tierSnapshot) {
   if (isWeek1) return 200;
   const scores = playerNames.map(n => {
     const nk = normalizeName(n).toLowerCase().trim();
-    // Use week's own tier snapshot if available — most accurate
-    let tier = tierSnapshot?.[nk] || null;
+    const bk = nk.replace(/\s*\(.*\)$/,'').trim();
+    // Try tierSnapshot by full name, base name, then DB lookup
+    let tier = tierSnapshot?.[nk] || tierSnapshot?.[bk] || null;
     if(!tier){
       const p = findPlayerInDB(n, db);
       tier = p?.tier || null;
@@ -1318,7 +1326,12 @@ const server = http.createServer(async(req,res)=>{
     const tierSnapshot={};
     Object.values(db.players).forEach(p=>{
       if(p.name&&p.tier){
-        tierSnapshot[normalizeName(p.name).toLowerCase().trim()]=p.tier;
+        const nameKey = normalizeName(p.name).toLowerCase().trim();
+        tierSnapshot[nameKey]=p.tier;
+        // Also store under base name (strip brackets) e.g. "Faiz (faiz60111)" → "faiz"
+        const baseName = nameKey.replace(/\s*\(.*\)$/,'').trim();
+        if(baseName!==nameKey && !tierSnapshot[baseName]) tierSnapshot[baseName]=p.tier;
+        // Also store under handle key
         if(p.handle) tierSnapshot[p.handle.replace('@','').toLowerCase().trim()]=p.tier;
       }
     });

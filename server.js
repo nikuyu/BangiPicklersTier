@@ -996,23 +996,25 @@ const server = http.createServer(async(req,res)=>{
     const d=JSON.parse(await body());if(!d.name)return json({error:'name required'},400);
     const db=await loadDB(lg);
 
-    // Determine the old entry key — use oldHandle if provided (most precise)
     const newHandleKey = d.handle ? d.handle.replace('@','').toLowerCase().trim() : null;
     const nameKey      = normalizeName(d.name).toLowerCase().trim();
 
-    // Always key by normalized name — find existing by name OR handle
-    const existing = db.players[nameKey]
-      || (newHandleKey && Object.values(db.players).find(p=>
-            (p.handle||'').replace('@','').toLowerCase().trim() === newHandleKey))
-      || {};
+    // Prefer handle as DB key (consistent with auto-populate)
+    // Find existing entry by handle key first, then name key
+    const existingByHandle = newHandleKey && db.players[newHandleKey];
+    const existingByName   = db.players[nameKey]
+      || Object.values(db.players).find(p=>normalizeName(p.name||'').toLowerCase().trim()===nameKey);
+    const existing = existingByHandle || existingByName || {};
 
-    // Always store by normalized name key (consistent lookup)
-    const oldKey = newHandleKey && !db.players[nameKey]
-      ? Object.keys(db.players).find(k=>
-          (db.players[k].handle||'').replace('@','').toLowerCase().trim()===newHandleKey
-        ) || nameKey
-      : nameKey;
-    const newKey = nameKey;
+    // Determine the key to write to
+    const oldKey = newHandleKey && db.players[newHandleKey]
+      ? newHandleKey
+      : (Object.keys(db.players).find(k=>{
+          const p=db.players[k];
+          return (p.handle||'').replace('@','').toLowerCase().trim()===(newHandleKey||'')
+            || normalizeName(p.name||'').toLowerCase().trim()===nameKey;
+        }) || (newHandleKey || nameKey));
+    const newKey = newHandleKey || nameKey;
 
     const {photoUrl,oldHandle,court,team,teamColor,...dClean} = d; // strip non-DB fields
     db.players[newKey]={

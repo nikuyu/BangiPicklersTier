@@ -1892,14 +1892,7 @@ function showLeaderboard(seasonName){
 
   LB_CURRENT_ORDER = finalSorted.map(([p])=>p);
   finalSorted.forEach(([p,d],i)=>{
-    const _dbp = dbPlayer(p); if(p.toLowerCase().includes('faiz')) console.log('FAIZ DEBUG p=',p,'dbp=',_dbp,'keys=',Object.keys(DB.players||{}).filter(k=>k.includes('faiz')));
-    const tier = _dbp?.tier
-      || dbPlayer(p.replace(/\s*\(.*\)$/,'').trim())?.tier
-      || Object.values(DB.players||{}).find(x=>{
-           const xb=(x.name||'').replace(/\s*\(.*\)$/,'').trim().toLowerCase();
-           const pb=p.replace(/\s*\(.*\)$/,'').trim().toLowerCase();
-           return xb===pb;
-         })?.tier;
+    const tier = dbPlayer(p)?.tier;
     const prof=PROFILES[p]||{};
     const tied=!manualOrder && isTiedLb(finalSorted,i);
     // Per-week cells
@@ -2130,6 +2123,16 @@ async function addPlayer(){
   document.getElementById('addAvatarId').value='';
   await loadDB();
 }
+async function updateTier(name, tier){
+  const p = dbPlayer(name);
+  if(!p){ alert('Player not found in DB: '+name); return; }
+  await fetch('/db/player?league='+LEAGUE, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name: p.name||name, tier, handle: p.handle||'', avatarId: p.avatarId||''})
+  });
+  await loadDB();
+}
+
 function editHandle(td){
   if(td.querySelector('input')||td.querySelector('select')) return;
   const name = td.getAttribute('data-name');

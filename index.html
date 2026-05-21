@@ -828,11 +828,19 @@ function dbPlayer(name){
     if(foundBase) return foundBase;
   }
   // Try reverse — DB has "Ezuardi (Wady)", score says "Ezuardi"
-  return Object.values(DB.players).find(p=>{
+  const found2 = Object.values(DB.players).find(p=>{
     if(!p.name) return false;
     const pBase = normName(p.name).replace(/\s*\(.*\)$/,'').trim();
     return pBase === k || pBase === base;
-  }) || null;
+  });
+  if(found2) return found2;
+  // Try handle-key from bracket e.g. "Faiz (faiz60111)" → key "faiz60111"
+  const bracketMatch = name.match(/\(([^)]+)\)$/);
+  if(bracketMatch){
+    const hk = bracketMatch[1].toLowerCase().replace('@','').trim();
+    if(DB.players[hk]) return DB.players[hk];
+  }
+  return null;
 }
 // Handle → avatarId lookup (from known players)
 const KNOWN_HANDLES = {
@@ -1884,7 +1892,13 @@ function showLeaderboard(seasonName){
 
   LB_CURRENT_ORDER = finalSorted.map(([p])=>p);
   finalSorted.forEach(([p,d],i)=>{
-    const tier=dbPlayer(p)?.tier;
+    const tier = dbPlayer(p)?.tier
+      || dbPlayer(p.replace(/\s*\(.*\)$/,'').trim())?.tier
+      || Object.values(DB.players||{}).find(x=>{
+           const xb=(x.name||'').replace(/\s*\(.*\)$/,'').trim().toLowerCase();
+           const pb=p.replace(/\s*\(.*\)$/,'').trim().toLowerCase();
+           return xb===pb;
+         })?.tier;
     const prof=PROFILES[p]||{};
     const tied=!manualOrder && isTiedLb(finalSorted,i);
     // Per-week cells

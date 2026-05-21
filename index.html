@@ -1794,12 +1794,23 @@ function showLeaderboard(seasonName){
         totals[r.player].weekData[w.week].diff=(totals[r.player].weekData[w.week].diff||0)+(r.diff||0);
       });
     });
-    // Week points — best court per player
+    // Week points — best court per player, with playerWeekPoints override
     const _weekBest={};
+    // First apply manual overrides from playerWeekPoints
+    Object.entries(w.playerWeekPoints||{}).forEach(([p,pts])=>{
+      if(pts>0) _weekBest[p]=Math.round(pts);
+    });
+    // Then apply courtResults (only override if higher, unless manual edit exists)
     Object.values(w.courtResults||{}).forEach(courtPlayers=>{
       courtPlayers.forEach(r=>{
         const pts=Math.round(r.weekPoints||0);
-        if(!_weekBest[r.player]||pts>_weekBest[r.player]) _weekBest[r.player]=pts;
+        // playerWeekPoints takes priority if manually set
+        const hasManuaOverride = w.playerWeekPoints && (
+          w.playerWeekPoints[r.player]!==undefined ||
+          w.playerWeekPoints[r.player.replace(/\s*\(.*\)$/,'').trim()]!==undefined
+        );
+        if(!hasManuaOverride && (!_weekBest[r.player]||pts>_weekBest[r.player]))
+          _weekBest[r.player]=pts;
       });
     });
     Object.entries(_weekBest).forEach(([p,pts])=>{
@@ -2005,6 +2016,25 @@ async function loadDB(){
   const res=await fetch('/db?league='+LEAGUE); const d=await res.json();
   DB=d; renderDB();
 }
+
+async function dedupeDB(){
+  if(!confirm('Remove duplicate players from database?\nSame-handle entries will be merged into one.')) return;
+  const statusEl = document.getElementById('rosterStatus');
+  if(statusEl){ statusEl.textContent='⏳ Removing dupes...'; statusEl.style.color='#aaa'; }
+  try{
+    const res = await fetch('/db/dedupe?league='+LEAGUE, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const d = await res.json();
+    if(d.error){ alert('Error: '+d.error); return; }
+    await loadDB();
+    const msg = `✓ Done! Removed ${d.removed} duplicate${d.removed!==1?'s':''}. ${d.total} players remain.`;
+    if(statusEl){ statusEl.textContent=msg; statusEl.style.color='#00ff9d'; }
+    else alert(msg);
+  } catch(e){
+    alert('Network error: '+e.message);
+  }
+}
+
+
 let DB_SORT = {field:'name', dir:1};
 function setDBSort(field){
   if(DB_SORT.field===field) DB_SORT.dir*=-1;
@@ -3054,26 +3084,31 @@ async function editSavedScore(el) {
   const week = parseInt(el.getAttribute('data-week'));
   const playerName = el.getAttribute('data-player');
   const currentPts = parseFloat(el.getAttribute('data-pts')) || 0;
-  const newVal = prompt('Edit week points for ' + playerName + '\n(' + season + ' Week ' + week + '):', Math.round(currentPts));
+
+  const newVal = prompt(`Edit week points for ${playerName}\n(${season} · Week ${week}):`, Math.round(currentPts));
   if (newVal === null) return;
   const pts = parseFloat(newVal);
   if (isNaN(pts)) { alert('Enter a valid number'); return; }
 
-  const res = await fetch('/seasons/week/points?league='+LEAGUE, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({season, week, player: playerName, points: pts, league: LEAGUE})
-  });
-  const d = await res.json();
-  if (d.error) { alert('Error: ' + d.error); return; }
+  try {
+    const res = await fetch('/seasons/week/points?league='+LEAGUE, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({season, week, player: playerName, points: pts, league: LEAGUE})
+    });
+    const d = await res.json();
+    if (d.error) { alert('Save failed: ' + d.error + '\n\nseason=' + season + ' week=' + week + ' player=' + playerName); return; }
 
-  // Update cell immediately without full reload
-  el.setAttribute('data-pts', pts);
-  el.childNodes[0].textContent = Math.round(pts) + ' ';
+    // Update cell immediately
+    el.setAttribute('data-pts', pts);
+    el.firstChild.textContent = Math.round(pts) + ' ';
 
-  // Refresh leaderboard
-  await loadSeasons();
-  showLeaderboard(season);
+    // Refresh leaderboard
+    await loadSeasons();
+    showLeaderboard(season);
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  }
 }
 
 // ── Drag and Drop Court Ranking ───────────────────────────

@@ -1238,7 +1238,7 @@ const server = http.createServer(async(req,res)=>{
     const byHandle={};
     Object.entries(db.players).forEach(([k,v])=>{
       if(!v.handle||toDelete.has(k)) return;
-      const h=v.handle.toLowerCase().trim();
+      const h=v.handle.replace('@','').toLowerCase().trim();
       if(!byHandle[h]) byHandle[h]=[];
       byHandle[h].push({key:k,player:{...v}});
     });
@@ -1329,8 +1329,11 @@ const server = http.createServer(async(req,res)=>{
   }
   if(pathname==='/seasons/week/points'&&req.method==='POST'){
     const{season,week,player,points}=JSON.parse(await body());
-    const seasons=await loadSeasons(lg);const w=seasons.seasons[season]?.weeks[week];
-    if(!w)return json({error:'Week not found'},404);
+    const seasons=await loadSeasons(lg);
+    const seasonData=seasons.seasons[season];
+    if(!seasonData) return json({error:`Season "${season}" not found. Available: ${Object.keys(seasons.seasons).join(', ')}`},404);
+    const w=seasonData.weeks[week]||seasonData.weeks[String(week)];
+    if(!w) return json({error:`Week ${week} not found in season "${season}". Available weeks: ${Object.keys(seasonData.weeks).join(', ')}`},404);
     // Save to playerWeekPoints under the exact name AND the base name (strip brackets)
     const baseName = player.replace(/\s*\(.*\)$/,'').trim();
     w.playerWeekPoints[player]=parseFloat(points);
@@ -1932,16 +1935,22 @@ const server = http.createServer(async(req,res)=>{
         const dbKey=resolvePlayer(name,court,aliases,playersByCourtName);
         // Look up by handle key first, then name key
         const handleKey = md?.handle ? md.handle.replace('@','').toLowerCase().trim() : null;
-        // Find DB entry: try handle key, then name key, then search by name field
+        // Find DB entry: try handle key, then name key, then search by name/handle field
         let dbP = (handleKey&&db.players[handleKey])
           || db.players[dbKey]
           || db.players[name.toLowerCase().trim()];
         // If not found by key, search by name field across all entries
         if(!dbP){
           const nameLower = name.toLowerCase().trim();
+          const baseLower = nameLower.replace(/\s*\(.*\)$/,'').trim();
           const foundKey = Object.keys(db.players).find(k=>{
             const p = db.players[k];
-            return p.name && p.name.toLowerCase().trim()===nameLower;
+            if(!p.name) return false;
+            const pName = p.name.toLowerCase().trim();
+            const pBase = pName.replace(/\s*\(.*\)$/,'').trim();
+            return pName===nameLower || pBase===baseLower ||
+              // Also match by handle
+              (p.handle && handleKey && p.handle.replace('@','').toLowerCase().trim()===handleKey);
           });
           if(foundKey) dbP = db.players[foundKey];
         }

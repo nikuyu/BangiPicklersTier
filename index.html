@@ -2223,6 +2223,129 @@ function editPlayerName(span, currentName){
 }
 
 // Sync DB from match history — find players in saved results missing from DB
+async function importRoster(){
+  const url = document.getElementById('rosterText')?.value?.trim();
+  if(!url){ alert('Paste a meet URL first'); return; }
+  const status = document.getElementById('rosterStatus');
+  if(status){ status.textContent='⏳ Importing...'; status.style.color='#aaa'; }
+  try{
+    const res = await fetch('/db/bulk?league='+LEAGUE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({meetUrl: url, defaultTier: document.getElementById('defaultTier')?.value||'C'})
+    });
+    const d = await res.json();
+    if(d.error){ if(status) status.textContent='✗ '+d.error; else alert(d.error); return; }
+    await loadDB();
+    const msg = `✓ Imported ${d.added||0} new, ${d.updated||0} updated. Total: ${d.total||'?'}`;
+    if(status){ status.textContent=msg; status.style.color='#00ff9d'; }
+  } catch(e){ if(status) status.textContent='✗ '+e.message; }
+}
+
+async function repopulateKnown(){
+  const status = document.getElementById('rosterStatus');
+  if(status){ status.textContent='⏳ Adding missing players...'; status.style.color='#aaa'; }
+  try{
+    const res = await fetch('/db/auto-populate?league='+LEAGUE, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const d = await res.json();
+    if(d.error){ if(status) status.textContent='✗ '+d.error; else alert(d.error); return; }
+    await loadDB();
+    const msg = `✓ Added ${d.added} missing players. Total: ${d.total}`;
+    if(status){ status.textContent=msg; status.style.color='#00ff9d'; }
+  } catch(e){ if(status) status.textContent='✗ '+e.message; }
+}
+
+async function cleanDB(){
+  if(!confirm('Remove players with no handle and no tier? This cannot be undone.')) return;
+  const status = document.getElementById('rosterStatus');
+  if(status){ status.textContent='⏳ Cleaning...'; status.style.color='#aaa'; }
+  try{
+    const res = await fetch('/db/clean?league='+LEAGUE, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const d = await res.json();
+    if(d.error){ if(status) status.textContent='✗ '+d.error; else alert(d.error); return; }
+    await loadDB();
+    const msg = `✓ Removed ${d.removed||0} bare entries. Total: ${d.total}`;
+    if(status){ status.textContent=msg; status.style.color='#00ff9d'; }
+  } catch(e){ if(status) status.textContent='✗ '+e.message; }
+}
+
+async function stripLocationData(){
+  if(!confirm('Remove team/court data from all DB entries?')) return;
+  const status = document.getElementById('rosterStatus');
+  if(status){ status.textContent='⏳ Stripping...'; status.style.color='#aaa'; }
+  try{
+    // Update all players removing team/court fields
+    const entries = Object.values(DB.players||{});
+    let count = 0;
+    for(const p of entries){
+      if(p.team||p.court||p.teamColor){
+        await fetch('/db/player?league='+LEAGUE, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({name:p.name, tier:p.tier, handle:p.handle, avatarId:p.avatarId})
+        });
+        count++;
+      }
+    }
+    await loadDB();
+    if(status){ status.textContent=`✓ Stripped ${count} entries.`; status.style.color='#00ff9d'; }
+  } catch(e){ if(status) status.textContent='✗ '+e.message; }
+}
+
+async function exportAllData(){
+  try{
+    const res = await fetch('/export-all?league='+LEAGUE);
+    const d = await res.json();
+    const blob = new Blob([JSON.stringify(d,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `bangi-picklers-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  } catch(e){ alert('Export failed: '+e.message); }
+}
+
+async function importFromUrl(){
+  const url = prompt('Enter backup JSON URL:');
+  if(!url) return;
+  const status = document.getElementById('backupStatus');
+  if(status){ status.textContent='⏳ Pulling...'; status.style.color='#aaa'; }
+  try{
+    const res = await fetch(url);
+    const d = await res.json();
+    await handleImportData(d);
+    if(status){ status.textContent='✓ Imported from URL'; status.style.color='#00ff9d'; }
+  } catch(e){ if(status) status.textContent='✗ '+e.message; else alert(e.message); }
+}
+
+async function checkStorageStatus(){
+  try{
+    const res = await fetch('/health?league='+LEAGUE);
+    const d = await res.json();
+    const el = document.getElementById('storageStatus');
+    if(el) el.textContent = d.storage||d.db||'OK';
+  } catch(e){
+    const el = document.getElementById('storageStatus');
+    if(el) el.textContent = 'local files';
+  }
+}
+
+async function removePlayer(name){
+  if(!confirm('Remove "'+name+'" from database?')) return;
+  const p = dbPlayer(name);
+  const key = p?.handle ? p.handle.replace('@','').toLowerCase().trim() : name.toLowerCase().trim();
+  await fetch('/db/player?league='+LEAGUE, {
+    method:'DELETE', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, key})
+  });
+  await loadDB();
+}
+
+async function applyAutoAssign(){
+  // Apply the auto-assign ranking shown in UI
+  const btn = document.getElementById('btnApplyAssign');
+  if(btn){ btn.disabled=true; btn.textContent='Applying...'; }
+  await assignTiers();
+  if(btn){ btn.disabled=false; btn.style.display='none'; }
+}
+
 async function syncFromHistory(){
   const btn = event.target;
   btn.disabled=true; btn.textContent='Syncing...';

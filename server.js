@@ -982,7 +982,7 @@ const server = http.createServer(async(req,res)=>{
   }
 
   // Protect writes
-  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases','/reset'];
+  const WRITE_PATHS=['/seasons/save','/seasons/week','/seasons/week/points','/seasons/assign-tiers','/db/player','/db/bulk','/db/roster','/db/dedupe','/db/clean','/db/rename','/db/sync-history','/import-all','/config','/aliases','/reset','/db/auto-populate'];
   // /db/auto-populate and /db/strip-location are intentionally NOT protected — needed on startup
   if(WRITE_PATHS.some(p=>pathname===p||pathname.startsWith(p))&&req.method!=='GET'){
     const s=await getSession(req);
@@ -1050,6 +1050,22 @@ const server = http.createServer(async(req,res)=>{
     delete db.players[newKey].court;
     delete db.players[newKey].teamColor;
     await saveDB(db, lg);return json({success:true,player:db.players[newKey]});
+  }
+  if(pathname==='/db/player'&&req.method==='DELETE'){
+    const d=JSON.parse(await body());
+    const db=await loadDB(lg);
+    const nameKey = normalizeName(d.name||'').toLowerCase().trim();
+    const handleKey = d.key || (d.name ? nameKey : null);
+    // Try handle key first, then name key
+    const toDelete = [handleKey, nameKey].filter(Boolean);
+    let removed = 0;
+    toDelete.forEach(k=>{ if(db.players[k]){ delete db.players[k]; removed++; } });
+    // Also search by name field
+    Object.keys(db.players).forEach(k=>{
+      if(normalizeName(db.players[k].name||'').toLowerCase().trim()===nameKey){ delete db.players[k]; removed++; }
+    });
+    await saveDB(db, lg);
+    return json({success:true, removed});
   }
   // Sync DB from match history — add any player in saved courtResults missing from DB
   if(pathname==='/db/sync-history'&&req.method==='POST'){

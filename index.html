@@ -1892,7 +1892,8 @@ function showLeaderboard(seasonName){
 
   LB_CURRENT_ORDER = finalSorted.map(([p])=>p);
   finalSorted.forEach(([p,d],i)=>{
-    const tier = dbPlayer(p)?.tier
+    const _dbp = dbPlayer(p); if(p.toLowerCase().includes('faiz')) console.log('FAIZ DEBUG p=',p,'dbp=',_dbp,'keys=',Object.keys(DB.players||{}).filter(k=>k.includes('faiz')));
+    const tier = _dbp?.tier
       || dbPlayer(p.replace(/\s*\(.*\)$/,'').trim())?.tier
       || Object.values(DB.players||{}).find(x=>{
            const xb=(x.name||'').replace(/\s*\(.*\)$/,'').trim().toLowerCase();

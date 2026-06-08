@@ -1,14 +1,13 @@
 // ladder-routes.js — Bangi Picklers Ladder League API
 // Mount in server.js:
 //   const ladderRoutes = require('./ladder-routes.js');
-//   if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession);
+//   if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession, KNOWN_PLAYERS, KNOWN_PLAYERS_WOMEN);
 
 const crypto = require('crypto');
 
 const COURTS = [1, 3, 5, 7];
 const COURT_BONUS = { 1: 8, 3: 5, 5: 3, 7: 1 };
 const WIN_BONUS = 10;
-const TOTAL_WEEKS = 4;
 
 function calcPts(court, won) {
   return (won ? WIN_BONUS : 0) + (COURT_BONUS[court] || 1);
@@ -40,46 +39,81 @@ async function lSet(mongo, col, data, league = 'men') {
   global._ladderStore[colName] = data;
 }
 
-async function loadPlayers(mongo, lg)    { return (await lGet(mongo, 'players', lg))  || {}; }
+async function loadPlayers(mongo, lg)    { return (await lGet(mongo, 'players', lg)) || {}; }
 async function savePlayers(mongo, d, lg) { await lSet(mongo, 'players', d, lg); }
-async function loadSession(mongo, lg)    { return (await lGet(mongo, 'session', lg))  || null; }
+async function loadSession(mongo, lg)    { return (await lGet(mongo, 'session', lg)) || null; }
 async function saveSession(mongo, d, lg) { await lSet(mongo, 'session', d, lg); }
-async function loadMatches(mongo, lg)    { return (await lGet(mongo, 'matches', lg))  || []; }
+async function loadMatches(mongo, lg)    { return (await lGet(mongo, 'matches', lg)) || []; }
 async function saveMatches(mongo, d, lg) { await lSet(mongo, 'matches', d, lg); }
 
 // ── Reclub HTML parser ────────────────────────────────────────────────────────
 function parseReclubHtml(html) {
-  const players = [];
-  const seen = new Set();
+  const players = [], seen = new Set();
   const waitIdx = html.search(/Waitlisted/i);
-  const confirmedHtml = waitIdx > 0 ? html.substring(0, waitIdx) : html;
-  const avatarRe = /user-avatars\/(\d+)\.webp/g;
+  const h = waitIdx > 0 ? html.substring(0, waitIdx) : html;
+  const re = /user-avatars\/(\d+)\.webp/g;
   let m;
-  while ((m = avatarRe.exec(confirmedHtml)) !== null) {
-    const avatarId = m[1];
-    const chunk = confirmedHtml.substring(m.index, m.index + 600);
-    const linkMatch = chunk.match(/players\/@([^"\s)]+)[^>]*>([^<]{1,50})<\/a>/);
-    if (!linkMatch) continue;
-    const handle = linkMatch[1].toLowerCase();
-    const name = linkMatch[2].trim();
-    if (!name || name.length < 1 || seen.has(handle)) continue;
+  while ((m = re.exec(h)) !== null) {
+    const chunk = h.substring(m.index, m.index + 600);
+    const lm = chunk.match(/players\/@([^"\s)]+)[^>]*>([^<]{1,50})<\/a>/);
+    if (!lm) continue;
+    const handle = lm[1].toLowerCase(), name = lm[2].trim();
+    if (!name || seen.has(handle)) continue;
     seen.add(handle);
-    players.push({ handle, name, avatarId });
+    players.push({ handle, name, avatarId: m[1] });
   }
-  // fallback: JSON embedded
   if (players.length === 0) {
-    const jsonRe = /"username"\s*:\s*"([^"]+)"[^}]{0,200}"(?:displayName|name)"\s*:\s*"([^"]{2,50})"/g;
-    while ((m = jsonRe.exec(confirmedHtml)) !== null) {
-      const handle = m[1].toLowerCase().replace(/^@/, '');
-      const name = m[2].trim();
+    const jr = /"username"\s*:\s*"([^"]+)"[^}]{0,200}"(?:displayName|name)"\s*:\s*"([^"]{2,50})"/g;
+    while ((m = jr.exec(h)) !== null) {
+      const handle = m[1].toLowerCase().replace(/^@/, ''), name = m[2].trim();
       if (!seen.has(handle)) { seen.add(handle); players.push({ handle, name, avatarId: null }); }
     }
   }
   return players;
 }
 
+// ── Seed from KNOWN_PLAYERS ───────────────────────────────────────────────────
+function seedFromKnown(knownPlayers, existingPlayers) {
+  let added = 0, skipped = 0;
+  const seen = new Set();
+
+  Object.entries(knownPlayers).forEach(([displayName, info]) => {
+    if (!info.handle) return;
+    // Skip court-disambiguation entries like "Faiz||Court 7"
+    if (displayName.includes('||')) return;
+
+    const handle = info.handle.replace('@', '').toLowerCase().trim();
+    if (seen.has(handle)) return;
+    seen.add(handle);
+
+    if (existingPlayers[handle]) {
+      // Already exists — update name/avatar only, keep stats
+      existingPlayers[handle].name    = existingPlayers[handle].name || displayName.replace(/\s*\(.*\)$/, '').trim();
+      existingPlayers[handle].avatarId = existingPlayers[handle].avatarId || String(info.avatarId || '');
+      skipped++;
+    } else {
+      // Clean display name — strip bracket suffix e.g. "Faiz (faiz60111)" → "Faiz"
+      const cleanName = displayName.replace(/\s*\(.*\)$/, '').trim();
+      existingPlayers[handle] = {
+        handle,
+        name:      cleanName,
+        avatarId:  String(info.avatarId || ''),
+        totalPts:  0,
+        wins:      0,
+        losses:    0,
+        weekPts:   {},
+        addedAt:   new Date().toISOString(),
+        source:    'known_players'
+      };
+      added++;
+    }
+  });
+
+  return { added, skipped };
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
-module.exports = async function ladderRoutes(req, res, pathname, query, mongo, getSession) {
+module.exports = async function ladderRoutes(req, res, pathname, query, mongo, getSession, KNOWN_PLAYERS, KNOWN_PLAYERS_WOMEN) {
   const lg = query.league === 'women' ? 'women' : 'men';
   const subpath = pathname.replace(/^\/ladder/, '') || '/';
 
@@ -95,7 +129,7 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
   };
 
   // ── Serve ladder.html ─────────────────────────────────────────────────────
-  if ((subpath === '' || subpath === '/' || subpath === '/host') && req.method === 'GET') {
+  if ((subpath === '' || subpath === '/') && req.method === 'GET') {
     const fs = require('fs'), path = require('path');
     try {
       const html = fs.readFileSync(path.join(__dirname, 'ladder.html'), 'utf8');
@@ -104,29 +138,39 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     } catch (e) { res.writeHead(404); return res.end('ladder.html not found'); }
   }
 
-  // ── GET /ladder/api/state — single endpoint, returns everything ───────────
-  // Players + session + standings in one call
+  // ── GET /ladder/api/state ─────────────────────────────────────────────────
   if (subpath === '/api/state' && req.method === 'GET') {
     const [players, session] = await Promise.all([
       loadPlayers(mongo, lg),
       loadSession(mongo, lg),
     ]);
-    // Build standings: cumulative across all weeks
     const standings = Object.values(players)
       .map(p => ({
-        handle: p.handle,
-        name: p.name,
+        handle:   p.handle,
+        name:     p.name,
         avatarId: p.avatarId || null,
         totalPts: p.totalPts || 0,
-        wins: p.wins || 0,
-        losses: p.losses || 0,
-        weekPts: p.weekPts || {},   // { "1": 80, "2": 120, ... }
+        wins:     p.wins || 0,
+        losses:   p.losses || 0,
+        weekPts:  p.weekPts || {},
       }))
       .sort((a, b) => b.totalPts - a.totalPts || b.wins - a.wins);
     return json({ players, standings, session, league: lg });
   }
 
-  // ── POST /ladder/api/players/import ──────────────────────────────────────
+  // ── POST /ladder/api/players/seed — from KNOWN_PLAYERS ───────────────────
+  if (subpath === '/api/players/seed' && req.method === 'POST') {
+    if (!await requireAdmin()) return;
+    const KP = lg === 'women' ? KNOWN_PLAYERS_WOMEN : KNOWN_PLAYERS;
+    if (!KP || Object.keys(KP).length === 0) return json({ error: 'No known players available' }, 400);
+    const players = await loadPlayers(mongo, lg);
+    const { added, skipped } = seedFromKnown(KP, players);
+    await savePlayers(mongo, players, lg);
+    console.log(`Ladder seed (${lg}): added=${added}, skipped=${skipped}, total=${Object.keys(players).length}`);
+    return json({ success: true, added, skipped, total: Object.keys(players).length, players });
+  }
+
+  // ── POST /ladder/api/players/import — from reclub HTML ───────────────────
   if (subpath === '/api/players/import' && req.method === 'POST') {
     if (!await requireAdmin()) return;
     const { html } = JSON.parse(await body());
@@ -136,8 +180,7 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     let added = 0, updated = 0;
     parsed.forEach(p => {
       if (players[p.handle]) {
-        // update name/avatar but keep stats
-        players[p.handle].name = p.name;
+        players[p.handle].name    = p.name;
         if (p.avatarId) players[p.handle].avatarId = p.avatarId;
         updated++;
       } else {
@@ -187,10 +230,10 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
       name: sessionName || `Week ${week}`,
       week: week || 1,
       league: lg,
-      status: 'checkin',   // checkin → active → completed
+      status: 'checkin',
       startedAt: new Date().toISOString(),
       matchCount: 0,
-      checkedIn: [],        // handles of players present today
+      checkedIn: [],
       courts: { 1:{queue:[]}, 3:{queue:[]}, 5:{queue:[]}, 7:{queue:[]} }
     };
     await saveSession(mongo, session, lg);
@@ -198,7 +241,6 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
   }
 
   // ── POST /ladder/api/session/checkin ─────────────────────────────────────
-  // Toggle player check-in for today's session
   if (subpath === '/api/session/checkin' && req.method === 'POST') {
     if (!await requireAdmin()) return;
     const { handle, checked } = JSON.parse(await body());
@@ -208,17 +250,13 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
       if (!session.checkedIn.includes(handle)) session.checkedIn.push(handle);
     } else {
       session.checkedIn = session.checkedIn.filter(h => h !== handle);
-      // also remove from any court queue
-      COURTS.forEach(c => {
-        session.courts[c].queue = session.courts[c].queue.filter(h => h !== handle);
-      });
+      COURTS.forEach(c => { session.courts[c].queue = session.courts[c].queue.filter(h => h !== handle); });
     }
     await saveSession(mongo, session, lg);
     return json({ success: true, session });
   }
 
   // ── POST /ladder/api/session/checkin/bulk ────────────────────────────────
-  // Check in multiple players at once
   if (subpath === '/api/session/checkin/bulk' && req.method === 'POST') {
     if (!await requireAdmin()) return;
     const { handles } = JSON.parse(await body());
@@ -230,7 +268,6 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
   }
 
   // ── POST /ladder/api/session/activate ────────────────────────────────────
-  // Move from checkin → active (done checking in, start playing)
   if (subpath === '/api/session/activate' && req.method === 'POST') {
     if (!await requireAdmin()) return;
     const session = await loadSession(mongo, lg);
@@ -270,26 +307,23 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     if (!session) return json({ error: 'No active session' }, 404);
     const week = session.week || 1;
     const ptsAwarded = {};
-    // Update player stats
     [...teamA, ...teamB].forEach(h => {
       if (!players[h]) return;
       const won = winners.includes(h);
       const pts = calcPts(courtNum, won);
-      players[h].totalPts = (players[h].totalPts || 0) + pts;
-      players[h].wins     = (players[h].wins     || 0) + (won ? 1 : 0);
-      players[h].losses   = (players[h].losses   || 0) + (won ? 0 : 1);
-      players[h].weekPts  = players[h].weekPts || {};
+      players[h].totalPts      = (players[h].totalPts || 0) + pts;
+      players[h].wins          = (players[h].wins     || 0) + (won ? 1 : 0);
+      players[h].losses        = (players[h].losses   || 0) + (won ? 0 : 1);
+      players[h].weekPts       = players[h].weekPts || {};
       players[h].weekPts[week] = (players[h].weekPts[week] || 0) + pts;
-      players[h].lastSeen = new Date().toISOString();
+      players[h].lastSeen      = new Date().toISOString();
       ptsAwarded[h] = pts;
     });
-    // Move players in queue
     const allPlayed = [...teamA, ...teamB];
     session.courts[courtNum].queue = session.courts[courtNum].queue.filter(h => !allPlayed.includes(h));
-    winners.forEach(h => { const nc = nextCourt(courtNum, true);  if (!session.courts[nc].queue.includes(h))  session.courts[nc].queue.push(h); });
+    winners.forEach(h => { const nc = nextCourt(courtNum, true);  if (!session.courts[nc].queue.includes(h)) session.courts[nc].queue.push(h); });
     losers.forEach(h  => { const nc = nextCourt(courtNum, false); if (!session.courts[nc].queue.includes(h)) session.courts[nc].queue.push(h); });
     session.matchCount = (session.matchCount || 0) + 1;
-    // Save match record
     matches.push({
       id: crypto.randomBytes(6).toString('hex'),
       sessionId: session.id, sessionName: session.name,

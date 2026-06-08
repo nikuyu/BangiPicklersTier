@@ -266,6 +266,18 @@ textarea:focus{outline:none;border-color:var(--gold)}
     </div>
 
     <div class="sep"></div>
+    <div class="stitle">Load dari Season Lepas</div>
+    <div class="hint">
+      Import terus dari senarai pemain <strong>Season 4</strong> yang dah ada dalam sistem.
+      Stats lama tidak dibawa — cuma nama & handle sahaja.
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="btn btn-gold" onclick="doSeed('men')" style="flex:1">👨 Load Men</button>
+      <button class="btn btn-gold" onclick="doSeed('women')" style="flex:1">👩 Load Women</button>
+    </div>
+    <div id="seed-result" style="font-size:12px;color:var(--green);margin-top:6px;display:none"></div>
+
+    <div class="sep"></div>
     <div class="stitle">Import Players dari Reclub</div>
     <div class="hint">
       1. Buka Reclub event → <strong>View Page Source (Ctrl+U)</strong><br>
@@ -843,6 +855,20 @@ function clientParse(html) {
     out.push({ handle, name, avatarId: m[1] });
   }
   return out;
+}
+
+async function doSeed(league) {
+  const prev = A.lg;
+  A.lg = league;
+  const r = await api('/api/players/seed', { method:'POST', body:'{}' });
+  A.lg = prev;
+  if (r.error) { notify(r.error, 'err'); return; }
+  if (league === A.lg) A.players = r.players || A.players;
+  const el = $('#seed-result');
+  el.textContent = `✅ ${league === 'men' ? 'Men' : 'Women'}: ${r.added} players loaded, ${r.skipped} dah ada (total ${r.total})`;
+  el.style.display = '';
+  notify(`✅ Loaded ${r.added} ${league} players`);
+  if (league === A.lg) { renderPlayerListHost(); renderStandings(); }
 }
 
 async function doManualAdd() {

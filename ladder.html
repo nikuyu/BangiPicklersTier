@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bangi Picklers — Ladder League</title>
+<style>
+  :root {
+    --bg: #0a0d13;
+    --bg2: #0f1520;
+    --bg3: #1a2535;
+    --border: #1e2d3d;
+    --text: #e0e0e0;
+    --muted: #556;
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #cd7f32;
+    --green: #4CAF50;
+    --red: #e57373;
+    --c1: #FFD700; --c1t: #111;
+    --c3: #C0C0C0; --c3t: #111;
+    --c5: #cd7f32; --c5t: #fff;
+    --c7: #2a3a4a; --c7t: #7ab0d0;
+    --tap: 48px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* ── Header ── */
+  .header { background: linear-gradient(135deg, #1a2535, #0a0d13); padding: 14px 16px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-logo { font-size: 26px; }
+  .header-title { font-size: 16px; font-weight: 900; letter-spacing: 2px; color: var(--gold); }
+  .header-sub { font-size: 9px; letter-spacing: 4px; color: var(--muted); margin-top: 1px; }
+  .league-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+  .league-btn { background: none; border: none; color: var(--muted); padding: 6px 14px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; }
+  .league-btn.active { background: var(--gold); color: #111; }
+
+  /* ── Nav ── */
+  .nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 56px; z-index: 99; }
+  .nav-btn { flex: 1; background: none; border: none; color: var(--muted); padding: 13px 0; font-size: 11px; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: color .15s; border-bottom: 2px solid transparent; }
+  .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── Views ── */
+  .view { display: none; padding: 12px; padding-bottom: 40px; }
+  .view.active { display: block; }
+
+  /* ── Cards ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .card-header { padding: 10px 14px; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+  /* ── Court cards ── */
+  .court-card { border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid; }
+  .court-card[data-court="1"]  { border-color: var(--c1); }
+  .court-card[data-court="3"]  { border-color: var(--c3); }
+  .court-card[data-court="5"]  { border-color: var(--c5); }
+  .court-card[data-court="7"]  { border-color: var(--c7); }
+  .court-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; }
+  .court-card[data-court="1"] .court-header { background: var(--c1); color: var(--c1t); }
+  .court-card[data-court="3"] .court-header { background: var(--c3); color: var(--c3t); }
+  .court-card[data-court="5"] .court-header { background: var(--c5); color: var(--c5t); }
+  .court-card[data-court="7"] .court-header { background: var(--c7); color: var(--c7t); }
+  .court-label { font-weight: 900; font-size: 13px; letter-spacing: 2px; }
+  .court-meta  { font-size: 11px; opacity: .8; }
+  .court-body  { padding: 10px 12px; background: var(--bg); }
+
+  /* ── Queue ── */
+  .queue-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; min-height: 32px; }
+  .queue-item { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: var(--bg2); }
+  .queue-item.playing { border-color: var(--green); background: #0d1f0d; }
+  .queue-num  { font-size: 10px; color: var(--muted); width: 16px; text-align: center; }
+  .queue-num.playing { color: var(--green); }
+  .queue-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: var(--bg3); }
+  .queue-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .queue-pts  { font-size: 11px; color: var(--muted); }
+  .queue-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px; padding: 0 4px; min-height: var(--tap); display: flex; align-items: center; }
+  .empty-queue { color: var(--muted); font-size: 12px; font-style: italic; padding: 8px 0; text-align: center; }
+
+  /* ── Score ref ── */
+  .score-ref { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .score-ref span { margin-right: 12px; }
+  .score-ref .win { color: var(--green); }
+  .score-ref .loss { color: var(--red); }
+
+  /* ── Buttons ── */
+  .btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--tap); border: none; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: all .15s; }
+  .btn-gold { background: var(--gold); color: #111; }
+  .btn-gold:disabled { background: var(--bg3); color: var(--muted); cursor: not-allowed; }
+  .btn-red  { background: #c0392b; color: #fff; }
+  .btn-outline { background: none; border: 2px solid var(--border); color: var(--muted); }
+  .btn-match { border: 2px solid; }
+  .court-card[data-court="1"] .btn-match { border-color: var(--c1); color: var(--c1t); background: var(--c1); }
+  .court-card[data-court="3"] .btn-match { border-color: var(--c3); color: var(--c3t); background: var(--c3); }
+  .court-card[data-court="5"] .btn-match { border-color: var(--c5); color: var(--c5t); background: var(--c5); }
+  .court-card[data-court="7"] .btn-match { border-color: var(--c7); color: var(--c7t); background: var(--c7); }
+  .btn-match:disabled { background: var(--bg2) !important; border-color: var(--border) !important; color: var(--muted) !important; cursor: not-allowed; }
+
+  /* ── Standings ── */
+  .stand-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; background: var(--bg2); }
+  .stand-row.gold   { background: #1e2d14; }
+  .stand-row.silver { background: #1a1e26; }
+  .stand-row.bronze { background: #201a10; }
+  .stand-rank { width: 28px; font-weight: 900; font-size: 18px; text-align: center; }
+  .stand-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--bg3); flex-shrink: 0; }
+  .stand-info { flex: 1; min-width: 0; }
+  .stand-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stand-handle { font-size: 10px; color: var(--muted); }
+  .stand-wl { text-align: center; width: 36px; }
+  .stand-w { font-size: 12px; color: var(--green); font-weight: 700; }
+  .stand-l { font-size: 10px; color: var(--red); }
+  .stand-pts { font-family: monospace; font-weight: 900; font-size: 16px; width: 48px; text-align: right; }
+
+  /* ── Import ── */
+  .hint { background: var(--bg3); border-radius: 8px; padding: 12px; font-size: 12px; color: #888; line-height: 1.8; margin-bottom: 12px; }
+  .hint strong { color: var(--gold); }
+  textarea { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 12px; font-family: monospace; resize: vertical; min-height: 100px; }
+  input[type=text], input[type=password] { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 14px; min-height: var(--tap); }
+  input:focus, textarea:focus { outline: none; border-color: var(--gold); }
+  label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 6px; margin-top: 14px; }
+
+  /* ── Import list ── */
+  .import-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+  .import-row { display: flex; align-items: center; gap: 10px; background: var(--bg2); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+  .import-row.existing { opacity: .5; }
+  .checkbox { width: 22px; height: 22px; border: 2px solid var(--gold); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #111; flex-shrink: 0; }
+  .checkbox.checked { background: var(--gold); }
+  .import-name { font-size: 13px; font-weight: 600; }
+  .import-handle { font-size: 10px; color: var(--muted); }
+
+  /* ── Unassigned pool ── */
+  .pool { background: var(--bg2); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .pool-title { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--muted); margin-bottom: 10px; }
+  .player-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .player-chip { position: relative; }
+  .chip-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; color: var(--text); font-size: 12px; cursor: pointer; min-height: 36px; display: flex; align-items: center; gap: 6px; }
+  .chip-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+  .chip-dropdown { position: absolute; top: 100%; left: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; z-index: 200; min-width: 130px; overflow: hidden; margin-top: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .chip-dropdown button { display: block; width: 100%; background: none; border: none; color: var(--text); padding: 10px 14px; font-size: 13px; cursor: pointer; text-align: left; }
+  .chip-dropdown button:hover { background: var(--border); }
+
+  /* ── Modal ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 300; display: flex; align-items: flex-end; padding: 0; }
+  .overlay.hidden { display: none; }
+  .modal { background: var(--bg2); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding-bottom: 20px; }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
+  .modal-header { padding: 0 16px 12px; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--muted); text-align: center; }
+  .modal-court-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 900; margin-bottom: 12px; }
+  .team-block { background: var(--bg); border-radius: 12px; margin: 0 12px 8px; padding: 12px; }
+  .team-label { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--muted); margin-bottom: 10px; }
+  .team-players { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .team-player { display: flex; align-items: center; gap: 8px; }
+  .team-player-name { flex: 1; font-size: 14px; font-weight: 700; }
+  .win-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; border: 2px solid; border-radius: 12px; background: transparent; font-size: 13px; font-weight: 900; cursor: pointer; letter-spacing: 1px; color: var(--text); transition: all .15s; }
+  .win-btn:active { transform: scale(.97); }
+  .vs-divider { text-align: center; font-size: 20px; font-weight: 900; color: var(--border); padding: 4px 0; }
+  .modal-close { display: block; width: calc(100% - 24px); margin: 8px 12px 0; background: none; border: 1px solid var(--border); border-radius: 10px; padding: 14px; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+  /* ── Login ── */
+  .login-box { max-width: 340px; margin: 40px auto; padding: 0 16px; }
+  .login-title { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 4px; }
+  .login-sub { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+
+  /* ── Notification ── */
+  .notif { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; z-index: 999; color: #fff; transition: opacity .3s; white-space: nowrap; max-width: 90vw; text-align: center; }
+  .notif.success { background: #27ae60; }
+  .notif.error   { background: #c0392b; }
+  .notif.hidden  { opacity: 0; pointer-events: none; }
+
+  /* ── Session bar ── */
+  .session-bar { background: var(--bg3); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .session-name { font-size: 13px; font-weight: 700; }
+  .session-meta { font-size: 11px; color: var(--muted); }
+
+  /* ── Section title ── */
+  .section-title { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin: 16px 0 10px; }
+
+  /* ── Misc ── */
+  .sep { height: 1px; background: var(--border); margin: 14px 0; }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row > * { flex: 1; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .player-list-item { display: flex; align-items: center; gap: 8px; background: var(--bg2); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; }
+  .pli-name { flex: 1; font-size: 13px; }
+  .pli-handle { font-size: 10px; color: var(--muted); }
+  .pli-action { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 4px 10px; font-size: 11px; cursor: pointer; min-height: 32px; }
+  .pli-action.danger { color: var(--red); border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Notification -->
+<div class="notif hidden" id="notif"></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <span class="header-logo">🏓</span>
+    <div>
+      <div class="header-title">BANGI PICKLERS</div>
+      <div class="header-sub">LADDER LEAGUE</div>
+    </div>
+  </div>
+  <div class="league-toggle">
+    <button class="league-btn active" onclick="setLeague('men')">MEN</button>
+    <button class="league-btn" onclick="setLeague('women')">WOMEN</button>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav" id="nav">
+  <button class="nav-btn active" onclick="showView('standings')">🏆 Standings</button>
+  <button class="nav-btn" onclick="showView('live')">⚡ Live</button>
+  <button class="nav-btn" id="nav-host" onclick="showView('host')" style="display:none">🔧 Host</button>
+  <button class="nav-btn" id="nav-login" onclick="showView('login')">🔑 Login</button>
+</div>
+
+<!-- ── STANDINGS VIEW ── -->
+<div class="view active" id="view-standings">
+  <div class="section-title">Standings — <span id="standings-league">Men</span></div>
+  <div id="standings-list">
+    <div style="text-align:center;color:var(--muted);padding:40px;font-size:13px">Loading...</div>
+  </div>
+</div>
+
+<!-- ── LIVE VIEW ── -->
+<div class="view" id="view-live">
+  <div id="live-no-session" style="display:none">
+    <div style="text-align:center;color:var(--muted);padding:60px 20px">
+      <div style="font-size:48px;margin-bottom:12px">🏸</div>
+      <div style="font-size:14px">No active session</div>
+      <div style="font-size:12px;margin-top:6px">Host will start a session soon</div>
+    </div>
+  </div>
+  <div id="live-courts"></div>
+</div>
+
+<!-- ── HOST VIEW ── -->
+<div class="view" id="view-host">
+  <!-- No session -->
+  <div id="host-no-session">
+    <div class="section-title">Start Session</div>
+    <label>Session Name</label>
+    <input type="text" id="session-name-input" placeholder="e.g. Week 1 — 8 Jun 2025">
+    <div style="margin-top:10px">
+      <button class="btn btn-gold" onclick="startSession()">▶ Start Session</button>
+    </div>
+    <div class="sep"></div>
+    <div class="section-title">Import Players from Reclub</div>
+    <div class="hint">
+      1. Buka Reclub event page → <strong>View Page Source (Ctrl+U)</strong><br>
+      2. <strong>Ctrl+A</strong> → <strong>Ctrl+C</strong><br>
+      3. Paste di bawah → Parse
+    </div>
+    <label>Paste HTML Source</label>
+    <textarea id="import-html" placeholder="Paste HTML here..." rows="5"></textarea>
+    <div style="margin-top:8px">
+      <button class="btn btn-gold" onclick="parseImport()">🔍 Parse Players</button>
+    </div>
+    <div id="import-results" style="display:none">
+      <div class="section-title" id="import-found-label">Found 0 players</div>
+      <div class="import-list" id="import-list"></div>
+      <button class="btn btn-gold" onclick="confirmImport()">✅ Import Selected</button>
+    </div>
+    <div class="sep"></div>
+    <div class="section-title">Manual Add Player</div>
+    <div class="row">
+      <div>
+        <label>Handle (no @)</label>
+        <input type="text" id="manual-handle" placeholder="e.g. arifmustaqim">
+      </div>
+      <div>
+        <label>Display Name</label>
+        <input type="text" id="manual-name" placeholder="e.g. Arif">
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-outline" onclick="manualAdd()">+ Add Player</button>
+    </div>
+    <div class="sep"></div>
+    <div class="section-title">Registered Players (<span id="player-count">0</span>)</div>
+    <div id="player-list-host"></div>
+  </div>
+
+  <!-- Active session -->
+  <div id="host-session" style="display:none">
+    <div class="session-bar">
+      <div>
+        <div class="session-name" id="session-display-name">Session</div>
+        <div class="session-meta"><span class="live-dot"></span><span id="session-match-count">0</span> matches recorded</div>
+      </div>
+      <button class="btn btn-red" style="width:auto;padding:8px 16px;font-size:11px" onclick="endSession()">End</button>
+    </div>
+
+    <!-- Unassigned pool -->
+    <div class="pool" id="pool-box">
+      <div class="pool-title">UNASSIGNED PLAYERS</div>
+      <div class="player-chips" id="pool-chips"></div>
+    </div>
+
+    <!-- Courts -->
+    <div id="host-courts"></div>
+  </div>
+</div>
+
+<!-- ── LOGIN VIEW ── -->
+<div class="view" id="view-login">
+  <div class="login-box">
+    <div class="login-title">Host Login</div>
+    <div class="login-sub">Admin access untuk manage session</div>
+    <label>Username</label>
+    <input type="text" id="login-username" placeholder="admin" autocomplete="username">
+    <label>Password</label>
+    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    <div style="margin-top:16px">
+      <button class="btn btn-gold" onclick="doLogin()">Login →</button>
+    </div>
+    <div id="login-error" style="color:var(--red);font-size:12px;margin-top:10px;display:none"></div>
+  </div>
+  <div id="logout-box" style="display:none;padding:20px">
+    <div style="margin-bottom:12px;font-size:14px">Logged in as <strong id="logged-user"></strong></div>
+    <button class="btn btn-outline" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<!-- ── MATCH MODAL ── -->
+<div class="overlay hidden" id="match-overlay" onclick="closeMatchModal(event)">
+  <div class="modal" id="match-modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center">
+      <div class="modal-header">RECORD MATCH RESULT</div>
+      <div class="modal-court-badge" id="modal-court-badge">COURT 1</div>
+    </div>
+    <div class="team-block">
+      <div class="team-label">TEAM A</div>
+      <div class="team-players" id="modal-team-a"></div>
+      <button class="win-btn" id="win-btn-a" onclick="recordWin('A')">🏆 TEAM A MENANG</button>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="team-block">
+      <div class="team-label">TEAM B</div>
+      <div class="team-players" id="modal-team-b"></div>
+      <button class="win-btn" id="win-btn-b" onclick="recordWin('B')">🏆 TEAM B MENANG</button>
+    </div>
+    <button class="modal-close" onclick="closeMatchModal()">Batal</button>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+const S = {
+  league: 'men',
+  isAdmin: false,
+  username: null,
+  players: {},
+  session: null,
+  importParsed: [],
+  importChecked: new Set(),
+  modalCourt: null,
+  modalTeamA: [],
+  modalTeamB: [],
+  pollTimer: null,
+};
+
+const COURTS = [1, 3, 5, 7];
+const COURT_LABEL = { 1:'COURT 1', 3:'COURT 3', 5:'COURT 5', 7:'COURT 7' };
+const COURT_BONUS = { 1:8, 3:5, 5:3, 7:1 };
+const WIN_BONUS = 10;
+const COURT_BG = { 1:'#FFD700', 3:'#C0C0C0', 5:'#cd7f32', 7:'#2a3a4a' };
+const COURT_FG = { 1:'#111', 3:'#111', 5:'#fff', 7:'#7ab0d0' };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function qs(sel) { return document.querySelector(sel); }
+function avatarUrl(id) { return id ? `https://assets.reclub.co/user-avatars/${id}.webp` : null; }
+function avatarImg(id, size=28) {
+  const url = avatarUrl(id);
+  return url ? `<img class="queue-avatar" src="${url}" width="${size}" height="${size}" onerror="this.style.display='none'" loading="lazy">` : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>`;
+}
+
+function notify(msg, type='success') {
+  const el = qs('#notif');
+  el.textContent = msg;
+  el.className = `notif ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), 2800);
+}
+
+async function api(path, opts={}) {
+  const url = `/ladder${path}?league=${S.league}`;
+  const res = await fetch(url, { headers:{'Content-Type':'application/json'}, ...opts });
+  return res.json();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  await checkAuth();
+  await loadData();
+  startPolling();
+}
+
+async function checkAuth() {
+  try {
+    const r = await fetch('/auth/me');
+    const d = await r.json();
+    S.isAdmin = d.loggedIn && d.role === 'admin';
+    S.username = d.username || null;
+  } catch(e) { S.isAdmin = false; }
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const hostNav = qs('#nav-host');
+  const loginNav = qs('#nav-login');
+  hostNav.style.display = S.isAdmin ? '' : 'none';
+  loginNav.textContent = S.isAdmin ? '👤 ' + S.username : '🔑 Login';
+
+  qs('#logout-box').style.display = S.isAdmin ? '' : 'none';
+  qs('#login-box') && (qs('#login-box').style.display = S.isAdmin ? 'none' : '');
+  qs('#logged-user').textContent = S.username || '';
+
+  // Show/hide login form
+  const loginForm = qs('.login-box');
+  if (loginForm) loginForm.style.display = S.isAdmin ? 'none' : '';
+}
+
+async function loadData() {
+  try {
+    const [pRes, sRes] = await Promise.all([
+      api('/api/players'),
+      api('/api/session'),
+    ]);
+    S.players = pRes.players || {};
+    S.session = sRes.session;
+    renderStandings();
+    renderLive();
+    if (S.isAdmin) renderHost();
+  } catch(e) { console.error(e); }
+}
+
+function startPolling() {
+  clearInterval(S.pollTimer);
+  S.pollTimer = setInterval(loadData, 15000); // refresh every 15s
+}
+
+// ── League ────────────────────────────────────────────────────────────────────
+function setLeague(lg) {
+  S.league = lg;
+  document.querySelectorAll('.league-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lg));
+  qs('#standings-league').textContent = lg === 'men' ? 'Men' : 'Women';
+  loadData();
+}
+
+// ── Views ─────────────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  qs(`#view-${name}`)?.classList.add('active');
+  event?.target?.classList.add('active');
+  if (name === 'host') renderHost();
+}
+
+// ── Standings ─────────────────────────────────────────────────────────────────
+function renderStandings() {
+  const list = Object.values(S.players).sort((a,b) => (b.totalPts||0)-(a.totalPts||0) || (b.wins||0)-(a.wins||0));
+  const el = qs('#standings-list');
+  if (!list.length) { el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px">No players yet</div>`; return; }
+
+  el.innerHTML = list.map((p, i) => {
+    const cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const rankColor = i===0?'var(--gold)':i===1?'var(--silver)':i===2?'var(--bronze)':'var(--muted)';
+    const ptsColor = i<3?'var(--gold)':'var(--text)';
+    return `
+    <div class="stand-row ${cls}">
+      <div class="stand-rank" style="color:${rankColor}">${i+1}</div>
+      ${p.avatarId ? `<img class="stand-avatar" src="${avatarUrl(p.avatarId)}" onerror="this.style.background='var(--bg3)'" loading="lazy">` : `<div class="stand-avatar"></div>`}
+      <div class="stand-info">
+        <div class="stand-name">${p.name}</div>
+        <div class="stand-handle">@${p.handle}</div>
+      </div>
+      <div class="stand-wl">
+        <div class="stand-w">${p.wins||0}W</div>
+        <div class="stand-l">${p.losses||0}L</div>
+      </div>
+      <div class="stand-pts" style="color:${ptsColor}">${p.totalPts||0}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Live View ─────────────────────────────────────────────────────────────────
+function renderLive() {
+  const noSess = qs('#live-no-session');
+  const courts = qs('#live-courts');
+
+  if (!S.session || S.session.status !== 'active') {
+    noSess.style.display = '';
+    courts.innerHTML = '';
+    return;
+  }
+  noSess.style.display = 'none';
+  courts.innerHTML = COURTS.map(c => renderCourtCard(c, false)).join('');
+}
+
+function renderCourtCard(court, isHost) {
+  const q = S.session?.courts?.[court]?.queue || [];
+  const bonus = COURT_BONUS[court];
+  const playing = q.slice(0, 4);
+  const waiting = q.slice(4);
+
+  const queueHtml = q.length === 0
+    ? `<div class="empty-queue">Tiada pemain</div>`
+    : q.map((h, i) => {
+        const p = S.players[h] || { name: h, handle: h };
+        return `
+        <div class="queue-item ${i<4?'playing':''}">
+          <span class="queue-num ${i<4?'playing':''}">${i+1}</span>
+          ${avatarImg(p.avatarId, 28)}
+          <span class="queue-name">${p.name}</span>
+          <span class="queue-pts">${p.totalPts||0}pts</span>
+          ${isHost ? `<button class="queue-remove" onclick="removeFromCourt('${h}')">✕</button>` : ''}
+        </div>`;
+      }).join('');
+
+  const btnDisabled = q.length < 4 ? 'disabled' : '';
+  const btnText = q.length < 4 ? `Perlu ${4-q.length} lagi pemain` : '⚔️ Record Match';
+
+  return `
+  <div class="court-card" data-court="${court}">
+    <div class="court-header">
+      <span class="court-label">${COURT_LABEL[court]}</span>
+      <span class="court-meta">+${bonus} bonus · ${q.length} pemain</span>
+    </div>
+    <div class="court-body">
+      <div class="score-ref">
+        <span class="win">Menang: +${WIN_BONUS+bonus}</span>
+        <span class="loss">Kalah: +${bonus}</span>
+      </div>
+      <div class="queue-list">${queueHtml}</div>
+      ${isHost ? `<button class="btn btn-match" ${btnDisabled} onclick="openMatchModal(${court})">${btnText}</button>` : ''}
+    </div>
+  </div>`;
+}
+
+// ── Host View ─────────────────────────────────────────────────────────────────
+function renderHost() {
+  if (!S.isAdmin) return;
+  const noSess = qs('#host-no-session');
+  const active = qs('#host-session');
+
+  if (!S.session || S.session.status !== 'active') {
+    noSess.style.display = '';
+    active.style.display = 'none';
+    renderPlayerListHost();
+    return;
+  }
+
+  noSess.style.display = 'none';
+  active.style.display = '';
+
+  qs('#session-display-name').textContent = S.session.name || 'Session';
+  qs('#session-match-count').textContent = S.session.matchCount || 0;
+
+  // Unassigned pool
+  const assignedHandles = new Set();
+  COURTS.forEach(c => (S.session.courts?.[c]?.queue || []).forEach(h => assignedHandles.add(h)));
+  const unassigned = Object.values(S.players).filter(p => !assignedHandles.has(p.handle));
+
+  const poolEl = qs('#pool-chips');
+  if (unassigned.length === 0) {
+    poolEl.innerHTML = `<span style="color:var(--muted);font-size:12px">Semua pemain dah assign</span>`;
+  } else {
+    poolEl.innerHTML = unassigned.map(p => `
+      <div class="player-chip">
+        <button class="chip-btn" onclick="toggleChipDropdown('${p.handle}')">
+          ${p.avatarId ? `<img class="chip-avatar" src="${avatarUrl(p.avatarId)}" onerror="this.style.display='none'" loading="lazy">` : ''}
+          ${p.name}
+        </button>
+        <div class="chip-dropdown hidden" id="chip-${p.handle}">
+          ${COURTS.map(c => `<button onclick="assignToCourt('${p.handle}', ${c})">→ Court ${c}</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  // Courts
+  qs('#host-courts').innerHTML = COURTS.map(c => renderCourtCard(c, true)).join('');
+}
+
+function toggleChipDropdown(handle) {
+  const dd = qs(`#chip-${handle}`);
+  if (!dd) return;
+  // Close all others
+  document.querySelectorAll('.chip-dropdown').forEach(d => { if (d !== dd) d.classList.add('hidden'); });
+  dd.classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.player-chip')) {
+    document.querySelectorAll('.chip-dropdown').forEach(d => d.classList.add('hidden'));
+  }
+});
+
+function renderPlayerListHost() {
+  const list = Object.values(S.players);
+  qs('#player-count').textContent = list.length;
+  qs('#player-list-host').innerHTML = list.map(p => `
+    <div class="player-list-item">
+      ${p.avatarId ? `<img class="queue-avatar" src="${avatarUrl(p.avatarId)}" onerror="this.style.display='none'" loading="lazy">` : ''}
+      <div style="flex:1;min-width:0">
+        <div class="pli-name">${p.name}</div>
+        <div class="pli-handle">@${p.handle} · ${p.totalPts||0}pts</div>
+      </div>
+      <button class="pli-action danger" onclick="deletePlayer('${p.handle}')">✕</button>
+    </div>`).join('') || `<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Belum ada pemain</div>`;
+}
+
+// ── Session actions ───────────────────────────────────────────────────────────
+async function startSession() {
+  const name = qs('#session-name-input').value.trim() || `Session ${new Date().toLocaleDateString('en-MY')}`;
+  const r = await api('/api/session/start', { method:'POST', body: JSON.stringify({ sessionName: name, league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.session = r.session;
+  notify('Session started!');
+  renderHost();
+  renderLive();
+}
+
+async function endSession() {
+  if (!confirm(`End session "${S.session?.name}"?`)) return;
+  const r = await api('/api/session/end', { method:'POST', body: JSON.stringify({ league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.session = r.session;
+  notify('Session ended');
+  renderHost();
+  renderLive();
+}
+
+async function assignToCourt(handle, court) {
+  document.querySelectorAll('.chip-dropdown').forEach(d => d.classList.add('hidden'));
+  const r = await api('/api/session/assign', { method:'POST', body: JSON.stringify({ handle, court, league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.session = r.session;
+  renderHost();
+  renderLive();
+}
+
+async function removeFromCourt(handle) {
+  const r = await api('/api/session/assign', { method:'POST', body: JSON.stringify({ handle, court: null, league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.session = r.session;
+  renderHost();
+  renderLive();
+}
+
+// ── Match modal ───────────────────────────────────────────────────────────────
+function openMatchModal(court) {
+  const q = S.session?.courts?.[court]?.queue || [];
+  if (q.length < 4) { notify('Need at least 4 players', 'error'); return; }
+
+  S.modalCourt = court;
+  S.modalTeamA = [q[0], q[1]];
+  S.modalTeamB = [q[2], q[3]];
+
+  const badge = qs('#modal-court-badge');
+  badge.textContent = COURT_LABEL[court];
+  badge.style.background = COURT_BG[court];
+  badge.style.color = COURT_FG[court];
+
+  const bonus = COURT_BONUS[court];
+  qs('#win-btn-a').textContent = `🏆 TEAM A MENANG  (+${WIN_BONUS+bonus}pts)`;
+  qs('#win-btn-b').textContent = `🏆 TEAM B MENANG  (+${WIN_BONUS+bonus}pts)`;
+  qs('#win-btn-a').style.borderColor = COURT_BG[court];
+  qs('#win-btn-b').style.borderColor = COURT_BG[court];
+
+  const renderTeam = (handles, elId) => {
+    qs(elId).innerHTML = handles.map(h => {
+      const p = S.players[h] || { name: h, handle: h };
+      return `<div class="team-player">
+        ${avatarImg(p.avatarId, 32)}
+        <span class="team-player-name">${p.name}</span>
+      </div>`;
+    }).join('');
+  };
+  renderTeam(S.modalTeamA, '#modal-team-a');
+  renderTeam(S.modalTeamB, '#modal-team-b');
+
+  qs('#match-overlay').classList.remove('hidden');
+}
+
+function closeMatchModal(e) {
+  if (!e || e.target === qs('#match-overlay')) {
+    qs('#match-overlay').classList.add('hidden');
+  }
+}
+
+async function recordWin(team) {
+  const r = await api('/api/session/match', {
+    method: 'POST',
+    body: JSON.stringify({
+      court: S.modalCourt,
+      teamA: S.modalTeamA,
+      teamB: S.modalTeamB,
+      winner: team,
+      league: S.league
+    })
+  });
+
+  if (r.error) { notify(r.error, 'error'); return; }
+
+  // Update local state
+  S.session = r.session;
+  const pts = r.ptsAwarded || {};
+  Object.entries(pts).forEach(([h, p]) => {
+    if (S.players[h]) {
+      S.players[h].totalPts = (S.players[h].totalPts || 0) + p;
+      if (S.modalTeamA.includes(h) || S.modalTeamB.includes(h)) {
+        const won = (team === 'A' && S.modalTeamA.includes(h)) || (team === 'B' && S.modalTeamB.includes(h));
+        if (won) S.players[h].wins = (S.players[h].wins||0)+1;
+        else     S.players[h].losses = (S.players[h].losses||0)+1;
+      }
+    }
+  });
+
+  const bonus = COURT_BONUS[S.modalCourt];
+  notify(`✅ Recorded! Menang +${WIN_BONUS+bonus}pts · Kalah +${bonus}pts`);
+  qs('#match-overlay').classList.add('hidden');
+  renderHost();
+  renderLive();
+  renderStandings();
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+function parseImport() {
+  const html = qs('#import-html').value;
+  if (!html.trim()) { notify('Paste HTML dulu', 'error'); return; }
+
+  // Client-side parse preview
+  const parsed = clientParseHtml(html);
+  S.importParsed = parsed;
+  S.importChecked = new Set(parsed.filter(p => !S.players[p.handle]).map(p => p.handle));
+
+  if (!parsed.length) { notify('Tiada player ditemui. Cuba Ctrl+U → Ctrl+A → Ctrl+C', 'error'); return; }
+
+  qs('#import-found-label').textContent = `Found ${parsed.length} players (${S.importChecked.size} new)`;
+  qs('#import-list').innerHTML = parsed.map(p => {
+    const existing = !!S.players[p.handle];
+    return `
+    <div class="import-row ${existing?'existing':''}" onclick="toggleImport('${p.handle}')">
+      <div class="checkbox ${S.importChecked.has(p.handle)?'checked':''}" id="chk-${p.handle}">${S.importChecked.has(p.handle)?'✓':''}</div>
+      ${p.avatarId ? `<img src="${avatarUrl(p.avatarId)}" width="28" height="28" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'" loading="lazy">` : ''}
+      <div>
+        <div class="import-name">${p.name}</div>
+        <div class="import-handle">@${p.handle}${existing?' · dah ada':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  qs('#import-results').style.display = '';
+}
+
+function toggleImport(handle) {
+  if (S.importChecked.has(handle)) S.importChecked.delete(handle);
+  else S.importChecked.add(handle);
+  const chk = qs(`#chk-${handle}`);
+  if (chk) { chk.classList.toggle('checked', S.importChecked.has(handle)); chk.textContent = S.importChecked.has(handle)?'✓':''; }
+}
+
+async function confirmImport() {
+  const selected = S.importParsed.filter(p => S.importChecked.has(p.handle));
+  if (!selected.length) { notify('Pilih player dulu', 'error'); return; }
+
+  const html = qs('#import-html').value;
+  const r = await api('/api/players/import', { method:'POST', body: JSON.stringify({ html, league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.players = r.players || S.players;
+  notify(`✅ Imported ${r.added} new, updated ${r.updated}`);
+  qs('#import-results').style.display = 'none';
+  qs('#import-html').value = '';
+  renderPlayerListHost();
+  renderStandings();
+}
+
+function clientParseHtml(html) {
+  const players = [];
+  const seen = new Set();
+  const waitIdx = html.search(/Waitlisted/i);
+  const h = waitIdx > 0 ? html.substring(0, waitIdx) : html;
+  const re = /user-avatars\/(\d+)\.webp/g;
+  let m;
+  while ((m = re.exec(h)) !== null) {
+    const chunk = h.substring(m.index, m.index + 600);
+    const lm = chunk.match(/players\/@([^"\s)]+)[^>]*>([^<]{1,50})<\/a>/);
+    if (!lm) continue;
+    const handle = lm[1].toLowerCase();
+    const name = lm[2].trim();
+    if (!name || seen.has(handle)) continue;
+    seen.add(handle);
+    players.push({ handle, name, avatarId: m[1] });
+  }
+  return players;
+}
+
+// ── Manual add ────────────────────────────────────────────────────────────────
+async function manualAdd() {
+  const handle = qs('#manual-handle').value.replace('@','').trim().toLowerCase();
+  const name = qs('#manual-name').value.trim();
+  if (!handle || !name) { notify('Handle dan nama diperlukan', 'error'); return; }
+  const r = await api('/api/players/add', { method:'POST', body: JSON.stringify({ handle, name, league: S.league }) });
+  if (r.error) { notify(r.error, 'error'); return; }
+  S.players[handle] = r.player;
+  qs('#manual-handle').value = '';
+  qs('#manual-name').value = '';
+  notify(`✅ Added ${name}`);
+  renderPlayerListHost();
+  renderStandings();
+}
+
+async function deletePlayer(handle) {
+  const p = S.players[handle];
+  if (!confirm(`Remove ${p?.name || handle}?`)) return;
+  const r = await fetch(`/ladder/api/players/${handle}?league=${S.league}`, { method:'DELETE' });
+  const d = await r.json();
+  if (d.error) { notify(d.error, 'error'); return; }
+  delete S.players[handle];
+  notify(`Removed ${p?.name}`);
+  renderPlayerListHost();
+  renderStandings();
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = qs('#login-username').value.trim();
+  const password = qs('#login-password').value;
+  qs('#login-error').style.display = 'none';
+  try {
+    const r = await fetch('/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) });
+    const d = await r.json();
+    if (d.error) { qs('#login-error').textContent = d.error; qs('#login-error').style.display=''; return; }
+    S.isAdmin = d.role === 'admin';
+    S.username = d.username;
+    notify(`Welcome, ${d.username}!`);
+    updateAuthUI();
+    showView('host');
+    await loadData();
+  } catch(e) { qs('#login-error').textContent = 'Connection error'; qs('#login-error').style.display=''; }
+}
+
+async function doLogout() {
+  await fetch('/auth/logout', { method:'POST' });
+  S.isAdmin = false; S.username = null;
+  notify('Logged out');
+  updateAuthUI();
+  showView('standings');
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

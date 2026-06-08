@@ -5,6 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
+const ladderRoutes = require('./ladder-routes.js');
 const MONGO_URI = process.env.MONGO_URI;
 
 // ── MongoDB or File fallback ───────────────────────────────
@@ -864,6 +865,7 @@ const server = http.createServer(async(req,res)=>{
   const pathname = parsed.pathname;
   const query = Object.fromEntries(parsed.searchParams);
   const lg = query.league === 'women' ? 'women' : 'men';  // league param
+  if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession);
   res.setHeader('Access-Control-Allow-Origin','*');
   res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers','Content-Type');

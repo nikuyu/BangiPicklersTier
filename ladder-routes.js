@@ -329,21 +329,31 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     //   insert B → [X,Y,Z,W,A,_,B]    (B at index 6, even → Team A again — bad)
     // Correct: insert B at index 5 (odd → Team B) → [X,Y,Z,W,A,B] with A=idx4(even) B=idx5(odd) = diff teams ✓
     // Simple rule: first player appends, second player inserts at (first player index + 1) if that puts them in diff teams
+    // Partner split: insert p1 and p2 into queue such that they land in DIFFERENT teams
+    // Game pairing: slots [0,1]=TeamA, [2,3]=TeamB, [4,5]=TeamA, [6,7]=TeamB...
+    // teamOf(idx) = Math.floor(idx % 4 / 2)
+    // If queue empty: no split possible yet — they'll be paired, host handles physically
+    const teamOf = idx => Math.floor(idx % 4 / 2);
+
     const splitInsert = (queue, p1, p2) => {
-      const q = queue.filter(h => h !== p1 && h !== p2); // clean first
-      q.push(p1);
-      const p1Idx = q.length - 1;
-      // p1 team = Math.floor(p1Idx / 2) % 2  →  0=TeamA, 1=TeamB
-      // We want p2 in the OTHER team → find next slot with different team parity
-      const p1Team = Math.floor(p1Idx / 2) % 2;
-      // Try inserting p2 right after p1 first
+      const q = queue.filter(h => h !== p1 && h !== p2);
+      if (q.length === 0) {
+        // Empty queue — just append both, no split possible
+        q.push(p1, p2);
+        return q;
+      }
+      if (q.length % 2 === 0) {
+        // Even length: p1 at last-1 (odd slot), p2 appends (even slot) → different teams
+        q.splice(q.length - 1, 0, p1);
+      } else {
+        // Odd length: p1 appends (even slot relative to game)
+        q.push(p1);
+      }
       q.push(p2);
-      const p2Idx = q.length - 1;
-      const p2Team = Math.floor(p2Idx / 2) % 2;
-      if (p1Team === p2Team && q.length >= 2) {
-        // Same team — swap p2 one slot back to change parity
-        q.splice(p2Idx, 1);
-        q.splice(Math.max(0, p2Idx - 1), 0, p2);
+      // Final verify — if still same team, swap p2 with element before it
+      const p1I = q.indexOf(p1), p2I = q.indexOf(p2);
+      if (teamOf(p1I) === teamOf(p2I) && p2I > 0 && q[p2I - 1] !== p1) {
+        [q[p2I - 1], q[p2I]] = [q[p2I], q[p2I - 1]];
       }
       return q;
     };

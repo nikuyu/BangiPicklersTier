@@ -321,8 +321,37 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     });
     const allPlayed = [...teamA, ...teamB];
     session.courts[courtNum].queue = session.courts[courtNum].queue.filter(h => !allPlayed.includes(h));
-    winners.forEach(h => { const nc = nextCourt(courtNum, true);  if (!session.courts[nc].queue.includes(h)) session.courts[nc].queue.push(h); });
-    losers.forEach(h  => { const nc = nextCourt(courtNum, false); if (!session.courts[nc].queue.includes(h)) session.courts[nc].queue.push(h); });
+
+    // Partner split via interleave:
+    // Game pairs slots: [0+1] vs [2+3] → to split ex-partners, insert them at EVEN+ODD positions
+    // e.g. queue=[X,Y,Z,W], winners=[A,B]:
+    //   insert A → [X,Y,Z,W,A]        (A at index 4, even → Team A of next game)
+    //   insert B → [X,Y,Z,W,A,_,B]    (B at index 6, even → Team A again — bad)
+    // Correct: insert B at index 5 (odd → Team B) → [X,Y,Z,W,A,B] with A=idx4(even) B=idx5(odd) = diff teams ✓
+    // Simple rule: first player appends, second player inserts at (first player index + 1) if that puts them in diff teams
+    const splitInsert = (queue, p1, p2) => {
+      const q = queue.filter(h => h !== p1 && h !== p2); // clean first
+      q.push(p1);
+      const p1Idx = q.length - 1;
+      // p1 team = Math.floor(p1Idx / 2) % 2  →  0=TeamA, 1=TeamB
+      // We want p2 in the OTHER team → find next slot with different team parity
+      const p1Team = Math.floor(p1Idx / 2) % 2;
+      // Try inserting p2 right after p1 first
+      q.push(p2);
+      const p2Idx = q.length - 1;
+      const p2Team = Math.floor(p2Idx / 2) % 2;
+      if (p1Team === p2Team && q.length >= 2) {
+        // Same team — swap p2 one slot back to change parity
+        q.splice(p2Idx, 1);
+        q.splice(Math.max(0, p2Idx - 1), 0, p2);
+      }
+      return q;
+    };
+
+    const ncWin  = nextCourt(courtNum, true);
+    const ncLose = nextCourt(courtNum, false);
+    session.courts[ncWin].queue  = splitInsert(session.courts[ncWin].queue,  winners[0], winners[1]);
+    session.courts[ncLose].queue = splitInsert(session.courts[ncLose].queue, losers[0],  losers[1]);
     session.matchCount = (session.matchCount || 0) + 1;
     matches.push({
       id: crypto.randomBytes(6).toString('hex'),
@@ -347,6 +376,26 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     session.endedAt = new Date().toISOString();
     await saveSession(mongo, session, lg);
     return json({ success: true, session });
+  }
+
+  // ── POST /ladder/api/scores/reset — zero pts/wins/losses, keep players ──
+  if (subpath === '/api/scores/reset' && req.method === 'POST') {
+    if (!await requireAdmin()) return;
+    const { confirm } = JSON.parse(await body());
+    if (confirm !== 'YES_RESET_SCORES') return json({ error: 'Send confirm:"YES_RESET_SCORES"' }, 400);
+    const players = await loadPlayers(mongo, lg);
+    Object.keys(players).forEach(h => {
+      players[h].totalPts = 0;
+      players[h].wins     = 0;
+      players[h].losses   = 0;
+      players[h].weekPts  = {};
+      delete players[h].lastSeen;
+    });
+    await Promise.all([
+      savePlayers(mongo, players, lg),
+      saveMatches(mongo, [], lg),
+    ]);
+    return json({ success: true, total: Object.keys(players).length, players });
   }
 
   // ── POST /ladder/api/reset ───────────────────────────────────────────────

@@ -616,16 +616,28 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
 
           const activePlayers = [...am.teamA, ...am.teamB]; // 4 active → slot[0-3]
 
-          // Bench (slot[4-7]) = players who stayed = NOT in the R1 odd round movers
-          // R1 movers = W(R1) from THIS court (they moved to active) + L(R1) from courts above
-          // Actually: bench = all players NOT in activePlayers for this court
-          // = R1 losers from this court + R2 losers from this court (they both stayed)
-          const r1 = ct.roundResults?.[prevOdd];
+          // Bench (slot[4-7]) = players who were in R2 (even round) at THIS court
+          // = R2 winners + R2 losers, MINUS any who ended up as active via cross-court movement
+          // Why? R2 players are the bench players from original court assignment.
+          // Some R1 losers get pulled into active via cross-court (e.g. L(C7) goes to C7 active).
+          // Those R1 losers leave this court. The R2 players stayed.
           const r2 = ct.roundResults?.[roundNum];
+          const r2Winners = r2?.winners || [];
+          const r2Losers  = r2?.losers  || [];
+          const r2All = [...r2Winners, ...r2Losers]; // all 4 R2 players from this court
+
+          // Also include R1 losers who STAYED (didn't get picked for any court's active)
+          const r1 = ct.roundResults?.[prevOdd];
           const r1Losers = r1?.losers || [];
-          const r2Losers = r2?.losers || [];
-          // bench = losers from both rounds, minus any that ended up as active via cross-court movement
-          const bench = [...r1Losers, ...r2Losers].filter(h => !activePlayers.includes(h)).slice(0, 4);
+          // R1 losers from THIS court that are NOT in any activeMatches
+          const allActiveAcrossCourts = new Set([
+            ...Object.values(activeMatches).flatMap(m => [...m.teamA, ...m.teamB])
+          ]);
+          const r1LosersStayed = r1Losers.filter(h => !allActiveAcrossCourts.has(h));
+
+          const bench = [...r2All, ...r1LosersStayed]
+            .filter(h => !activePlayers.includes(h))
+            .slice(0, 4);
 
           ct.currentMatch = am;
           ct.players = [...activePlayers, ...bench];

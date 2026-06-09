@@ -265,6 +265,55 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     return json({ success: true, added, skipped, total: Object.keys(players).length, players });
   }
 
+  // ── POST /ladder/api/players/sync-from-known ─────────────────────────────
+  // Sync name + avatarId from KNOWN_PLAYERS for ALL existing ladder players
+  // Also adds new players not yet in ladder db
+  if (subpath === '/api/players/sync-from-known' && req.method === 'POST') {
+    if (!await requireAdmin()) return;
+    const KP = lg === 'women' ? KNOWN_PLAYERS_WOMEN : KNOWN_PLAYERS;
+    if (!KP || Object.keys(KP).length === 0) return json({ error: 'No known players available' }, 400);
+    const players = await loadPlayers(mongo, lg);
+
+    // Build lookup: handle → { name, avatarId }
+    const lookup = {};
+    Object.entries(KP).forEach(([displayName, info]) => {
+      if (!info.handle || displayName.includes('||')) return;
+      const h = info.handle.replace('@', '').toLowerCase().trim();
+      if (!lookup[h]) {
+        const cleanName = displayName.replace(/\s*\(.*\)$/, '').trim();
+        lookup[h] = { name: cleanName, avatarId: String(info.avatarId || '') };
+      }
+    });
+
+    let added = 0, updated = 0, skipped = 0;
+    // Update existing players
+    Object.keys(players).forEach(h => {
+      if (lookup[h]) {
+        const before = JSON.stringify({ name: players[h].name, avatarId: players[h].avatarId });
+        // Always update name and avatarId from source of truth
+        players[h].name = lookup[h].name || players[h].name;
+        if (lookup[h].avatarId) players[h].avatarId = lookup[h].avatarId;
+        const after = JSON.stringify({ name: players[h].name, avatarId: players[h].avatarId });
+        if (before !== after) updated++; else skipped++;
+      } else {
+        skipped++;
+      }
+    });
+    // Also add new players from KP not yet in ladder
+    Object.entries(KP).forEach(([displayName, info]) => {
+      if (!info.handle || displayName.includes('||')) return;
+      const h = info.handle.replace('@', '').toLowerCase().trim();
+      if (!players[h]) {
+        const cleanName = displayName.replace(/\s*\(.*\)$/, '').trim();
+        players[h] = { handle: h, name: cleanName, avatarId: String(info.avatarId || ''), totalPts: 0, wins: 0, losses: 0, weekPts: {}, addedAt: new Date().toISOString(), source: 'known_players' };
+        added++;
+      }
+    });
+
+    await savePlayers(mongo, players, lg);
+    return json({ success: true, added, updated, skipped, total: Object.keys(players).length, players });
+  }
+
   // ── POST /ladder/api/players/import ─────────────────────────────────────
   if (subpath === '/api/players/import' && req.method === 'POST') {
     if (!await requireAdmin()) return;
@@ -336,10 +385,16 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     const { handle, checked } = JSON.parse(await body());
     const session = await loadSession(mongo, lg);
     if (!session) return json({ error: 'No session' }, 404);
-    if (checked) { if (!session.checkedIn.includes(handle)) session.checkedIn.push(handle); }
-    else {
+    if (!session.checkedIn) session.checkedIn = [];
+    if (checked) {
+      if (!session.checkedIn.includes(handle)) session.checkedIn.push(handle);
+    } else {
       session.checkedIn = session.checkedIn.filter(h => h !== handle);
-      COURTS.forEach(c => { session.courts[c].players = session.courts[c].players.filter(h => h !== handle); });
+      COURTS.forEach(c => {
+        if (!session.courts[c]) session.courts[c] = {};
+        if (session.courts[c].players) session.courts[c].players = session.courts[c].players.filter(h => h !== handle);
+        if (session.courts[c].queue) session.courts[c].queue = session.courts[c].queue.filter(h => h !== handle);
+      });
     }
     await saveSession(mongo, session, lg);
     return json({ success: true, session });

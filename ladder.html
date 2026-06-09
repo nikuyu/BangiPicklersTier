@@ -312,6 +312,13 @@ textarea:focus{outline:none;border-color:var(--gold)}
       <button class="btn btn-gold" onclick="doSeed('men')">👨 Load Men</button>
       <button class="btn btn-gold" onclick="doSeed('women')">👩 Load Women</button>
     </div>
+
+    <!-- Sync from tier app database -->
+    <div style="margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="doSyncFromTier()" style="font-size:11px">
+        🔄 Sync dari Tier Database (nama + handle + avatar)
+      </button>
+    </div>
     <div id="seed-result" style="font-size:12px;color:var(--green);margin-top:6px;display:none"></div>
 
     <div class="sep"></div>
@@ -805,28 +812,37 @@ function renderHost(){
 }
 
 function renderPlayerListHost(){
-  const list=Object.values(A.players);
+  // Sort by name alphabetically
+  const list=Object.values(A.players).sort((a,b)=>a.name.localeCompare(b.name));
   $('#p-count').textContent=list.length;
   $('#p-list').innerHTML=list.length===0
-    ?`<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Belum ada players.</div>`
-    :list.map(p=>`<div class="pli">
-        ${p.avatarId?`<img class="av" src="${av(p.avatarId)}" width="28" height="28" onerror="this.style.background='var(--bg3)'" loading="lazy">`:'' }
-        <div class="pli-info"><div class="pli-name">${p.name}</div><div class="pli-sub">@${p.handle} · ${p.totalPts||0}pts</div></div>
-        <button class="pli-del" onclick="delPlayer(${JSON.stringify(p.handle)})">✕</button>
-      </div>`).join('');
+    ?`<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Belum ada players. Load dari Season Lepas dulu.</div>`
+    :list.map(p=>{
+      const hasAvatar = p.avatarId && p.avatarId !== 'null' && p.avatarId !== '';
+      return `<div class="pli">
+        ${hasAvatar
+          ?`<img class="av" src="${av(p.avatarId)}" width="32" height="32" style="border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.background='var(--bg3)'" loading="lazy">`
+          :`<div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)">?</div>`}
+        <div class="pli-info">
+          <div class="pli-name">${p.name}</div>
+          <div class="pli-sub">@${p.handle}${hasAvatar?` · 🖼️${p.avatarId}`:' · no avatar'} · ${p.totalPts||0}pts</div>
+        </div>
+        <button class="pli-del" onclick="delPlayer('${p.handle.replace(/'/g, "\\'")}')">✕</button>
+      </div>`;
+    }).join('');
 }
 
 function renderCheckin(){
   $('#ci-sname').textContent=A.session.name;
   const checked=new Set(A.session.checkedIn||[]);
-  const players=Object.values(A.players);
+  const players=Object.values(A.players).sort((a,b)=>a.name.localeCompare(b.name));
   $('#ci-total').textContent=players.length;
   $('#ci-count').textContent=checked.size;
   $('#ci-proceed').disabled = checked.size < 4;
   const autoBtn = $('#ci-autosuggest');
   if (autoBtn) autoBtn.disabled = checked.size < 4;
   $('#ci-list').innerHTML=players.map(p=>`
-    <div class="ci-item ${checked.has(p.handle)?'on':''}" onclick="toggleCheckin(${JSON.stringify(p.handle)})">
+    <div class="ci-item ${checked.has(p.handle)?'on':''}" onclick="toggleCheckin('${p.handle.replace(/'/g,"\\'")}')">
       <div class="ci-check">${checked.has(p.handle)?'✓':''}</div>
       ${p.avatarId?`<img class="ci-avatar" src="${av(p.avatarId)}" onerror="this.style.background='var(--bg3)'" loading="lazy">`:`<div class="ci-avatar"></div>`}
       <span class="ci-name">${p.name}</span>
@@ -855,12 +871,12 @@ function renderActive(){
         const p=A.players[h]||{name:h,handle:h};
         const safeId=h.replace(/[^a-zA-Z0-9]/g,'_');
         return `<div class="chip-wrap">
-          <button class="chip-btn" onclick="toggleDD(${JSON.stringify(h)})">
+          <button class="chip-btn" onclick="toggleDD('${h.replace(/'/g, "\\'")}')">
             ${p.avatarId?`<img class="chip-av" src="${av(p.avatarId)}" onerror="this.style.display='none'" loading="lazy">`:''}
             ${p.name} ▾
           </button>
           <div class="chip-dd hidden" id="dd-${safeId}">
-            ${COURTS.map(c=>`<button onclick="doAssign(${JSON.stringify(h)},${c})">→ Court ${c}</button>`).join('')}
+            ${COURTS.map(c=>`<button onclick="doAssign('${h.replace(/'/g, "\\'")}',${c})">→ Court ${c}</button>`).join('')}
           </div>
         </div>`;
       }).join('');
@@ -1154,7 +1170,7 @@ function openSwapPicker(court, team, idx) {
       : t ? `<span class="swap-badge ${t==='A'?'badge-a':'badge-b'}">TEAM ${t}</span>`
       : `<span class="swap-badge" style="background:var(--bg3);color:var(--muted)">bench</span>`;
 
-    return `<div class="swap-player ${isCurrent?'current':''}" onclick="doSwap(${JSON.stringify(h)})">
+    return `<div class="swap-player ${isCurrent?'current':''}" onclick="doSwap('${h.replace(/'/g, "\\'")}')">
       ${avImg(pAv(h), 32)}
       <span class="swap-name">${pName(h)}</span>
       ${badge}
@@ -1233,6 +1249,19 @@ async function doSeed(league){
   if(league===A.lg){renderPlayerListHost();renderStandings();}
 }
 
+async function doSyncFromTier(){
+  // Sync name+handle+avatarId from KNOWN_PLAYERS for current league
+  // This updates existing players' avatar/name without touching stats
+  const r=await api('/api/players/sync-from-known',{method:'POST',body:'{}'});
+  if(r.error){notify(r.error,'err');return;}
+  A.players=r.players||A.players;
+  const el=$('#seed-result');
+  el.textContent=`🔄 Sync selesai: ${r.added} baru, ${r.updated} dikemaskini (avatar/nama), ${r.skipped} sama`;
+  el.style.display='';
+  notify(`✅ Sync dari tier database selesai`);
+  renderPlayerListHost(); renderStandings();
+}
+
 function doParse(){
   const html=$('#imp-html').value;
   if(!html.trim()){notify('Paste HTML dulu','err');return;}
@@ -1243,7 +1272,7 @@ function doParse(){
   $('#imp-found').textContent=`Found ${parsed.length} players (${A.impChecked.size} baru)`;
   $('#imp-list').innerHTML=parsed.map(p=>{
     const ex=!!A.players[p.handle];
-    return `<div class="imp-row ${ex?'exists':''}" onclick="toggleImp(${JSON.stringify(p.handle)})">
+    return `<div class="imp-row ${ex?'exists':''}" onclick="toggleImp('${p.handle.replace(/'/g, "\\'")}')">
       <div class="chk ${A.impChecked.has(p.handle)?'on':''}" id="ck-${p.handle}">${A.impChecked.has(p.handle)?'✓':''}</div>
       ${p.avatarId?`<img src="${av(p.avatarId)}" width="26" height="26" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'" loading="lazy">`:''}
       <div><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:10px;color:var(--muted)">@${p.handle}${ex?' · dah ada':''}</div></div>

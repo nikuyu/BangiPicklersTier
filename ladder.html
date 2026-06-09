@@ -373,11 +373,19 @@ textarea:focus{outline:none;border-color:var(--gold)}
 
     <!-- Quick add player not in database -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px">
-      <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:var(--muted);margin-bottom:6px">➕ TAMBAH PLAYER BARU</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <input id="inp-quick-name" type="text" placeholder="Nama (e.g. Ila)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px">
-        <input id="inp-quick-handle" type="text" placeholder="Handle (e.g. ila99)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px">
-        <button class="btn btn-ghost btn-sm" onclick="quickAddPlayer()" style="font-size:11px">Tambah & Check-in</button>
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:var(--muted);margin-bottom:8px">➕ TAMBAH PLAYER BARU</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <input id="inp-quick-name" type="text" placeholder="Nama penuh (e.g. Ila Nadia)"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;width:100%;box-sizing:border-box">
+        <input id="inp-quick-handle" type="text" placeholder="Handle Reclub (e.g. ila99)"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;width:100%;box-sizing:border-box">
+        <input id="inp-quick-avatar" type="text" placeholder="Avatar ID (nombor dari Reclub, optional)"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;width:100%;box-sizing:border-box">
+        <div style="display:flex;gap:6px;align-items:center">
+          <div id="quick-av-preview" style="width:36px;height:36px;border-radius:50%;background:var(--bg3);flex-shrink:0;overflow:hidden"></div>
+          <button class="btn btn-gold" onclick="quickAddPlayer()" style="flex:1">✅ Tambah & Check-in</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted)">Avatar ID: buka Reclub profile → tengok URL gambar → ambil nombor (e.g. 12345)</div>
       </div>
     </div>
 
@@ -1046,27 +1054,57 @@ async function cancelSession(){
 
 async function quickAddPlayer(){
   const name=$('#inp-quick-name').value.trim();
-  const handle=$('#inp-quick-handle').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const rawHandle=$('#inp-quick-handle').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const avatarId=$('#inp-quick-avatar').value.trim()||null;
+
   if(!name){notify('Masukkan nama player','err');return;}
-  if(!handle){notify('Masukkan handle player','err');return;}
-  if(A.players[handle]){notify(`Handle @${handle} dah ada!`,'err');return;}
+  if(!rawHandle){notify('Masukkan handle player','err');return;}
+
+  const handle=rawHandle.replace(/^@/,'');
+
+  if(A.players[handle]){
+    // Player dah ada — just checkin
+    const r2=await api('/api/session/checkin',{method:'POST',body:JSON.stringify({handle,checked:true})});
+    if(r2.error){notify(r2.error,'err');return;}
+    A.session=r2.session;
+    notify(`✅ ${A.players[handle].name} (@${handle}) dah check-in!`);
+    $('#inp-quick-name').value='';$('#inp-quick-handle').value='';$('#inp-quick-avatar').value='';
+    $('#quick-av-preview').innerHTML='';
+    renderCheckin();
+    return;
+  }
 
   // Add player to database
-  const r=await api('/api/players/add',{method:'POST',body:JSON.stringify({handle,name,avatarId:null})});
+  const r=await api('/api/players/add',{method:'POST',body:JSON.stringify({handle,name,avatarId})});
   if(r.error){notify(r.error,'err');return;}
 
-  // Auto check-in
-  const r2=await api('/api/session/checkin',{method:'POST',body:JSON.stringify({handle})});
-  if(r2.error){notify(r2.error,'err');return;}
+  // Update local players cache
+  A.players[handle]={handle,name,avatarId:avatarId||null,totalPts:0,wins:0,losses:0,weekPts:{}};
 
-  A.players=r.players||A.players;
-  A.players[handle]={handle,name,avatarId:null,totalPts:0,wins:0,losses:0};
+  // Auto check-in
+  const r2=await api('/api/session/checkin',{method:'POST',body:JSON.stringify({handle,checked:true})});
+  if(r2.error){notify(r2.error,'err');return;}
   A.session=r2.session;
-  $('#inp-quick-name').value='';
-  $('#inp-quick-handle').value='';
+
+  $('#inp-quick-name').value='';$('#inp-quick-handle').value='';$('#inp-quick-avatar').value='';
+  $('#quick-av-preview').innerHTML='';
   notify(`✅ ${name} (@${handle}) ditambah & check-in!`);
-  renderCheckin(); renderActive();
+  renderCheckin();
 }
+
+// Preview avatar when typing avatar ID
+document.addEventListener('DOMContentLoaded',()=>{
+  const avatarInput=$('#inp-quick-avatar');
+  if(avatarInput) avatarInput.addEventListener('input',()=>{
+    const id=avatarInput.value.trim();
+    const preview=$('#quick-av-preview');
+    if(id && /^\d+$/.test(id)){
+      preview.innerHTML=`<img src="${av(id)}" style="width:36px;height:36px;object-fit:cover" onerror="this.parentElement.innerHTML='❌'">`;
+    } else {
+      preview.innerHTML='';
+    }
+  });
+});
 
 async function toggleCheckin(handle){
   const checked=new Set(A.session.checkedIn||[]);

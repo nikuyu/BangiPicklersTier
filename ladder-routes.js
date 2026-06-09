@@ -164,18 +164,28 @@ function seedFromKnown(knownPlayers, existingPlayers) {
 // }
 
 function getSlotsByRound(roundNum) {
-  if (roundNum === 1) return { aSlots: [0,1], bSlots: [2,3] };
-  if (roundNum === 2) return { aSlots: [4,5], bSlots: [6,7] };
-  return null; // movement round — match generated externally
+  // Pattern repeats every 2 rounds after movement:
+  // Odd rounds (1,3,5,7...): slots 0-3 play
+  // Even rounds (2,4,6,8...): slots 4-7 play
+  if (roundNum % 2 === 1) return { aSlots: [0,1], bSlots: [2,3] };
+  if (roundNum % 2 === 0) return { aSlots: [4,5], bSlots: [6,7] };
+  return null;
 }
 
 function buildMatchFromSlots(players, roundNum) {
-  const slots = getSlotsByRound(roundNum);
-  if (!slots) return null;
-  const teamA = slots.aSlots.map(i => players[i]).filter(Boolean);
-  const teamB = slots.bSlots.map(i => players[i]).filter(Boolean);
-  if (teamA.length < 2 || teamB.length < 2) return null;
-  return { teamA, teamB };
+  if (roundNum % 2 === 1) {
+    // Odd round: slots 0-3 play, straight pairing
+    const teamA = [players[0], players[1]].filter(Boolean);
+    const teamB = [players[2], players[3]].filter(Boolean);
+    if (teamA.length < 2 || teamB.length < 2) return null;
+    return { teamA, teamB };
+  } else {
+    // Even round: slots 4-7 play, split bench pairing
+    // bench=[B0,B1,B2,B3] → teamA=[B0,B2], teamB=[B1,B3] (splits previous partners)
+    const bench = players.slice(4, 8).filter(Boolean);
+    if (bench.length < 4) return null;
+    return { teamA: [bench[0], bench[2]], teamB: [bench[1], bench[3]] };
+  }
 }
 
 // After round 2 completes on all courts, generate round 3 matchups
@@ -357,6 +367,52 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     return json({ success: true, session });
   }
 
+  // ── POST /ladder/api/session/suggest-courts ──────────────────────────────
+  // Auto-assign checked-in players to courts based on REVERSE overall ranking
+  // Top ranked → Court 7 (bottom), low ranked / new → Court 1 (top)
+  if (subpath === '/api/session/suggest-courts' && req.method === 'POST') {
+    if (!await requireAdmin()) return;
+    const session = await loadSession(mongo, lg);
+    if (!session) return json({ error: 'No session' }, 404);
+
+    const players = await loadPlayers(mongo, lg);
+    const checkedIn = session.checkedIn || [];
+    if (checkedIn.length < 4) return json({ error: 'Check in players first' }, 400);
+
+    // Sort checked-in players by overall ranking (desc pts) → reverse seed
+    const sorted = [...checkedIn].sort((a, b) => {
+      const pa = players[a], pb = players[b];
+      const ptsA = pa?.totalPts || 0, ptsB = pb?.totalPts || 0;
+      const wA = pa?.wins || 0, wB = pb?.wins || 0;
+      const lA = pa?.losses || 0, lB = pb?.losses || 0;
+      return ptsB - ptsA || wB - wA || lA - lB;
+    });
+
+    // Reverse seeding:
+    // Rank 1 (top) → Court 7, Rank last (bottom) → Court 1
+    // Split into groups of 8 (or fewer if less players)
+    const total = sorted.length;
+    const perCourt = Math.ceil(total / 4);
+
+    // Reset all court players
+    COURTS.forEach(c => { session.courts[c].players = []; });
+
+    // Assign: sorted[0..perCourt-1] → Court 7 (highest ranked)
+    //         sorted[perCourt..2*perCourt-1] → Court 5
+    //         sorted[2*perCourt..3*perCourt-1] → Court 3
+    //         sorted[3*perCourt..] → Court 1 (lowest ranked / new)
+    const courtOrder = [7, 5, 3, 1]; // top players go to Court 7
+    courtOrder.forEach((court, idx) => {
+      const start = idx * perCourt;
+      const end   = Math.min(start + perCourt, total);
+      const group = sorted.slice(start, end);
+      session.courts[court].players = group;
+    });
+
+    await saveSession(mongo, session, lg);
+    return json({ success: true, session, assigned: total });
+  }
+
   // ── POST /ladder/api/session/assign ─────────────────────────────────────
   // Assign player to a court slot
   if (subpath === '/api/session/assign' && req.method === 'POST') {
@@ -403,14 +459,14 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     const roundNum = session.roundNum;
 
     let match = null;
-    if (roundNum <= 2) {
-      // Fixed slot rounds
+    // All rounds use slot-based matching OR pre-generated currentMatch
+    // If currentMatch already set (movement rounds), use it
+    // Otherwise build from slots (odd=0-3, even=4-7)
+    if (ct.currentMatch) {
+      match = ct.currentMatch;
+    } else {
       match = buildMatchFromSlots(ct.players, roundNum);
       if (!match) return json({ error: `Not enough players for round ${roundNum}` }, 400);
-    } else {
-      // Movement round — match already set in currentMatch from previous round resolution
-      match = ct.currentMatch;
-      if (!match) return json({ error: 'No match generated yet. Complete previous round first.' }, 400);
     }
 
     ct.currentMatch = match;
@@ -468,21 +524,44 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
     const allDone = COURTS.every(court => session.courts[court].roundResults?.[roundNum]);
     if (allDone) {
       session.roundNum = roundNum + 1;
-      // Generate next round matches
-      if (roundNum >= 2) {
-        // Movement round — generate split matchups
-        const nextMatches = roundNum === 2
-          ? buildRound3(session)
-          : buildNextMovementRound(session, roundNum);
+
+      // Movement after every EVEN round (2, 4, 6, 8...)
+      if (roundNum % 2 === 0) {
+        // Build movement matchups using latest even round results
+        const courtResultsForMovement = {};
         COURTS.forEach(court => {
-          if (nextMatches[court]) {
-            session.courts[court].currentMatch = nextMatches[court];
-            // Update players array for movement rounds — new 8 players
-            const { teamA, teamB } = nextMatches[court];
-            session.courts[court].players = [...teamA, ...teamB];
-          }
+          const r = session.courts[court].roundResults?.[roundNum];
+          if (r) courtResultsForMovement[court] = { winners: r.winners, losers: r.losers };
+        });
+
+        const W = c => courtResultsForMovement[c]?.winners || [];
+        const L = c => courtResultsForMovement[c]?.losers  || [];
+        const activeMatches = {
+          1: { teamA:[W(1)[0],W(3)[0]], teamB:[W(1)[1],W(3)[1]] },
+          3: { teamA:[W(5)[0],L(1)[0]], teamB:[W(5)[1],L(1)[1]] },
+          5: { teamA:[W(7)[0],L(3)[0]], teamB:[W(7)[1],L(3)[1]] },
+          7: { teamA:[L(5)[0],L(7)[0]], teamB:[L(5)[1],L(7)[1]] },
+        };
+
+        COURTS.forEach(court => {
+          const ct = session.courts[court];
+          const am = activeMatches[court];
+          const activePlayers = [...am.teamA, ...am.teamB]; // 4 active → slot[0-3]
+
+          // Bench (slot[4-7]) = players who stayed (did NOT move out)
+          // Players who moved out = R(even) winners + R(even) losers from THIS court
+          const movedOut = [
+            ...(ct.roundResults[roundNum]?.winners || []),
+            ...(ct.roundResults[roundNum]?.losers  || []),
+          ];
+          const stayed = (ct.players || []).filter(h => !movedOut.includes(h)).slice(0, 4);
+
+          ct.currentMatch = am;
+          ct.players = [...activePlayers, ...stayed];
         });
       }
+      // No special handling needed for odd rounds — slots[0-3] auto from players array
+      // Even rounds use splitBench(players[4-7]) handled in match/start via buildMatchFromSlots
     }
 
     await Promise.all([savePlayers(mongo, players, lg), saveSession(mongo, session, lg), saveMatches(mongo, matches, lg)]);

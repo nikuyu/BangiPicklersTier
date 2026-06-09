@@ -527,15 +527,26 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
 
       // Movement after every EVEN round (2, 4, 6, 8...)
       if (roundNum % 2 === 0) {
-        // Build movement matchups using latest even round results
-        const courtResultsForMovement = {};
+        // R3 active = W(R1) from each court (cross-court split)
+        // R3 bench  = stayed players = R1 losers + R2 losers (slot[0-3] who lost + slot[4-7] who lost)
+        // Movement formula uses ODD round (R1, R3, R5...) winners, NOT even round
+        const prevOdd = roundNum - 1; // R1 for first cycle, R3 for second, etc.
+        const courtResultsW = {}; // winners from odd round
+        const courtResultsL = {}; // losers from odd round (used for movement down)
         COURTS.forEach(court => {
-          const r = session.courts[court].roundResults?.[roundNum];
-          if (r) courtResultsForMovement[court] = { winners: r.winners, losers: r.losers };
+          const ro = session.courts[court].roundResults?.[prevOdd];
+          if (ro) {
+            courtResultsW[court] = { winners: ro.winners, losers: ro.losers };
+          }
         });
 
-        const W = c => courtResultsForMovement[c]?.winners || [];
-        const L = c => courtResultsForMovement[c]?.losers  || [];
+        const W = c => courtResultsW[c]?.winners || [];
+        const L = c => courtResultsW[c]?.losers  || [];
+
+        // Movement: W(R1_C1) + W(R1_C3) → Court 1 R3
+        //           W(R1_C5) + L(R1_C1) → Court 3 R3
+        //           W(R1_C7) + L(R1_C3) → Court 5 R3
+        //           L(R1_C5) + L(R1_C7) → Court 7 R3
         const activeMatches = {
           1: { teamA:[W(1)[0],W(3)[0]], teamB:[W(1)[1],W(3)[1]] },
           3: { teamA:[W(5)[0],L(1)[0]], teamB:[W(5)[1],L(1)[1]] },
@@ -546,18 +557,23 @@ module.exports = async function ladderRoutes(req, res, pathname, query, mongo, g
         COURTS.forEach(court => {
           const ct = session.courts[court];
           const am = activeMatches[court];
+          if (!am.teamA[0] || !am.teamA[1] || !am.teamB[0] || !am.teamB[1]) return;
+
           const activePlayers = [...am.teamA, ...am.teamB]; // 4 active → slot[0-3]
 
-          // Bench (slot[4-7]) = players who stayed (did NOT move out)
-          // Players who moved out = R(even) winners + R(even) losers from THIS court
-          const movedOut = [
-            ...(ct.roundResults[roundNum]?.winners || []),
-            ...(ct.roundResults[roundNum]?.losers  || []),
-          ];
-          const stayed = (ct.players || []).filter(h => !movedOut.includes(h)).slice(0, 4);
+          // Bench (slot[4-7]) = players who stayed = NOT in the R1 odd round movers
+          // R1 movers = W(R1) from THIS court (they moved to active) + L(R1) from courts above
+          // Actually: bench = all players NOT in activePlayers for this court
+          // = R1 losers from this court + R2 losers from this court (they both stayed)
+          const r1 = ct.roundResults?.[prevOdd];
+          const r2 = ct.roundResults?.[roundNum];
+          const r1Losers = r1?.losers || [];
+          const r2Losers = r2?.losers || [];
+          // bench = losers from both rounds, minus any that ended up as active via cross-court movement
+          const bench = [...r1Losers, ...r2Losers].filter(h => !activePlayers.includes(h)).slice(0, 4);
 
           ct.currentMatch = am;
-          ct.players = [...activePlayers, ...stayed];
+          ct.players = [...activePlayers, ...bench];
         });
       }
       // No special handling needed for odd rounds — slots[0-3] auto from players array

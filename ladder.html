@@ -363,6 +363,17 @@ textarea:focus{outline:none;border-color:var(--gold)}
       <button class="btn btn-ghost btn-sm" onclick="checkAll(true)">✓ Semua</button>
       <button class="btn btn-ghost btn-sm" onclick="checkAll(false)">✗ Clear</button>
     </div>
+
+    <!-- Quick add player not in database -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:var(--muted);margin-bottom:6px">➕ TAMBAH PLAYER BARU</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input id="inp-quick-name" type="text" placeholder="Nama (e.g. Ila)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px">
+        <input id="inp-quick-handle" type="text" placeholder="Handle (e.g. ila99)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px">
+        <button class="btn btn-ghost btn-sm" onclick="quickAddPlayer()" style="font-size:11px">Tambah & Check-in</button>
+      </div>
+    </div>
+
     <div id="ci-list"></div>
     <div style="margin-top:10px">
       <button class="btn btn-gold" id="ci-proceed" onclick="activateSession()" disabled>Proceed → Assign Court</button>
@@ -801,7 +812,7 @@ function renderPlayerListHost(){
     :list.map(p=>`<div class="pli">
         ${p.avatarId?`<img class="av" src="${av(p.avatarId)}" width="28" height="28" onerror="this.style.background='var(--bg3)'" loading="lazy">`:'' }
         <div class="pli-info"><div class="pli-name">${p.name}</div><div class="pli-sub">@${p.handle} · ${p.totalPts||0}pts</div></div>
-        <button class="pli-del" onclick="delPlayer('${p.handle}')">✕</button>
+        <button class="pli-del" onclick="delPlayer(${JSON.stringify(p.handle)})">✕</button>
       </div>`).join('');
 }
 
@@ -815,7 +826,7 @@ function renderCheckin(){
   const autoBtn = $('#ci-autosuggest');
   if (autoBtn) autoBtn.disabled = checked.size < 4;
   $('#ci-list').innerHTML=players.map(p=>`
-    <div class="ci-item ${checked.has(p.handle)?'on':''}" onclick="toggleCheckin('${p.handle}')">
+    <div class="ci-item ${checked.has(p.handle)?'on':''}" onclick="toggleCheckin(${JSON.stringify(p.handle)})">
       <div class="ci-check">${checked.has(p.handle)?'✓':''}</div>
       ${p.avatarId?`<img class="ci-avatar" src="${av(p.avatarId)}" onerror="this.style.background='var(--bg3)'" loading="lazy">`:`<div class="ci-avatar"></div>`}
       <span class="ci-name">${p.name}</span>
@@ -842,13 +853,14 @@ function renderActive(){
       poolBox.style.display='';
       $('#pool-chips').innerHTML=unassigned.map(h=>{
         const p=A.players[h]||{name:h,handle:h};
+        const safeId=h.replace(/[^a-zA-Z0-9]/g,'_');
         return `<div class="chip-wrap">
-          <button class="chip-btn" onclick="toggleDD('${h}')">
+          <button class="chip-btn" onclick="toggleDD(${JSON.stringify(h)})">
             ${p.avatarId?`<img class="chip-av" src="${av(p.avatarId)}" onerror="this.style.display='none'" loading="lazy">`:''}
             ${p.name} ▾
           </button>
-          <div class="chip-dd hidden" id="dd-${h}">
-            ${COURTS.map(c=>`<button onclick="doAssign('${h}',${c})">→ Court ${c}</button>`).join('')}
+          <div class="chip-dd hidden" id="dd-${safeId}">
+            ${COURTS.map(c=>`<button onclick="doAssign(${JSON.stringify(h)},${c})">→ Court ${c}</button>`).join('')}
           </div>
         </div>`;
       }).join('');
@@ -901,13 +913,16 @@ function renderCourtHost(court){
   };
 
   const allSlots = [...Array(8)].map((_,i) => players[i] || null);
-  const slotsHtml = `<div style="margin-bottom:8px">
+  const hasPlayers = players.length > 0;
+  const slotsHtml = hasPlayers ? `<div style="margin-bottom:8px">
     <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--muted);margin-bottom:5px">
       PEMAIN — <span style="color:var(--green)">A/B=MAIN</span> <span style="color:var(--muted)">⏳=TUNGGU</span>
     </div>
     <div class="players-grid">
       ${allSlots.map(h => renderSlot(h)).join('')}
     </div>
+  </div>` : `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;padding:8px">
+    ⏳ Menunggu movement dari court lain selesai...
   </div>`;
 
   // ── Match / result section ────────────────────────────────────────────────
@@ -987,7 +1002,8 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.chip-wrap')) document.querySelectorAll('.chip-dd').forEach(d=>d.classList.add('hidden'));
 });
 function toggleDD(h){
-  const dd=$(`#dd-${h}`);
+  const safeId=h.replace(/[^a-zA-Z0-9]/g,'_');
+  const dd=$(`#dd-${safeId}`);
   document.querySelectorAll('.chip-dd').forEach(d=>{if(d!==dd)d.classList.add('hidden');});
   dd?.classList.toggle('hidden');
 }
@@ -1010,6 +1026,30 @@ async function cancelSession(){
   if(!confirm('Batalkan session?')) return;
   const r=await api('/api/session/end',{method:'POST',body:'{}'});
   A.session=r.session; renderHost(); renderLive();
+}
+
+async function quickAddPlayer(){
+  const name=$('#inp-quick-name').value.trim();
+  const handle=$('#inp-quick-handle').value.trim().toLowerCase().replace(/\s+/g,'_');
+  if(!name){notify('Masukkan nama player','err');return;}
+  if(!handle){notify('Masukkan handle player','err');return;}
+  if(A.players[handle]){notify(`Handle @${handle} dah ada!`,'err');return;}
+
+  // Add player to database
+  const r=await api('/api/players/add',{method:'POST',body:JSON.stringify({handle,name,avatarId:null})});
+  if(r.error){notify(r.error,'err');return;}
+
+  // Auto check-in
+  const r2=await api('/api/session/checkin',{method:'POST',body:JSON.stringify({handle})});
+  if(r2.error){notify(r2.error,'err');return;}
+
+  A.players=r.players||A.players;
+  A.players[handle]={handle,name,avatarId:null,totalPts:0,wins:0,losses:0};
+  A.session=r2.session;
+  $('#inp-quick-name').value='';
+  $('#inp-quick-handle').value='';
+  notify(`✅ ${name} (@${handle}) ditambah & check-in!`);
+  renderCheckin(); renderActive();
 }
 
 async function toggleCheckin(handle){
@@ -1114,7 +1154,7 @@ function openSwapPicker(court, team, idx) {
       : t ? `<span class="swap-badge ${t==='A'?'badge-a':'badge-b'}">TEAM ${t}</span>`
       : `<span class="swap-badge" style="background:var(--bg3);color:var(--muted)">bench</span>`;
 
-    return `<div class="swap-player ${isCurrent?'current':''}" onclick="doSwap('${h}')">
+    return `<div class="swap-player ${isCurrent?'current':''}" onclick="doSwap(${JSON.stringify(h)})">
       ${avImg(pAv(h), 32)}
       <span class="swap-name">${pName(h)}</span>
       ${badge}
@@ -1203,7 +1243,7 @@ function doParse(){
   $('#imp-found').textContent=`Found ${parsed.length} players (${A.impChecked.size} baru)`;
   $('#imp-list').innerHTML=parsed.map(p=>{
     const ex=!!A.players[p.handle];
-    return `<div class="imp-row ${ex?'exists':''}" onclick="toggleImp('${p.handle}')">
+    return `<div class="imp-row ${ex?'exists':''}" onclick="toggleImp(${JSON.stringify(p.handle)})">
       <div class="chk ${A.impChecked.has(p.handle)?'on':''}" id="ck-${p.handle}">${A.impChecked.has(p.handle)?'✓':''}</div>
       ${p.avatarId?`<img src="${av(p.avatarId)}" width="26" height="26" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'" loading="lazy">`:''}
       <div><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:10px;color:var(--muted)">@${p.handle}${ex?' · dah ada':''}</div></div>

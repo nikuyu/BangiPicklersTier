@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ladder Scoring Admin – Season 5 | Bangi Picklers</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070710;--surface:#0d0d1a;--card:#111120;--border:#1e1e2e;--accent:#00ff9d;--a2:#ff6b35;--a3:#7c3aed;--text:#e8e8f0;--muted:#666680;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;padding:20px;}
+h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--accent),#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
+.back{display:inline-block;margin-bottom:20px;font-size:11px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:6px 12px;border-radius:6px;}
+.back:hover{color:var(--text);border-color:var(--text);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+.label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.btn-group{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;}
+button{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .15s;}
+button.active{background:#00ff9d15;border-color:var(--accent);color:var(--accent);}
+button:hover:not(.active){background:#ffffff08;color:var(--text);}
+.controls{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+.section{min-width:140px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:8px 12px;border-bottom:1px solid #1a1a2a;}
+tr:last-child td{border-bottom:none;}
+input[type=number]{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:12px;padding:5px 8px;border-radius:6px;width:60px;text-align:center;}
+input[type=number]:focus{outline:none;border-color:var(--accent);}
+.save-btn{background:var(--accent);border:none;color:#000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:12px 32px;border-radius:8px;cursor:pointer;margin-top:16px;transition:opacity .15s;}
+.save-btn:hover{opacity:.85;}
+.save-btn:disabled{opacity:.4;cursor:not-allowed;}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:12px;z-index:999;display:none;}
+.toast.success{background:#00ff9d20;border:1px solid var(--accent);color:var(--accent);}
+.toast.error{background:#ff6b3520;border:1px solid var(--a2);color:var(--a2);}
+/* Login */
+#loginBox{max-width:360px;margin:80px auto;}
+#loginBox h2{font-family:'Syne',sans-serif;font-size:18px;margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.field input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px 12px;border-radius:6px;}
+.field input:focus{outline:none;border-color:var(--accent);}
+.login-btn{width:100%;background:var(--accent);border:none;color:#000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;margin-top:8px;}
+.err-msg{color:var(--a2);font-size:11px;margin-top:8px;}
+.wins-col{color:#00ff9d88;}
+.losses-col{color:#ff6b3588;}
+.pts-preview{color:var(--muted);font-size:11px;}
+@media(max-width:600px){
+  body{padding:12px;}
+  .controls{gap:10px;}
+  input[type=number]{width:52px;}
+  th,td{padding:7px 8px;}
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- Login Box -->
+<div id="loginBox" style="display:none">
+  <div class="card">
+    <h2>Admin Login</h2>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" value="admin" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password">
+    </div>
+    <div id="loginErr" class="err-msg"></div>
+    <button class="login-btn" id="loginBtn">Log In</button>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" style="display:none">
+
+<a href="/LadderScoring" class="back">← Standings</a>
+
+<h1>Ladder Scoring Admin</h1>
+<div class="sub">Season 5 · Input Keputusan</div>
+
+<div class="controls">
+  <div class="section">
+    <div class="label">League</div>
+    <div class="btn-group" id="leagueGroup">
+      <button class="active" data-league="men">Men</button>
+      <button data-league="women">Women</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Week</div>
+    <div class="btn-group" id="weekGroup">
+      <button class="active" data-week="1">Week 1</button>
+      <button data-week="2">Week 2</button>
+      <button data-week="3">Week 3</button>
+      <button data-week="4">Week 4</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Court</div>
+    <div class="btn-group" id="courtGroup">
+      <button class="active" data-court="1">Court 1</button>
+      <button data-court="3">Court 3</button>
+      <button data-court="5">Court 5</button>
+      <button data-court="7">Court 7</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div id="scoreInfo" style="font-size:11px;color:var(--muted);margin-bottom:14px;"></div>
+  <div id="tableContainer"><div style="color:var(--muted);font-size:12px;">Loading...</div></div>
+  <button class="save-btn" id="saveBtn">Simpan</button>
+</div>
+
+</div>
+
+<script>
+let league = 'men', week = '1', court = '1';
+let config = null;
+
+function setActive(groupId, val, attr) {
+  document.querySelectorAll(`#${groupId} button`).forEach(b => {
+    b.classList.toggle('active', b.dataset[attr] === val);
+  });
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+async function checkAuth() {
+  const res = await fetch('/auth/me');
+  const data = await res.json();
+  if (data.loggedIn && data.role === 'admin') {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadConfig();
+  } else {
+    document.getElementById('loginBox').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  document.getElementById('loginErr').textContent = '';
+  const res = await fetch('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    checkAuth();
+  } else {
+    document.getElementById('loginErr').textContent = data.error || 'Login gagal';
+  }
+});
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+// ── Config & Data ─────────────────────────────────────────────────────────────
+
+async function loadConfig() {
+  const res = await fetch('/LadderScoring/api/config');
+  config = await res.json();
+  loadData();
+}
+
+function courtLabel() {
+  const bonus = config.COURT_BONUS[court];
+  const winPts = config.WIN_PTS + bonus;
+  return `Court ${court} — Menang: <span style="color:var(--accent)">${winPts} pts</span> / Kalah: <span style="color:#ff6b35">${bonus} pts</span> · Max ${config.MAX_GAMES} games`;
+}
+
+async function loadData() {
+  document.getElementById('tableContainer').innerHTML = '<div style="color:var(--muted);font-size:12px;">Loading...</div>';
+  document.getElementById('scoreInfo').innerHTML = courtLabel();
+
+  const res = await fetch(`/LadderScoring/api/week-data?league=${league}&week=${week}&court=${court}`);
+  const { players } = await res.json();
+  renderTable(players);
+}
+
+function renderTable(players) {
+  const bonus = config.COURT_BONUS[court];
+  const winPts = config.WIN_PTS + bonus;
+
+  const rows = players.map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td class="wins-col"><input type="number" min="0" max="${config.MAX_GAMES}" value="${p.wins}" data-name="${p.name}" data-type="wins" placeholder="0"></td>
+      <td class="losses-col"><input type="number" min="0" max="${config.MAX_GAMES}" value="${p.losses}" data-name="${p.name}" data-type="losses" placeholder="0"></td>
+      <td class="pts-preview" id="pts-${p.name.replace(/\s+/g,'_')}">${calcPts(p.wins, p.losses, winPts, bonus)} pts</td>
+    </tr>`).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Player</th>
+        <th>Menang (W)</th>
+        <th>Kalah (L)</th>
+        <th>Points</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // Live pts preview
+  document.getElementById('tableContainer').addEventListener('input', e => {
+    if (!e.target.dataset.name) return;
+    const name = e.target.dataset.name;
+    const row = e.target.closest('tr');
+    const wins   = parseInt(row.querySelector('[data-type=wins]').value)   || 0;
+    const losses = parseInt(row.querySelector('[data-type=losses]').value) || 0;
+    const id = `pts-${name.replace(/\s+/g,'_')}`;
+    const el = document.getElementById(id);
+    if (el) el.textContent = `${calcPts(wins, losses, winPts, bonus)} pts`;
+  });
+}
+
+function calcPts(wins, losses, winPts, bonus) {
+  return wins * winPts + losses * bonus;
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+
+  const scores = {};
+  document.querySelectorAll('#tableContainer input').forEach(inp => {
+    const name = inp.dataset.name;
+    if (!scores[name]) scores[name] = { wins: 0, losses: 0 };
+    scores[name][inp.dataset.type] = parseInt(inp.value) || 0;
+  });
+
+  try {
+    const res = await fetch('/LadderScoring/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ league, week, court, scores }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✓ Data disimpan!');
+    } else {
+      showToast(data.error || 'Gagal simpan', 'error');
+    }
+  } catch (e) {
+    showToast('Network error', 'error');
+  }
+  btn.disabled = false;
+});
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+
+document.getElementById('leagueGroup').addEventListener('click', e => {
+  if (!e.target.dataset.league) return;
+  league = e.target.dataset.league;
+  setActive('leagueGroup', league, 'league');
+  loadData();
+});
+document.getElementById('weekGroup').addEventListener('click', e => {
+  if (!e.target.dataset.week) return;
+  week = e.target.dataset.week;
+  setActive('weekGroup', week, 'week');
+  loadData();
+});
+document.getElementById('courtGroup').addEventListener('click', e => {
+  if (!e.target.dataset.court) return;
+  court = e.target.dataset.court;
+  setActive('courtGroup', court, 'court');
+  loadData();
+});
+
+checkAuth();
+</script>
+</body>
+</html>

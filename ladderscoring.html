@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ladder Scoring – Season 5 | Bangi Picklers</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070710;--surface:#0d0d1a;--card:#111120;--border:#1e1e2e;--accent:#00ff9d;--a2:#ff6b35;--a3:#7c3aed;--text:#e8e8f0;--muted:#666680;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;padding:20px;}
+h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.btn-group{display:flex;gap:4px;flex-wrap:wrap;}
+button{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .15s;}
+button.active{background:#00ff9d15;border-color:var(--accent);color:var(--accent);}
+button:hover:not(.active){background:#ffffff08;color:var(--text);}
+.label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.section{margin-right:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid #1a1a2a;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#ffffff04;}
+.rank{color:var(--muted);width:36px;}
+.rank.top1{color:#ffd700;}
+.rank.top2{color:#c0c0c0;}
+.rank.top3{color:#cd7f32;}
+.pts{color:var(--accent);font-weight:700;text-align:right;}
+.wins{color:#00ff9d88;}
+.losses{color:#ff6b3588;}
+.games{color:var(--muted);}
+.court-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:16px;}
+.court-legend span{padding:3px 8px;border-radius:4px;background:var(--surface);border:1px solid var(--border);}
+.loading{color:var(--muted);font-size:12px;padding:20px;}
+.back{display:inline-block;margin-bottom:20px;font-size:11px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:6px 12px;border-radius:6px;}
+.back:hover{color:var(--text);border-color:var(--text);}
+.admin-link{float:right;font-size:10px;color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:6px;}
+.admin-link:hover{color:var(--accent);border-color:var(--accent);}
+.scoring-info{font-size:10px;color:var(--muted);line-height:1.8;}
+.scoring-info table{font-size:10px;}
+.scoring-info td{padding:3px 8px;color:var(--muted);}
+.scoring-info td:last-child{color:var(--accent);}
+.week-pts-col{font-size:10px;color:var(--muted);}
+@media(max-width:600px){
+  body{padding:12px;}
+  h1{font-size:18px;}
+  table{font-size:11px;}
+  th,td{padding:8px 8px;}
+}
+</style>
+</head>
+<body>
+
+<a href="/" class="back">← Bangi Picklers</a>
+<a href="/LadderScoring/admin" class="admin-link">Admin ⚙</a>
+
+<h1>Ladder Scoring</h1>
+<div class="sub">Season 5 · Bangi Picklers</div>
+
+<div class="controls">
+  <div class="section">
+    <div class="label">League</div>
+    <div class="btn-group" id="leagueGroup">
+      <button class="active" data-league="men">Men</button>
+      <button data-league="women">Women</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Week</div>
+    <div class="btn-group" id="weekGroup">
+      <button data-week="cumulative" class="active">Overall</button>
+      <button data-week="1">Week 1</button>
+      <button data-week="2">Week 2</button>
+      <button data-week="3">Week 3</button>
+      <button data-week="4">Week 4</button>
+    </div>
+  </div>
+</div>
+
+<div class="court-legend">
+  <span>Court 1 — W: 14pts / L: 4pts</span>
+  <span>Court 3 — W: 13pts / L: 3pts</span>
+  <span>Court 5 — W: 12pts / L: 2pts</span>
+  <span>Court 7 — W: 11pts / L: 1pt</span>
+  <span>Max 8 games/week</span>
+</div>
+
+<div class="card">
+  <div id="tableContainer"><div class="loading">Loading...</div></div>
+</div>
+
+<script>
+let league = 'men', week = 'cumulative';
+
+function setActive(groupId, val, attr) {
+  document.querySelectorAll(`#${groupId} button`).forEach(b => {
+    b.classList.toggle('active', b.dataset[attr] === val);
+  });
+}
+
+async function load() {
+  document.getElementById('tableContainer').innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const res = await fetch(`/LadderScoring/api/standings?league=${league}&week=${week}`);
+    const { standings } = await res.json();
+    render(standings);
+  } catch (e) {
+    document.getElementById('tableContainer').innerHTML = '<div class="loading">Gagal load data.</div>';
+  }
+}
+
+function render(standings) {
+  if (!standings.length) {
+    document.getElementById('tableContainer').innerHTML = '<div class="loading">Belum ada data untuk minggu ini.</div>';
+    return;
+  }
+  const rows = standings.map(s => {
+    const rankClass = s.rank === 1 ? 'top1' : s.rank === 2 ? 'top2' : s.rank === 3 ? 'top3' : '';
+    return `<tr>
+      <td class="rank ${rankClass}">${s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : s.rank}</td>
+      <td>${s.name}</td>
+      <td class="wins">${s.wins}W</td>
+      <td class="losses">${s.losses}L</td>
+      <td class="games">${s.games} game${s.games !== 1 ? 's' : ''}</td>
+      <td class="pts">${s.pts} pts</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tableContainer').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>Player</th><th>W</th><th>L</th><th>Games</th><th style="text-align:right">Points</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+document.getElementById('leagueGroup').addEventListener('click', e => {
+  if (!e.target.dataset.league) return;
+  league = e.target.dataset.league;
+  setActive('leagueGroup', league, 'league');
+  load();
+});
+document.getElementById('weekGroup').addEventListener('click', e => {
+  if (!e.target.dataset.week) return;
+  week = e.target.dataset.week;
+  setActive('weekGroup', week, 'week');
+  load();
+});
+
+load();
+</script>
+</body>
+</html>

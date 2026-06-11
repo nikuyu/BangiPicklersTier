@@ -97,10 +97,10 @@ module.exports = async function ladderScoringRoutes(req, res, pathname, query, m
 
   // ── Serve HTML pages ─────────────────────────────────────────────────────────
   if ((pathname === '/LadderScoring' || pathname === '/LadderScoring/') && req.method === 'GET') {
-    return html('ladder-scoring.html');
+    return html('ladderscoring.html');
   }
   if (pathname === '/LadderScoring/admin' && req.method === 'GET') {
-    return html('ladder-scoring-admin.html');
+    return html('ladderscoringadmin.html');
   }
 
   // ── API: GET standings ───────────────────────────────────────────────────────

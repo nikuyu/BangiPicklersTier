@@ -873,7 +873,7 @@ if (pathname === '/season5-scoresheet.html') {
 if (pathname.startsWith('/LadderScoring')) return ladderScoringRoutes(req, res, pathname, query, mongo, getSession, DATA_DIR);
   if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession, KNOWN_PLAYERS, KNOWN_PLAYERS_WOMEN);
 
-}res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Origin','*');
   res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers','Content-Type');
   if(req.method==='OPTIONS'){res.writeHead(200);return res.end();}

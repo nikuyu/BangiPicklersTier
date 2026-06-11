@@ -1,11 +1,11 @@
-// ladder-scoring-routes.js — Ladder Scoring Season 5
+// ladderscoringroutes.js — Ladder Scoring Season 5
 // server.js: if (pathname.startsWith('/LadderScoring')) return ladderScoringRoutes(req, res, pathname, query, mongo, getSession, DATA_DIR);
 
 const fs   = require('fs');
 const path = require('path');
 const { PLAYERS, COURTS, COURT_BONUS, WIN_PTS, MAX_GAMES, SEASON, TOTAL_WEEKS } = require('./LadderScoringConfig');
 
-const DATA_FILE = 'ladder-scoring.json';
+const DATA_FILE = 'ladderscoring.json';
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
 

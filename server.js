@@ -6,7 +6,7 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const ladderRoutes = require('./ladder-routes.js');
-const ladderScoringRoutes = require('./ladder-scoring-routes.js');
+const ladderScoringRoutes = require('./ladderscoringroutes.js');
 const MONGO_URI = process.env.MONGO_URI;
 
 // ── MongoDB or File fallback ───────────────────────────────

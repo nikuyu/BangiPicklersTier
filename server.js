@@ -868,11 +868,13 @@ const server = http.createServer(async(req,res)=>{
   const lg = query.league === 'women' ? 'women' : 'men';  // league param
 if (pathname.startsWith('/LadderScoring')) return ladderScoringRoutes(req, res, pathname, query, mongo, getSession, DATA_DIR);
   if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession, KNOWN_PLAYERS, KNOWN_PLAYERS_WOMEN);
-if(pathname==='/ladder-scoring.html'){
-  const html=fs.readFileSync(path.join(__dirname,'ladder-scoring.html'),'utf8');
-  res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html);
-}
-  res.setHeader('Access-Control-Allow-Origin','*');
+ if (pathname === '/season5-scoresheet.html') {
+    const html = fs.readFileSync(path.join(__dirname,'season5-scoresheet.html'),'utf8');
+    res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'}); return res.end(html);
+  }
+
+catch(e) { res.writeHead(404); return res.end('not found'); }
+}res.setHeader('Access-Control-Allow-Origin','*');
   res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers','Content-Type');
   if(req.method==='OPTIONS'){res.writeHead(200);return res.end();}

@@ -866,6 +866,15 @@ const server = http.createServer(async(req,res)=>{
   const pathname = parsed.pathname;
   const query = Object.fromEntries(parsed.searchParams);
   const lg = query.league === 'women' ? 'women' : 'men';  // league param
+
+  // Reset s5 scoresheet data
+  if (pathname === '/api/s5scoresheet/reset' && req.method === 'POST') {
+    try {
+      await dbSet('s5scoresheet', {}, 'men');
+      res.writeHead(200,{'Content-Type':'application/json'});
+      return res.end(JSON.stringify({ok:true,msg:'Scoresheet data cleared'}));
+    } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }
+  }
 if (pathname === '/season5-scoresheet.html') {
     try { const html=fs.readFileSync(path.join(__dirname,'season5-scoresheet.html'),'utf8');res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html); }
     catch(e) { res.writeHead(404);return res.end('season5-scoresheet.html not found'); }

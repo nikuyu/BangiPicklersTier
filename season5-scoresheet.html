@@ -155,9 +155,12 @@ function tf(){return CO.reduce(function(s,c){return s+grd()[c].filter(function(r
 
 // ── Server sync ───────────────────────────────────────────────
 function toSave(){
+  // ensure players are initialised before saving
+  var curLg=lg;
+  lg="men";var mpl=gpl();lg="women";var wpl=gpl();lg=curLg;
   return {
-    men:{at:S.men.at,rds:S.men.rds,pl:S.men.pl},
-    women:{at:S.women.at,rds:S.women.rds,pl:S.women.pl}
+    men:{at:S.men.at,rds:S.men.rds,pl:mpl},
+    women:{at:S.women.at,rds:S.women.rds,pl:wpl}
   };
 }
 function applyData(d){
@@ -165,7 +168,7 @@ function applyData(d){
   ["men","women"].forEach(function(x){
     if(d[x].at)S[x].at=d[x].at;
     if(d[x].rds)S[x].rds=d[x].rds;
-    if(d[x].pl)S[x].pl=d[x].pl;
+    if(d[x].pl&&d[x].pl.length)S[x].pl=d[x].pl;
   });
 }
 async function save(){

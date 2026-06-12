@@ -35,7 +35,6 @@ async function connectMongo() {
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const FILES = {
-  s5scoresheet: 's5scoresheet.json',
   players:'players.json', seasons:'seasons.json', config:'config.json',
   aliases:'aliases.json', users:'users.json', sessions:'sessions.json',
 };
@@ -867,30 +866,6 @@ const server = http.createServer(async(req,res)=>{
   const pathname = parsed.pathname;
   const query = Object.fromEntries(parsed.searchParams);
   const lg = query.league === 'women' ? 'women' : 'men';  // league param
-
-  // ── Season 5 Scoresheet API ──────────────────────────────────
-  if (pathname === '/api/s5scoresheet') {
-    if (req.method === 'GET') {
-      try {
-        const data = await dbGet('s5scoresheet','men');
-        res.writeHead(200,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'});
-        return res.end(JSON.stringify(data||{}));
-      } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }
-    }
-    if (req.method === 'POST') {
-      let body = '';
-      req.on('data', d => body += d);
-      req.on('end', async () => {
-        try {
-          const data = JSON.parse(body);
-          await dbSet('s5scoresheet', data, 'men');
-          res.writeHead(200,{'Content-Type':'application/json'});
-          return res.end(JSON.stringify({ok:true}));
-        } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }
-      });
-      return;
-    }
-  }
 if (pathname === '/season5-scoresheet.html') {
     try { const html=fs.readFileSync(path.join(__dirname,'season5-scoresheet.html'),'utf8');res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end(html); }
     catch(e) { res.writeHead(404);return res.end('season5-scoresheet.html not found'); }
@@ -898,7 +873,7 @@ if (pathname === '/season5-scoresheet.html') {
 if (pathname.startsWith('/LadderScoring')) return ladderScoringRoutes(req, res, pathname, query, mongo, getSession, DATA_DIR);
   if (pathname.startsWith('/ladder')) return ladderRoutes(req, res, pathname, query, mongo, getSession, KNOWN_PLAYERS, KNOWN_PLAYERS_WOMEN);
 
-}res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Origin','*');
   res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers','Content-Type');
   if(req.method==='OPTIONS'){res.writeHead(200);return res.end();}

@@ -378,17 +378,18 @@ function bSt(){
   var hbg=lg==="men"?"linear-gradient(135deg,#111,#2d2d2d)":"linear-gradient(135deg,#581c87,#9333ea)";
   var wbtns=WK.map(function(w){return ["<button class=\"wbtn",aw===w?" active":"","\" onclick=\"sWk(",w,")\">Week ",w,"</button>"].join("");}).join("");
   var h=[];
-  if(isAdmin){h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
-h.push("<div style=\"font-size:12px;font-weight:700;color:#6b7280;\">Game Cap:</div>");
-h.push("<div style=\"display:flex;gap:5px;\">");
-[0,7,8,9].forEach(function(n){
-  h.push("<button class=\"btn btn-sm\" style=\"background:"+(gameCap===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCap===n?"#fff":"#374151")+";\" onclick=\"setGameCap("+n+");\">"+(n===0?"All":n)+"</button>");
-});
-h.push("</div></div>");
-if(isAdmin)h.push("</div>");
-h.push("<div class=\"stog\">");
-  h.push("<button class=\"stab"+(st==="weekly"?" active":""),"\" onclick=\"sSt('weekly')\">&#128197; Weekly</button>");
-  h.push("<button class=\"stab"+(st==="cumulative"?" active":""),"\" onclick=\"sSt('cumulative')\">&#128202; Cumulative (4W)</button>");
+  if(isAdmin){
+    h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
+    h.push("<div style=\"font-size:12px;font-weight:700;color:#6b7280;\">Game Cap:</div>");
+    h.push("<div style=\"display:flex;gap:5px;\">");
+    [0,7,8,9].forEach(function(n){
+      h.push("<button class=\"btn btn-sm\" style=\"background:"+(gameCap===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCap===n?"#fff":"#374151")+";\" onclick=\"setGameCap("+n+")\">"+(n===0?"All":n)+"</button>");
+    });
+    h.push("</div></div>");
+  }
+  h.push("<div class=\"stog\">");
+  h.push("<button class=\"stab"+(st==="weekly"?" active":"")+"\" onclick=\"sSt('weekly')\">&#128197; Weekly</button>");
+  h.push("<button class=\"stab"+(st==="cumulative"?" active":"")+"\" onclick=\"sSt('cumulative')\">&#128202; Cumulative (4W)</button>");
   h.push("</div>");
   if(st==="weekly")h.push("<div class=\"wbtns\">"+wbtns+"</div>");
   h.push("<div class=\"scard\" style=\"margin-top:10px;\">");

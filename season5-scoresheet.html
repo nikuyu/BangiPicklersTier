@@ -379,13 +379,28 @@ function bSt(){
   var wbtns=WK.map(function(w){return ["<button class=\"wbtn",aw===w?" active":"","\" onclick=\"sWk(",w,")\">Week ",w,"</button>"].join("");}).join("");
   var h=[];
   if(isAdmin){
-    h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
-    h.push("<div style=\"font-size:12px;font-weight:700;color:#6b7280;\">Game Cap:</div>");
-    h.push("<div style=\"display:flex;gap:5px;\">");
-    [0,7,8,9].forEach(function(n){
-      h.push("<button class=\"btn btn-sm\" style=\"background:"+(gameCaps[lg][aw]===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCaps[lg][aw]===n?"#fff":"#374151")+";\" onclick=\"setGameCap("+n+")\">"+(n===0?"All":n)+"</button>");
-    });
-    h.push("</div></div>");
+    if(st==="weekly"){
+      h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
+      h.push("<div style=\"font-size:12px;font-weight:700;color:#6b7280;\">Cap Week "+aw+":</div>");
+      h.push("<div style=\"display:flex;gap:5px;\">");
+      [0,7,8,9].forEach(function(n){
+        h.push("<button class=\"btn btn-sm\" style=\"background:"+(gameCaps[lg][aw]===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCaps[lg][aw]===n?"#fff":"#374151")+";\" onclick=\"setGameCap("+n+")\">"+(n===0?"All":n)+"</button>");
+      });
+      h.push("</div></div>");
+    } else {
+      // Cumulative - show cap per week
+      h.push("<div style=\"background:#f8fafc;border-radius:8px;padding:10px;margin-bottom:10px;\">");
+      h.push("<div style=\"font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;\">GAME CAP PER WEEK:</div>");
+      WK.forEach(function(w){
+        h.push("<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:5px;\">");
+        h.push("<div style=\"font-size:11px;font-weight:700;width:50px;color:#374151;\">Week "+w+":</div>");
+        [0,7,8,9].forEach(function(n){
+          h.push("<button class=\"btn btn-sm\" style=\"padding:3px 8px;font-size:10px;background:"+(gameCaps[lg][w]===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCaps[lg][w]===n?"#fff":"#374151")+";\" onclick=\"setGameCapWeek("+w+","+n+")\">"+(n===0?"All":n)+"</button>");
+        });
+        h.push("</div>");
+      });
+      h.push("</div>");
+    }
   }
   h.push("<div class=\"stog\">");
   h.push("<button class=\"stab"+(st==="weekly"?" active":"")+"\" onclick=\"sSt('weekly')\">&#128197; Weekly</button>");
@@ -564,7 +579,9 @@ function saveEditPl(i){
   save();rp("players");
 }
 function setGameCap(n){gameCaps[lg][aw]=n;render();}
+function setGameCapWeek(w,n){gameCaps[lg][w]=n;render();}
 window.setGameCap=setGameCap;
+window.setGameCapWeek=setGameCapWeek;
 window.sLg=sLg;window.sTab=sTab;window.sWk=sWk;window.sAC=sAC;window.sSt=sSt;
 window.tAt=tAt;window.selAll=selAll;window.clrAt=clrAt;window.sF=sF;
 window.addPl=addPl;window.rmPl=rmPl;window.pvAv=pvAv;window.expCSV=expCSV;

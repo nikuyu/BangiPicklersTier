@@ -867,10 +867,34 @@ const server = http.createServer(async(req,res)=>{
   const query = Object.fromEntries(parsed.searchParams);
   const lg = query.league === 'women' ? 'women' : 'men';  // league param
 
+  // Season 5 Scoresheet API - save both men & women
+  if (pathname === '/api/s5scoresheet') {
+    if (req.method === 'GET') {
+      try {
+        const data = await dbGet('s5scoresheet','all');
+        res.writeHead(200,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'});
+        return res.end(JSON.stringify(data||{}));
+      } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }
+    }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', d => body += d);
+      req.on('end', async () => {
+        try {
+          const data = JSON.parse(body);
+          await dbSet('s5scoresheet', data, 'all');
+          res.writeHead(200,{'Content-Type':'application/json'});
+          return res.end(JSON.stringify({ok:true}));
+        } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }
+      });
+      return;
+    }
+  }
+
   // Reset s5 scoresheet data
   if (pathname === '/api/s5scoresheet/reset' && req.method === 'POST') {
     try {
-      await dbSet('s5scoresheet', {}, 'men');
+      await dbSet('s5scoresheet', {}, 'all');
       res.writeHead(200,{'Content-Type':'application/json'});
       return res.end(JSON.stringify({ok:true,msg:'Scoresheet data cleared'}));
     } catch(e) { res.writeHead(500); return res.end(JSON.stringify({error:e.message})); }

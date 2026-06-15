@@ -378,13 +378,14 @@ function bSt(){
   var hbg=lg==="men"?"linear-gradient(135deg,#111,#2d2d2d)":"linear-gradient(135deg,#581c87,#9333ea)";
   var wbtns=WK.map(function(w){return ["<button class=\"wbtn",aw===w?" active":"","\" onclick=\"sWk(",w,")\">Week ",w,"</button>"].join("");}).join("");
   var h=[];
-  h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
+  if(isAdmin){h.push("<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;\">");
 h.push("<div style=\"font-size:12px;font-weight:700;color:#6b7280;\">Game Cap:</div>");
 h.push("<div style=\"display:flex;gap:5px;\">");
-[0,4,6,8,10,12,16].forEach(function(n){
+[0,7,8,9].forEach(function(n){
   h.push("<button class=\"btn btn-sm\" style=\"background:"+(gameCap===n?"#1e1b4b":"#e5e7eb")+";color:"+(gameCap===n?"#fff":"#374151")+";\" onclick=\"setGameCap("+n+");\">"+(n===0?"All":n)+"</button>");
 });
 h.push("</div></div>");
+if(isAdmin)h.push("</div>");
 h.push("<div class=\"stog\">");
   h.push("<button class=\"stab"+(st==="weekly"?" active":""),"\" onclick=\"sSt('weekly')\">&#128197; Weekly</button>");
   h.push("<button class=\"stab"+(st==="cumulative"?" active":""),"\" onclick=\"sSt('cumulative')\">&#128202; Cumulative (4W)</button>");
@@ -406,10 +407,13 @@ function cSt(wk){
       });
     });
   });
-  Object.keys(gl).forEach(function(h){gl[h].sort(function(a,b){return a.rn-b.rn;});if(gameCap>0)gl[h]=gl[h].slice(0,gameCap);});
+  Object.keys(gl).forEach(function(h){gl[h].sort(function(a,b){return a.rn-b.rn;});});
   Object.keys(gl).forEach(function(h){
     if(!stats[h])stats[h]={name:h,avatarId:"",w:0,l:0,g:0,pts:0};
-    gl[h].forEach(function(g){var b=CB[g.c];if(g.res==="W"){stats[h].w++;stats[h].g++;stats[h].pts+=WP+b;}else{stats[h].l++;stats[h].g++;stats[h].pts+=b;}});
+    var allGames=gl[h];
+    var cappedGames=gameCap>0?allGames.slice(0,gameCap):allGames;
+    stats[h].g=allGames.length; // actual games played
+    cappedGames.forEach(function(g){var b=CB[g.c];if(g.res==="W"){stats[h].w++;stats[h].pts+=WP+b;}else{stats[h].l++;stats[h].pts+=b;}});
   });
   return stats;
 }
@@ -558,7 +562,7 @@ function saveEditPl(i){
   var el=document.getElementById("edit-pl-modal");if(el)el.remove();
   save();rp("players");
 }
-function setGameCap(n){gameCap=n;rp("standings");}
+function setGameCap(n){gameCap=n;render();}
 window.setGameCap=setGameCap;
 window.sLg=sLg;window.sTab=sTab;window.sWk=sWk;window.sAC=sAC;window.sSt=sSt;
 window.tAt=tAt;window.selAll=selAll;window.clrAt=clrAt;window.sF=sF;

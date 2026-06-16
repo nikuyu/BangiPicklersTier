@@ -161,7 +161,8 @@ function toSave(){
   lg="men";var mpl=gpl();lg="women";var wpl=gpl();lg=curLg;
   return {
     men:{at:S.men.at,rds:S.men.rds,pl:mpl},
-    women:{at:S.women.at,rds:S.women.rds,pl:wpl}
+    women:{at:S.women.at,rds:S.women.rds,pl:wpl},
+    gameCaps:gameCaps
   };
 }
 function applyData(d){
@@ -171,6 +172,7 @@ function applyData(d){
     if(d[x].rds)S[x].rds=d[x].rds;
     if(d[x].pl&&d[x].pl.length)S[x].pl=d[x].pl;
   });
+  if(d.gameCaps)gameCaps=d.gameCaps;
 }
 async function save(){
   try{
@@ -578,8 +580,8 @@ function saveEditPl(i){
   var el=document.getElementById("edit-pl-modal");if(el)el.remove();
   save();rp("players");
 }
-function setGameCap(n){gameCaps[lg][aw]=n;render();}
-function setGameCapWeek(w,n){gameCaps[lg][w]=n;render();}
+function setGameCap(n){gameCaps[lg][aw]=n;save();render();}
+function setGameCapWeek(w,n){gameCaps[lg][w]=n;save();render();}
 window.setGameCap=setGameCap;
 window.setGameCapWeek=setGameCapWeek;
 window.sLg=sLg;window.sTab=sTab;window.sWk=sWk;window.sAC=sAC;window.sSt=sSt;

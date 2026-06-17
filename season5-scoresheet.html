@@ -266,7 +266,7 @@ function buildApp(){
   h.push("<div class=\"hdr-sub\">"+(lg==="men"?"Pociato":"Seri Wajah")+" &times; Bangi Picklers &middot; Season 5");
   h.push(" <span id=\"sync-ind\" style=\"font-size:10px;margin-left:8px;\"></span></div></div>");
   h.push("<div class=\"hdr-right\">");
-  if(isAdmin)h.push("<button class=\"btn-exp\" onclick=\"expCSV()\">&#128203; Export</button>");
+  if(isAdmin){h.push("<button class=\"btn-exp\" onclick=\"expCSV()\">&#128203; CSV</button>");h.push("<button class=\"btn-exp\" style=\"background:#3b82f6;margin-left:5px;\" onclick=\"expJSON()\">&#128190; JSON</button>");}
   h.push(adminBtn+"</div></div>");
   h.push("<div class=\"ntabs\">"+ntabs+"<div class=\"rpill\"><span>"+tf()+" results</span></div></div>");
   h.push("</div></div><div class=\"main\">");
@@ -586,9 +586,32 @@ window.setGameCap=setGameCap;
 window.setGameCapWeek=setGameCapWeek;
 window.sLg=sLg;window.sTab=sTab;window.sWk=sWk;window.sAC=sAC;window.sSt=sSt;
 window.tAt=tAt;window.selAll=selAll;window.clrAt=clrAt;window.sF=sF;
-window.addPl=addPl;window.rmPl=rmPl;window.pvAv=pvAv;window.expCSV=expCSV;
+window.addPl=addPl;window.rmPl=rmPl;window.pvAv=pvAv;window.expCSV=expCSV;window.expJSON=expJSON;
 window.editPl=editPl;window.prevEditAv=prevEditAv;window.closeEditPl=closeEditPl;window.saveEditPl=saveEditPl;
 window.openLogin=openLogin;window.closeLogin=closeLogin;window.doLogin=doLogin;window.doLogout=doLogout;
+
+
+function expJSON(){
+  if(!isAdmin)return;
+  var data={
+    men:{at:S.men.at,rds:S.men.rds,pl:gpl_for("men")},
+    women:{at:S.women.at,rds:S.women.rds,pl:gpl_for("women")},
+    gameCaps:gameCaps,
+    exportedAt:new Date().toISOString()
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;
+  a.download="bangipicklers-s5-export-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function gpl_for(x){
+  var cur=lg;lg=x;var p=gpl();lg=cur;return p;
+}
 
 load();</script>
 </body>

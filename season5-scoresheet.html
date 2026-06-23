@@ -187,20 +187,30 @@ async function save(){
     if(ind){ind.textContent="Saved ✓";ind.style.color="#16a34a";setTimeout(function(){if(ind)ind.textContent="";},2000);}
   }catch(ex){saving=false;console.warn("Save failed:",ex);}
 }
+window.lastLoadDebug={};
 async function load(){
   try{
     loading=true;
     var res=await fetch("/api/s5scoresheet");
     var d=await res.json();
+    window.lastLoadDebug={
+      status:res.status,
+      hasMen:!!(d&&d.men),
+      hasRds:!!(d&&d.men&&d.men.rds),
+      menAtKeys:d&&d.men&&d.men.at?Object.keys(d.men.at):[],
+      menAt2Len:d&&d.men&&d.men.at&&d.men.at[2]?d.men.at[2].length:-1,
+      menRdsKeys:d&&d.men&&d.men.rds?Object.keys(d.men.rds):[],
+      rawKeys:d?Object.keys(d):[]
+    };
     if(d&&d.men&&d.men.rds){
       applyData(d);
     } else {
-      // First time — seed with Week 1 data
+      window.lastLoadDebug.usedSeed=true;
       applyData(SEED);
       await save();
     }
   }catch(ex){
-    // Fallback to seed data
+    window.lastLoadDebug={error:ex.message,usedSeed:true};
     applyData(SEED);
     console.warn("Load failed, using seed:",ex);
   }
@@ -250,6 +260,7 @@ function buildApp(){
   var adminBtn=isAdmin
     ?"<button class=\"btn-admin\" onclick=\"doLogout()\">&#128274; Logout</button>"
     :"<button class=\"btn-admin\" onclick=\"openLogin()\">&#128272; Admin</button>";
+  var debugBtn=isAdmin?"<button class=\"btn-admin\" style=\"margin-left:5px;\" onclick=\"showDebug()\">&#128027; Debug</button>":"";
   var h=[];
   h.push("<div class=\""+tcls+"\">");
   if(showLoginModal)h.push(buildLoginModal());
@@ -267,7 +278,7 @@ function buildApp(){
   h.push(" <span id=\"sync-ind\" style=\"font-size:10px;margin-left:8px;\"></span></div></div>");
   h.push("<div class=\"hdr-right\">");
   if(isAdmin){h.push("<button class=\"btn-exp\" onclick=\"expCSV()\">&#128203; CSV</button>");h.push("<button class=\"btn-exp\" style=\"background:#3b82f6;margin-left:5px;\" onclick=\"expJSON()\">&#128190; JSON</button>");}
-  h.push(adminBtn+"</div></div>");
+  h.push(adminBtn+debugBtn+"</div></div>");
   h.push("<div class=\"ntabs\">"+ntabs+"<div class=\"rpill\"><span>"+tf()+" results</span></div></div>");
   h.push("</div></div><div class=\"main\">");
   if(isAdmin)h.push("<div id=\"pg-attend\" class=\"pg"+(tab==="attend"?" active":"")+"\">"+bAt()+"</div>");
@@ -582,8 +593,11 @@ function saveEditPl(i){
 }
 function setGameCap(n){gameCaps[lg][aw]=n;save();render();}
 function setGameCapWeek(w,n){gameCaps[lg][w]=n;save();render();}
+function showDebug(){
+  alert("LOAD DEBUG:\n"+JSON.stringify(window.lastLoadDebug,null,2));
+}
 window.setGameCap=setGameCap;
-window.setGameCapWeek=setGameCapWeek;
+window.setGameCapWeek=setGameCapWeek;window.showDebug=showDebug;
 window.sLg=sLg;window.sTab=sTab;window.sWk=sWk;window.sAC=sAC;window.sSt=sSt;
 window.tAt=tAt;window.selAll=selAll;window.clrAt=clrAt;window.sF=sF;
 window.addPl=addPl;window.rmPl=rmPl;window.pvAv=pvAv;window.expCSV=expCSV;window.expJSON=expJSON;

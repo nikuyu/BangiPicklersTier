@@ -189,31 +189,40 @@ async function save(){
 }
 window.lastLoadDebug={};
 async function load(){
-  try{
-    loading=true;
-    var res=await fetch("/api/s5scoresheet");
-    var d=await res.json();
-    window.lastLoadDebug={
-      status:res.status,
-      hasMen:!!(d&&d.men),
-      hasRds:!!(d&&d.men&&d.men.rds),
-      menAtKeys:d&&d.men&&d.men.at?Object.keys(d.men.at):[],
-      menAt2Len:d&&d.men&&d.men.at&&d.men.at[2]?d.men.at[2].length:-1,
-      menRdsKeys:d&&d.men&&d.men.rds?Object.keys(d.men.rds):[],
-      rawKeys:d?Object.keys(d):[]
-    };
-    if(d&&d.men&&d.men.rds){
-      applyData(d);
-    } else {
-      window.lastLoadDebug.usedSeed=true;
-      applyData(SEED);
-      await save();
+  var retries=3;
+  while(retries-->0){
+    try{
+      loading=true;
+      var res=await fetch("/api/s5scoresheet");
+      var d=await res.json();
+      var w2len=d&&d.men&&d.men.at&&d.men.at[2]?d.men.at[2].length:0;
+      window.lastLoadDebug={
+        status:res.status,
+        hasMen:!!(d&&d.men),
+        hasRds:!!(d&&d.men&&d.men.rds),
+        menAtKeys:d&&d.men&&d.men.at?Object.keys(d.men.at):[],
+        menAt2Len:w2len,
+        menRdsKeys:d&&d.men&&d.men.rds?Object.keys(d.men.rds):[],
+        rawKeys:d?Object.keys(d):[],
+        retries:retries
+      };
+      if(d&&d.men&&d.men.rds){
+        applyData(d);
+        loading=false;
+        render();
+        return;
+      }
+      // Server returned empty - wait and retry
+      await new Promise(function(r){setTimeout(r,1500);});
+    }catch(ex){
+      window.lastLoadDebug={error:ex.message,retry:retries};
+      console.warn("Load failed, retrying:",ex);
+      await new Promise(function(r){setTimeout(r,1500);});
     }
-  }catch(ex){
-    window.lastLoadDebug={error:ex.message,usedSeed:true};
-    applyData(SEED);
-    console.warn("Load failed, using seed:",ex);
   }
+  // All retries failed - use seed but DO NOT save to server
+  window.lastLoadDebug.usedSeed=true;
+  applyData(SEED);
   loading=false;
   render();
 }
